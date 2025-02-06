@@ -1,0 +1,161 @@
+from sqlmodel import Field, Enum as dbEnum, Column, Relationship
+from pydantic import EmailStr
+from decimal import Decimal
+from datetime import date
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .sample import Sample
+    from .project import Project
+    from .note import Note
+
+from .note import TaskNoteRelationship
+from .sample import SampleTaskRelationship
+from ..database import SQLModel
+from .enums import (TaskCategoryEnum, TaskProgressEnum, TaskStatusEnum,
+                    CostCenterEnum, PaymentMethodEnum, PaymentStatusEnum)
+
+
+class TaskBase(SQLModel):
+    project_id: int = Field(foreign_key="project.id")
+    tags: str | None = None  # "#tag1# #tag2#"
+    task_category: TaskCategoryEnum = Field(
+        sa_column=Column(dbEnum(TaskCategoryEnum, index=True)))
+    task_name: str
+    task_owner_id: int = Field(foreign_key="user.id")
+    task_status: TaskStatusEnum = Field(
+        default=TaskStatusEnum.Idle, sa_column=dbEnum(TaskStatusEnum))
+
+    expected_delivery_date: date | None = None
+    start_year: int
+    pi_number: str | None = None
+    tk_number: str | None = None
+    gap_snapshot: str | None = None
+    cost_center: CostCenterEnum | None = Field(
+        default=None, sa_column=dbEnum(CostCenterEnum))
+    tox_gov_approved: bool = False
+    ecotox_gov_approved: bool = False
+    budget_confirmed: bool = False
+    doc_link: str | None = None
+
+    actual_cost: Decimal | None = Field(
+        default=None, max_digits=10, decimal_places=2)
+    po_placed: bool = False
+    contract_signed: bool = False
+    payment_method: PaymentMethodEnum = Field(
+        default=PaymentMethodEnum.Half_Half, sa_column=dbEnum(PaymentMethodEnum))
+    payment_status: PaymentStatusEnum = Field(
+        default=PaymentStatusEnum.Not_Start, sa_column=dbEnum(PaymentStatusEnum))
+    vv_doc_uploaded: bool = False
+    vv_doc_number: str | None = None
+
+    task_confirmed: bool | None = False
+    planned_start: date | None = None
+    expected_finish: date | None = None
+    actual_start: date | None = None
+    actual_finish: date | None = None
+    delivery_date: date | None = None
+    stuff_days: float | None = None
+    task_progress: TaskProgressEnum = Field(
+        default=TaskProgressEnum.Not_Start, sa_column=dbEnum(TaskProgressEnum))
+    crop: str | None = None
+    target: str | None = None
+    cro_id: int | None = Field(default=None, foreign_key="cro.id")
+    study_notified: bool = False
+    estimated_cost: Decimal | None = Field(
+        default=None, max_digits=10, decimal_places=2)
+    analytes: str | None = None
+    key_results: str | None = Field(default=None, max_length=2000)
+    guidelines: str | None = None
+
+    test_item_data_sheet: bool = False
+    ssd_finished: bool = False
+    sed_uploaded: bool = False
+    global_study_manager: str | None = None
+    global_study_manager_email: EmailStr | None = None
+    cro_study_director: str | None = None
+
+
+class TaskCreate(TaskBase):
+    pass
+
+
+class TaskPublic(TaskBase):
+    id: int
+
+
+class TaskUpdate(SQLModel):
+    project_id: int | None = None
+    tags: str | None = None
+    task_category: TaskCategoryEnum | None = None
+    task_name: str | None = None
+    task_status: TaskStatusEnum | None = None
+
+    start_year: int | None = None
+    expected_delivery_date: date | None = None
+    task_owner_id: int | None = None
+
+    budget_confirmed: bool | None = None
+    cost_center: CostCenterEnum | None = None
+    tox_gov_approved: bool | None = None
+    ecotox_gov_approved: bool | None = None
+
+    pi_number: str | None = None
+    tk_number: str | None = None
+    gap_id: int | None = None
+    doc_link: str | None = None
+
+    task_confirmed: bool | None = False
+    actual_cost: Decimal | None = None
+    po_placed: bool | None = None
+    contract_signed: bool | None = None
+    payment_method: PaymentMethodEnum | None = None
+    payment_status: PaymentStatusEnum | None = None
+    vv_doc_uploaded: bool | None = None
+    vv_doc_number: str | None = None
+
+    task_progress: TaskProgressEnum | None = None
+    planned_start: date | None = None
+    expected_finish: date | None = None
+    actual_start: date | None = None
+    actual_finish: date | None = None
+    delivery_date: date | None = None
+    stuff_days: float | None = None
+
+    cro_id: int | None = None
+    study_notified: bool | None = None
+    estimated_cost: Decimal | None = None
+    analytes_count: int | None = None
+    analytes: str | None = None
+    key_results: str | None = None
+    guidelines: str | None = None
+
+    test_item_info_sent: bool | None = None
+    ssd_finished: bool | None = None
+    sed_uploaded: bool | None = None
+    global_study_manager: str | None = None
+    cro_study_director: str | None = None
+
+
+class Task(TaskBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+    project: 'Project' = Relationship(back_populates="tasks")
+    notes: list['Note'] = Relationship(
+        back_populates="tasks", link_model=TaskNoteRelationship)
+    samples: list['Sample'] = Relationship(
+        back_populates="tasks", link_model=SampleTaskRelationship)
+
+
+class TaskLibrary(SQLModel, table=True):
+    __tablename__ = "task_library"
+    id: int = Field(primary_key=True)
+    task_category: TaskCategoryEnum = Field(sa_column=dbEnum(TaskCategoryEnum))
+    task_name_prefix: str
+    default_task_owner_id: int | None = Field(foreign_key='user.id')
+
+
+class TaskLibraryCreate(SQLModel):
+    task_category: TaskCategoryEnum = Field(sa_column=dbEnum(TaskCategoryEnum))
+    task_name_prefix: str
+    default_task_owner_id: int | None = None

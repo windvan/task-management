@@ -1,0 +1,54 @@
+/* Use @import in tailwindcss v4 */
+@import 'tailwindcss';
+@plugin "tailwindcss-primeui";
+
+@layer base {
+  html {
+    font-size: 14px;
+    background-color: var(--p-surface-100);
+  }
+}
+/* @layer primevue {} */
+@layer components {
+  .card {
+    box-shadow: 0 0 8px var(--p-surface-300);
+    border-radius: 8px;
+  }
+  .popover {
+    @apply before:content-none after:content-none mt-1;
+  }
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .form-field > label {
+    font-weight: 500;
+  }
+
+  .required-mark::after {
+    content: ' *';
+    color: red;
+  }
+}
+@layer utilities {
+}
+
+/* Global scroll bar style */
+::-webkit-scrollbar {
+  width: 6px;
+  /* vertical scrollbar width */
+  height: 6px;
+  /* horizontal scrollbar height */
+}
+
+/* scrollbar-track */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* scrollbar-thumb */
+::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 5px;
+}

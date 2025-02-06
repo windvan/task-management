@@ -1,0 +1,84 @@
+# 通用
+.DS_Store
+*.log
+*.swp
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 前端 (Vite + Vue 3)
+# 依赖
+/frontend/node_modules
+
+# 构建输出
+/frontend/dist
+/frontend/dist-ssr
+
+# 本地环境文件
+/frontend/.env.local
+/frontend/.env.*.local
+
+# 日志文件
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/pnpm-debug.log*
+
+# 编辑器目录和文件
+/frontend/.vscode/*
+!/frontend/.vscode/extensions.json
+/frontend/.idea
+/frontend/*.suo
+/frontend/*.ntvs*
+/frontend/*.njsproj
+/frontend/*.sln
+/frontend/*.sw?
+
+# 后端 (FastAPI)
+# Python 字节码
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 虚拟环境
+/backend/venv/
+/backend/.venv/
+/backend/.env
+
+# 测试覆盖率
+/backend/.coverage
+/backend/htmlcov/
+
+# pytest
+/backend/.pytest_cache/
+
+# mypy
+/backend/.mypy_cache/
+
+# 数据库
+# /backend/*.sqlite3
+# /backend/*.db
+
+# 日志
+/backend/*.log
+
+# 临时文件
+/backend/*.bak
+/backend/*.tmp
+
+# API 文档（如果自动生成）
+/backend/docs/
+
+# 配置文件（根据需要调整）
+# /backend/config.ini
+# /backend/settings.py
+
+# 其他
+# .env
+*.bak
+*.tmp
+*.temp
