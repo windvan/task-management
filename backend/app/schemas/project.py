@@ -1,16 +1,10 @@
 from sqlmodel import Field, Enum as dbEnum, Relationship
 from datetime import date
-from typing import TYPE_CHECKING
 
-
-if TYPE_CHECKING:
-    from ..schemas.task import Task
-    from ..schemas.product import Product
-
-from ..database import SQLModel
-from ..schemas.note import Note, ProjectNoteRelationship
+from ..database.database import SQLModel
 from .enums import (IndicationEnum, ProjectManagerEnum, ProjectStatusEnum, StageEnum,
                     RegManagerEnum, RegEntityEnum, RegistrationTypeEnum, SubmissionStatusEnum)
+from .note import ProjectNoteRelationship
 
 
 class ProjectBase(SQLModel):
@@ -61,9 +55,9 @@ class ProjectUpdate(SQLModel):
 class Project(ProjectBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    tasks: list['Task'] = Relationship(back_populates="project")
-    notes: list[Note] = Relationship(
-        back_populates="projects", link_model=ProjectNoteRelationship)
+    tasks: list["Task"] = Relationship(back_populates="project")  # type: ignore
+    notes: list["Note"] = Relationship(  # type: ignore
+        back_populates="project", link_model=ProjectNoteRelationship)
 
     # product: Product = Relationship(back_populates="projects")
     # portfolio_contact:User = Relationship(back_populates="projects")

@@ -1,9 +1,8 @@
-from pydantic import EmailStr, model_validator, field_validator
-from sqlmodel import Field, Enum as dbEnum, LargeBinary
+from sqlmodel import Field
 from decimal import Decimal
 
-from ..database import SQLModel
-from .enums import RoleEnum
+from ..database.database import SQLModel
+
 
 
 class Image(SQLModel):

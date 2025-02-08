@@ -1,5 +1,6 @@
 import router from '@/router'
 import axios from 'axios'
+
 // import router from '../router'
 
 export default function useAxios() {
@@ -7,10 +8,18 @@ export default function useAxios() {
     baseURL: import.meta.env.VITE_API_BASE_URL, // get base url from .env
     timeout: 3000,
     //for oauth2 authorization,Authorization must be pre-set as
-    headers: { Authorization: 'Bearer' },
+    // headers: { Authorization: 'Bearer' },
     withCredentials: true
   })
 
+  // axios 请求拦截器
+  // axiosInstance.interceptors.request.use(
+  //   // 检查access_token cookie是否存在
+  //   (config) => {
+
+  //     return config
+  //   }
+  // )
   // axios respoonse interceptor
   axiosInstance.interceptors.response.use(
     (response) => response,

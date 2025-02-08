@@ -1,11 +1,21 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator, ValidationInfo
 import os
+from pathlib import Path
+
+
+def get_env_file():
+    env = os.getenv('ENV', 'development')  # default ENV = development
+    if env == 'development':
+        env_file = Path(__file__).parent / 'dev.env'
+    else:
+        env_file = Path(__file__).parent / 'prod.env'
+    return env_file
 
 
 class Settings(BaseSettings):
-    # 环境设置,default = development
-    ENV: str = 'development'
+
+    ENV: str
 
     # 数据库设置
     DB_HOST: str | None = None
@@ -25,11 +35,11 @@ class Settings(BaseSettings):
 
     # URLss -- auto
     DATABASE_URL: str | None = None
-    BASE_URL: str = os.path.dirname(os.path.abspath(__file__))
-    GAP_IMAGE_DIR: str = os.path.abspath(BASE_URL + "statics/images/gaps")
+    BASE_URL: Path = Path(__file__).parent
+    GAP_IMAGE_DIR: Path = BASE_URL / "statics/images/gaps"
 
     # middlewares
-    CSRF_SECRET: str
+    # CSRF_SECRET: str
 
     @field_validator("DATABASE_URL")
     def assemble_db_url(cls, v: str | None, info: ValidationInfo) -> str:
@@ -43,50 +53,12 @@ class Settings(BaseSettings):
             )
         else:
             # 开发环境使用 SQLite
-            return f"sqlite:///./{info.data.get('DB_NAME')}.db"
+            # return "sqlite:///" + Path(__file__).parent.joinpath("database",f"{info.data.get('DB_NAME')}.db").resolve()
+            return f"sqlite:///./app/database/{info.data.get('DB_NAME')}.db"
 
-    class Config:
-
-        env_file_encoding = "utf-8"
-        case_sensitive = True
+    model_config = SettingsConfigDict(env_file=get_env_file(), env_file_encoding='utf-8', case_sensitive=True)
 
 
-# 创建设置实例,根据环境变量ENV,读取不同的配置：dev.env/prod.env
-env_file = 'dev.env' if os.getenv('EVN', 'development') == 'development' else 'prod.env'
-settings = Settings(_env_file=env_file)
-
-
-# import os
-# from pydantic import BaseModel
-
-
-# class ConfigBase(BaseModel):
-#     # base config
-#     BASE_URL: str = os.path.dirname(os.path.abspath(__file__))
-#     GAP_IMAGE_DIR: str = os.path.abspath(BASE_URL + "statics/images/gaps")
-#     SECRET_KEY: str = "EyAwGbTZ5mhASudyUb4V7rmKH70Qk4Ve"
-#     ALGORITHM: str = "HS256"
-#     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30 # 30 minutes
-#     COOKIE_MAX_AGE_SECONDS: int = 604800  # 7 days, 7*24*3600
-
-
-# class ConfigDev(ConfigBase):
-#     # development config
-#     BASE_URL: str = os.path.dirname(os.path.abspath(__file__))
-#     DB_URL: str = f"sqlite:///{BASE_URL + os.path.sep}database.db"
-#     FRONT_END_HOST: str = "http://localhost:5173"
-
-
-# class ConfigProd(ConfigBase):
-#     # production config
-#     DB_URL: str = "mysql+pymysql://"
-#     FRONT_END_HOST: str = "https://localhost:5173"
-
-
-# env: str = os.getenv('ENV', "dev")
-
-# if env == "dev":
-#     config = ConfigDev()
-
-# if env == "prod":
-#     config = ConfigProd()
+# 创建Settings实例,根据环境变量ENV,读取不同的配置：dev.env/prod.env
+settings = Settings()
+print(settings)

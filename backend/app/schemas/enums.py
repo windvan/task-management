@@ -79,6 +79,7 @@ class DisciplineEnum(Enum):
     Tox = "Tox"
     Eco_Tox = "Eco_Tox"
     Residue = "Residue"
+    Other = "Other"
 
 # endregion
 

@@ -1,6 +1,6 @@
 from sqlmodel import Field, Enum as dbEnum, Relationship
 
-from ..database import SQLModel
+from ..database.database import SQLModel
 from .enums import StageEnum
 
 

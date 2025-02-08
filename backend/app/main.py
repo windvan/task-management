@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from starlette_csrf import CSRFMiddleware
 
 import uvicorn
 import os
@@ -21,6 +20,15 @@ logging.basicConfig(level=logging.INFO,
 app = FastAPI(redoc_url=None)
 
 
+# 配置 CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.FRONT_END_HOST, "http://127.0.0.1:8000"],  # 允许前端源,allow credetial时不能为*
+    allow_credentials=True,
+    allow_methods=["*"],  # 允许所有方法
+    allow_headers=["*"])  # 允许所有头
+
+
 app.include_router(auth.router)
 app.include_router(user.router)
 app.include_router(product.router)
@@ -35,16 +43,6 @@ app.include_router(sse.router)
 
 
 app.mount('/static', StaticFiles(directory='app/statics'), name="static")
-
-# 配置 CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[settings.FRONT_END_HOST, "127.0.0.1:8000"],  # 允许前端源
-    allow_credentials=True,
-    allow_methods=["*"],  # 允许所有方法
-    allow_headers=["*"])  # 允许所有头
-
-app.add_middleware(CSRFMiddleware, secret=settings.CSRF_SECRET)
 
 
 @app.get('/', tags=['root'])

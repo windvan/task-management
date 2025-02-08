@@ -1,9 +1,9 @@
 from pydantic import EmailStr, field_validator
 from sqlmodel import Field, SQLModel, Enum as dbEnum, Relationship
 
-from ..database import SQLModel  # 保持这种导入方法以确保数据库表的一致性
+from ..database.database import SQLModel  # 保持这种导入方法以确保数据库表的一致性
 from ..schemas.enums import RoleEnum
-from .message import Message, MessageRecipient
+from ..schemas.message import MessageRecipient
 
 
 class UserBase(SQLModel):
@@ -32,7 +32,10 @@ class User(UserBase, table=True):
     external_id: str | None = None
     external_auth: str | None = None
 
-    received_messages: list[MessageRecipient] = Relationship(back_populates='recipient')
+    received_messages: list["MessageRecipient"] = Relationship(back_populates='recipient',
+                                                     sa_relationship_kwargs= {"foreign_keys": "[MessageRecipient.recipient_id]"})
+    sent_messages: list["Message"] = Relationship(back_populates='sender', # type: ignore
+                                                  sa_relationship_kwargs={"foreign_keys": "[Message.sender_id]"})
 
 
 class UserUpdate(SQLModel):

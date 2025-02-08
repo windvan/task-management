@@ -6,8 +6,8 @@ import jwt
 from datetime import datetime, timedelta, timezone
 
 from ..schemas import User
-from ..functions import verify_password
-from ..dependencies import SessionDep, CurrentUserDep, TokenDep
+from ..utils.functions import verify_password
+from ..utils.dependencies import SessionDep, CurrentUserDep, TokenDep
 from ..config import config
 
 router = APIRouter(prefix='/auth', tags=["Auth"])

@@ -1,5 +1,5 @@
 from sqlmodel import Field
-from ..database import SQLModel
+from ..database.database import SQLModel
 
 
 class CropBase(SQLModel):

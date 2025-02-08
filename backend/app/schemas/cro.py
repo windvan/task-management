@@ -50,6 +50,7 @@ class CroContactBase(SQLModel):
     email: EmailStr | None = None
     discipline: DisciplineEnum = Field(sa_column=dbEnum(DisciplineEnum))
     remarks: str | None = None
+    
 
 
 class CroContactCreate(CroContactBase):

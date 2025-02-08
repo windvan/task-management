@@ -2,16 +2,11 @@ from sqlmodel import Field, Enum as dbEnum, Column, Relationship
 from pydantic import EmailStr
 from decimal import Decimal
 from datetime import date
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from .sample import Sample
-    from .project import Project
-    from .note import Note
 
 from .note import TaskNoteRelationship
 from .sample import SampleTaskRelationship
-from ..database import SQLModel
+from ..database.database import SQLModel
 from .enums import (TaskCategoryEnum, TaskProgressEnum, TaskStatusEnum,
                     CostCenterEnum, PaymentMethodEnum, PaymentStatusEnum)
 
@@ -140,10 +135,10 @@ class TaskUpdate(SQLModel):
 class Task(TaskBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    project: 'Project' = Relationship(back_populates="tasks")
-    notes: list['Note'] = Relationship(
-        back_populates="tasks", link_model=TaskNoteRelationship)
-    samples: list['Sample'] = Relationship(
+    project: "Project" = Relationship(back_populates="tasks") # type: ignore
+    notes: list["Note"] = Relationship( # type: ignore
+        back_populates="task", link_model=TaskNoteRelationship)
+    samples: list["Sample"] = Relationship( # type: ignore
         back_populates="tasks", link_model=SampleTaskRelationship)
 
 

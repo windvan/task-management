@@ -3,7 +3,7 @@ from sqlmodel import select,delete
 from typing import Annotated
 
 from ..schemas.product import Product, ProductCreate, ProductPublic, ProductUpdate, ProductAi, ProductAiCreate, ProductAiPublic, ProductAiUpdate
-from ..dependencies import SessionDep, TokenDep
+from ..utils.dependencies import SessionDep, TokenDep
 
 
 router = APIRouter(prefix='/products', tags=["Product"])

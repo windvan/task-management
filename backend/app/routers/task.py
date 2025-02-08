@@ -9,7 +9,7 @@ from ..schemas.project import Project
 from ..schemas.user import User
 from ..schemas.cro import Cro
 from ..schemas.sample import Sample, SamplePublic
-from ..dependencies import SessionDep, TokenDep
+from ..utils.dependencies import SessionDep, TokenDep
 from ..schemas.enums import SampleStatusEnum
 
 

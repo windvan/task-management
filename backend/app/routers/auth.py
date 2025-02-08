@@ -1,3 +1,4 @@
+# cookie token authentication
 from fastapi import APIRouter,  HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import EmailStr
@@ -53,7 +54,7 @@ def password_login(session: SessionDep, credential: Credential):
     access_token = create_token(user, ["all"])
 
     response = JSONResponse(content={
-        "current_user": user.model_dump(exclude=['password_hash', 'external_id', 'external_auth'])
+        "current_user": user.model_dump(include=['id', 'name', 'email','role'])
     })
 
     response.set_cookie(
@@ -95,7 +96,8 @@ async def refresh_token(user_id: TokenDep):
 
 @router.get('/logout')
 def log_out(user_id: TokenDep):
-    response = JSONResponse(content={'message': 'logged out successfully!'}, status_code=status.HTTP_204_NO_CONTENT)
+    response = JSONResponse(content={'message': 'logged out successfully!'},
+                            status_code=status.HTTP_204_NO_CONTENT)
     response.delete_cookie(key='access_token',
                            samesite="none",
                            secure=True

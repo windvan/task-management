@@ -1,29 +1,23 @@
-from sqlmodel import SQLModel as BaseSQLModel, create_engine, Field
-import os
+from sqlmodel import SQLModel as BaseSQLModel, create_engine, Field,Session
+from pathlib import Path
 from datetime import datetime
+
 
 from ..config import settings
 from ..schemas import *
 
 
-from .database_init import create_test_data
-
-
 class SQLModel(BaseSQLModel):
     # shared fields by all tables
-    created_at: datetime = Field(default_factory=datetime.now(), nullable=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     created_by: int = Field(foreign_key='user.id')
 
 
 engine = create_engine(settings.DATABASE_URL, echo=True)
 
-
 if __name__ == "__main__":
-    try:
-        os.remove("./app/database/database.db")
-    except FileNotFoundError:
-        print("database file not exists")
 
+    Path(__file__).parent.joinpath("database.db").unlink(missing_ok=True)
     SQLModel.metadata.create_all(engine)
-
-    create_test_data()
+    from .database_init import create_test_data
+    create_test_data(engine)

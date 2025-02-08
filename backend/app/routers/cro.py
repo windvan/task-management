@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, HTTPException
 from sqlmodel import select
 
 from ..schemas.cro import Cro, CroCreate, CroPublic, CroUpdate, CroContact, CroContactCreate, CroContactPublic, CroContactUpdate
-from ..dependencies import SessionDep, TokenDep
+from ..utils.dependencies import SessionDep, TokenDep
 
 
 router = APIRouter(prefix='/cros', tags=["CRO"])
@@ -34,7 +34,7 @@ async def get_cro(cro_id: int, session: SessionDep, token: TokenDep):
     return db_cro
 
 
-@router.get('/cros', response_model=list[CroPublic])
+@router.get('/', response_model=list[CroPublic])
 def get_cros(session: SessionDep, token: TokenDep):
     db_cros = session.exec(select(Cro)).all()
     return db_cros
@@ -83,12 +83,24 @@ def create_cro_contact(contact_create: CroContactCreate, session: SessionDep, to
     return db_contact
 
 
+@router.get('/{cro_id}/contacts', response_model=list[CroContactPublic])
+def get_cro_contact(cro_id: int, session: SessionDep, token: TokenDep):
+    # get all contacts related to a cro
+    db_contacts = session.exec(select(CroContact).where(cro_id == cro_id)).all()
+
+    if not db_contacts:
+        raise HTTPException(status_code=404, detail="Cro contacts not found")
+
+    return db_contacts
+
+
 @router.get('/contacts/{contact_id}', response_model=CroContactPublic)
 def get_cro_contact(contact_id: int, session: SessionDep, token: TokenDep):
+    # get single contact by id
     db_contact = session.get(CroContact, contact_id)
 
     if not db_contact:
-        raise HTTPException(status_code=404, detail="Cro contact not found")
+        raise HTTPException(status_code=404, detail="Contact not found")
 
     return db_contact
 
@@ -123,4 +135,3 @@ def delete_cro_contact(contact_id: int, session: SessionDep, token: TokenDep):
     return {"message": "CRO contact deleted successfully"}
 
 # endregion
-

@@ -1,11 +1,8 @@
 from sqlmodel import Field, Enum as dbEnum, Relationship
 from datetime import date
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from .task import Task
 
-from ..database import SQLModel
+from ..database.database import SQLModel
 from .enums import SampleStatusEnum, QuantityUnitEnum
 
 
@@ -60,5 +57,5 @@ class SampleUpdate(SQLModel):
 class Sample(SampleBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    tasks: list['Task'] = Relationship(
+    tasks: list["Task"] = Relationship( # type: ignore
         back_populates="samples", link_model=SampleTaskRelationship)

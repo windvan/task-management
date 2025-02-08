@@ -5,7 +5,7 @@ from ..schemas.project import Project, ProjectCreate, ProjectPublic, ProjectUpda
 from ..schemas.product import Product
 from ..schemas.task import Task
 from ..schemas.user import User
-from ..dependencies import SessionDep, TokenDep
+from ..utils.dependencies import SessionDep, TokenDep
 
 
 router = APIRouter(prefix='/projects', tags=["Project"])

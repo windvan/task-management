@@ -1,6 +1,6 @@
 from sqlmodel import Session
 from fastapi import Depends, HTTPException, status,  Cookie
-
+from collections.abc import Generator
 import jwt
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 from typing import Annotated
@@ -10,18 +10,23 @@ from ..schemas import User
 from ..config import settings
 
 
-async def get_session():
+def get_session() -> Generator[Session, None, None]:
     with Session(engine) as session:
         yield session
+
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
 
-async def validate_token(access_token: str = Cookie()):
+async def validate_token(access_token: str = Cookie(default=None)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid token."
     )
+
+    # if access_token is None:
+    #     raise credentials_exception
+    print("\n\n\n\n",access_token)
     try:
         payload = jwt.decode(access_token, key=settings.JWT_SECRET_KEY,
                              algorithms=settings.JWT_ALGORITHM)
@@ -32,12 +37,10 @@ async def validate_token(access_token: str = Cookie()):
     except InvalidTokenError:
         raise credentials_exception
     except ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expired."
-        )
+        raise credentials_exception
+    # for validate token,return user_id
     return user_id
-# for validate token,return user_id
+
 TokenDep = Annotated[int, Depends(validate_token)]
 
 

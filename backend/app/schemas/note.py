@@ -1,13 +1,9 @@
-from sqlmodel import Field, Column, DateTime, func, Relationship, Enum as dbEnum
+from sqlmodel import Field, Relationship, Enum as dbEnum
 from pydantic import model_validator
 from sqlalchemy import CheckConstraint
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from .project import Project
-    from .task import Task
 
-from ..database import SQLModel
+from ..database.database import SQLModel
 from .enums import NoteSeverityEnum
 
 
@@ -32,9 +28,9 @@ class Note(SQLModel, table=True):
     severity: NoteSeverityEnum = Field(
         default=NoteSeverityEnum.Info, sa_column=dbEnum(NoteSeverityEnum))
 
-    project: Project = Relationship(
+    project: "Project" = Relationship(  # type: ignore
         back_populates="notes", link_model=ProjectNoteRelationship)
-    task: Task = Relationship(
+    task: "Task" = Relationship(  # type: ignore
         back_populates="notes", link_model=TaskNoteRelationship)
 
     __table_args__ = (
@@ -51,3 +47,11 @@ class Note(SQLModel, table=True):
         if (project_id is None and task_id is None) or (project_id is not None and task_id is not None):
             raise ValueError("Either project_id or task_id must be set, but not both")
         return values
+
+
+class NoteCreate(SQLModel):
+    pass
+
+
+class NotePublic(SQLModel):
+    pass

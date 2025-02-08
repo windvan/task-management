@@ -1,11 +1,10 @@
-from fastapi import APIRouter, status, HTTPException,Depends
+from fastapi import APIRouter, status, HTTPException, Depends
 from sqlmodel import select
 
 from ..schemas.note import Note, NoteCreate, NotePublic
-from ..dependencies import SessionDep, oauth2_login_scheme
+from ..utils.dependencies import SessionDep
 
-
-router = APIRouter(prefix='/notes', tags=["Note"], dependencies=[Depends(oauth2_login_scheme)])
+router = APIRouter(prefix='/notes', tags=["Note"])
 
 
 @router.post("/", response_model=NotePublic, status_code=status.HTTP_201_CREATED)
