@@ -156,7 +156,6 @@
   import { inject, onMounted, ref, computed } from 'vue'
   import { yupResolver } from '@primevue/forms/resolvers/yup'
   import * as yup from 'yup'
-  import { useEnumsStore } from '@/stores/enumsStore'
   import { dateToStr } from '@/composables/dateTools'
 
   const visible = defineModel('visible')
@@ -167,7 +166,7 @@
   const expandedRowGroups = ref(null)
   const tableError = ref('')
   const selectedNodes = ref(null)
-  const { enums } = useEnumsStore()
+  const enums = JSON.parse(localStorage.getItem('cachedEnums')) || {}
   const resolver = yupResolver(
     yup.object().shape({
       project: yup.mixed().required(),

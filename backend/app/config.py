@@ -61,4 +61,4 @@ class Settings(BaseSettings):
 
 # 创建Settings实例,根据环境变量ENV,读取不同的配置：dev.env/prod.env
 settings = Settings()
-print(settings)
+

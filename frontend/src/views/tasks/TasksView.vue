@@ -965,7 +965,7 @@
   import { useConfirm } from 'primevue/useconfirm'
   import { FilterMatchMode } from '@primevue/core'
 
-  import { useEnumsStore } from '@/stores/enumsStore'
+
   import { dateToStr } from '@/composables/dateTools'
   import EditTask from './EditTask.vue'
   import CreatTasks from './CreatTasks.vue'
@@ -973,7 +973,7 @@
 
   const apiBaseStaticUrl = import.meta.env.VITE_API_BASE_STATIC_URL
 
-  const { enums } = useEnumsStore()
+  const enums = JSON.parse(localStorage.getItem('cachedEnums')) || {}
   const layout = ref('list')
   const toast = useToast()
   const confirm = useConfirm()
@@ -1052,18 +1052,10 @@
   }
 
   onMounted(async () => {
-    try {
-      const response = await $axios.get('/tasks/')
-      tasks.value = response.data
-    } catch (err) {
-      console.error(err)
-      toast.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Faild to get all tasks',
-        life: 3000
-      })
-    }
+
+      tasks.value = await $axios.get('/tasks/') // errors will be handled globally
+       
+
 
     // load visibleColumns from localstorage: [col1,col2,col3...]
 

@@ -1,22 +1,9 @@
 <template>
   <div>
-    <DataTable
-      ref="outerTableRef"
-      :value="projects"
-      v-model:selection="selectedProject"
-      v-model:expandedRows="expandedRows"
-      @rowExpand="onRowExpand"
-      scrollable
-      selectionMode="single"
-      dataKey="id"
-      paginator
-      v-model:filters="tableFilters"
-      :rows="10"
-      :rowsPerPageOptions="[5, 10, 20, 50]"
-      :globalFilterFields="globalTableFilterFields"
-      tableStyle="min-width: 50rem"
-      pt:header="px-0"
-    >
+    <DataTable ref="outerTableRef" :value="projects" v-model:selection="selectedProject"
+      v-model:expandedRows="expandedRows" @rowExpand="onRowExpand" scrollable selectionMode="single" dataKey="id"
+      paginator v-model:filters="tableFilters" :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]"
+      :globalFilterFields="globalTableFilterFields" tableStyle="min-width: 50rem" pt:header="px-0">
       <template #header>
         <Toolbar pt:start="gap-2">
           <template #start>
@@ -34,13 +21,8 @@
           </template>
 
           <template #end>
-            <SplitButton
-              severity="secondary"
-              label="Export"
-              icon="pi pi-download"
-              @click="handleExport"
-              :model="splitBtnItems"
-            >
+            <SplitButton severity="secondary" label="Export" icon="pi pi-download" @click="handleExport"
+              :model="splitBtnItems">
             </SplitButton>
           </template>
         </Toolbar>
@@ -50,31 +32,20 @@
       <!-- <Column selectionMode="multiple" class="w-12" frozen></Column> -->
       <Column field="project_name" header="Project Name" frozen>
         <template #body="{ data }">
-          <Button
-            :label="data.project_name"
-            variant="link"
-            @click="handleEdit(data)"
-            class="px-0 text-left"
-          ></Button>
+          <Button :label="data.project_name" variant="link" @click="handleEdit(data)" class="px-0 text-left"></Button>
         </template>
       </Column>
       <Column field="product_internal_name" header="Product"></Column>
       <!-- product_id  -->
       <Column field="product_stage" header="Product Stage">
         <template #body="{ data }">
-          <Tag
-            :severity="data.product_stage >= 'stage_C' ? 'success' : 'warn'"
-            :value="data.product_stage"
-          ></Tag>
+          <Tag :severity="data.product_stage >= 'stage_C' ? 'success' : 'warn'" :value="data.product_stage"></Tag>
         </template>
       </Column>
 
       <Column field="project_status" header="Project Status">
         <template #body="{ data }">
-          <Tag
-            :severity="getStatusSeverity(data.project_status)"
-            :value="data.project_status"
-          ></Tag>
+          <Tag :severity="getStatusSeverity(data.project_status)" :value="data.project_status"></Tag>
         </template>
       </Column>
       <Column field="indication" header="Indication">
@@ -139,38 +110,20 @@
           <Button icon="pi pi-times" label="Cancel" @click="handleCancel" v-show="showForm" />
         </div>
       </template>
-      <Form
-        v-slot="$form"
-        :resolver="resolver"
-        :initialValues="initialFormData"
-        :validateOnValueUpdate="true"
-        ref="formRef"
-        class="flex flex-col gap-4 overflow-auto p-4 mb-32"
-      >
+      <Form v-slot="$form" :resolver="resolver" :initialValues="initialFormData" :validateOnValueUpdate="true"
+        ref="formRef" class="flex flex-col gap-4 overflow-auto p-4 mb-32">
         <FormField v-slot="$field" name="product" class="form-field">
           <label for="product" class="required-mark">Product</label>
-          <AutoComplete
-            inputId="product"
-            optionLabel="internal_name"
-            :suggestions="filteredProductOptions"
-            @complete="filterProductOptions"
-            completeOnFocus
-            forceSelection
-            dropdown
-            :delay="200"
-            placeholder="Type to filter"
-          />
+          <AutoComplete inputId="product" optionLabel="internal_name" :suggestions="filteredProductOptions"
+            @complete="filterProductOptions" completeOnFocus forceSelection dropdown :delay="200"
+            placeholder="Type to filter" />
           <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
             $field.error?.message
           }}</Message>
         </FormField>
         <FormField v-slot="$field" name="registration_type" class="form-field">
           <label for="registration_type" class="required-mark">Registration Type</label>
-          <Select
-            inputId="registration_type"
-            :options="enums.RegistrationTypeEnum"
-            showClear
-          ></Select>
+          <Select inputId="registration_type" :options="enums.RegistrationTypeEnum" showClear></Select>
           <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
             $field.error?.message
           }}</Message>
@@ -210,17 +163,9 @@
         </FormField>
         <FormField v-slot="$field" name="portfolio_contact" class="form-field">
           <label for="portfolio_contact" class="required-mark">Portfolio Contact</label>
-          <AutoComplete
-            inputId="portfolio_contact"
-            optionLabel="name"
-            :suggestions="filteredUserOptions"
-            @complete="filterUserOptions"
-            completeOnFocus
-            forceSelection
-            dropdown
-            :delay="200"
-            placeholder="Type to filter"
-          />
+          <AutoComplete inputId="portfolio_contact" optionLabel="name" :suggestions="filteredUserOptions"
+            @complete="filterUserOptions" completeOnFocus forceSelection dropdown :delay="200"
+            placeholder="Type to filter" />
           <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
             $field.error?.message
           }}</Message>
@@ -235,16 +180,8 @@
         </FormField>
         <FormField v-slot="$field" name="reg_manager" class="form-field">
           <label for="reg_manager" class="required-mark">Reg Manager</label>
-          <AutoComplete
-            inputId="reg_manager"
-            :suggestions="filteredRmOptions"
-            @complete="filterRmOptions"
-            completeOnFocus
-            forceSelection
-            dropdown
-            :delay="200"
-            placeholder="Type to filter"
-          />
+          <AutoComplete inputId="reg_manager" :suggestions="filteredRmOptions" @complete="filterRmOptions"
+            completeOnFocus forceSelection dropdown :delay="200" placeholder="Type to filter" />
           <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
             $field.error?.message
           }}</Message>
@@ -259,22 +196,16 @@
 
         <FormField v-slot="$field" name="submission_status" class="form-field">
           <label for="submission_status">Submission Status</label>
-          <Select
-            inputId="submission_status"
-            :options="enums.SubmissionStatusEnum"
-            showClear
-          ></Select>
+          <Select inputId="submission_status" :options="enums.SubmissionStatusEnum" showClear></Select>
           <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
             $field.error?.message
           }}</Message>
         </FormField>
 
         <FormField v-slot="$field" name="approved_date" class="form-field">
-          <label
-            for="approved_date"
-            :class="{ 'required-mark': $form?.submission_status?.value === 'Approved' }"
-            >Approved Date</label
-          >
+          <label for="approved_date"
+            :class="{ 'required-mark': $form?.submission_status?.value === 'Approved' }">Approved
+            Date</label>
           <DatePicker showIcon showButtonBar iconDisplay="input" dateFormat="yy-mm-dd" />
           <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
             $field.error?.message
@@ -294,10 +225,9 @@
 
   import { yupResolver } from '@primevue/forms/resolvers/yup'
   import * as yup from 'yup'
-  import { useEnumsStore } from '@/stores/enumsStore'
   import { Select } from 'primevue'
 
-  const { enums } = useEnumsStore()
+  const enums = JSON.parse(localStorage.getItem('cachedEnums')) || {}
   const toast = useToast()
   const confirm = useConfirm()
   const $axios = inject('$axios')
@@ -517,7 +447,7 @@
         }
         selectedProject.value = undefined
       },
-      reject: () => {}
+      reject: () => { }
     })
   }
 

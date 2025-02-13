@@ -70,7 +70,7 @@
 
         <FormField v-slot="$field" name="role" class="form-field">
           <label for="role" class="required-mark">Role</label>
-          <Select inputId="role" :options="roleEnum" showClear placeholder="Select a Role" />
+          <Select inputId="role" :options="enums.RoleEnum" showClear placeholder="Select a Role" />
           <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
             $field.error?.message
           }}</Message>
@@ -91,7 +91,6 @@
 
 <script setup>
   import { inject, ref, onMounted, computed, useTemplateRef } from 'vue'
-  import { useEnumsStore } from '@/stores/enumsStore'
   import { useConfirm } from 'primevue/useconfirm'
   import { useToast } from 'primevue/usetoast'
   import { FilterMatchMode } from '@primevue/core/api'
@@ -106,9 +105,7 @@
   const initialFormData = ref({})
   const formRef = useTemplateRef("formRef")
   const showUserForm = ref(false)
-
-
-  const roleEnum = useEnumsStore().enums.RoleEnum
+  const enums = JSON.parse(localStorage.getItem('cachedEnums')) || {}
 
   const confirm = useConfirm()
   const toast = useToast()

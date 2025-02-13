@@ -96,7 +96,7 @@ async def refresh_token(user_id: TokenDep):
 
 @router.get('/logout')
 def log_out(user_id: TokenDep):
-    response = JSONResponse(content={'message': 'logged out successfully!'},
+    response = JSONResponse(content={'detail': 'logged out successfully!'},
                             status_code=status.HTTP_204_NO_CONTENT)
     response.delete_cookie(key='access_token',
                            samesite="none",

@@ -504,9 +504,9 @@
   import * as yup from 'yup'
   import DatePicker from 'primevue/datepicker'
 
-  import { useEnumsStore } from '@/stores/enumsStore'
-import { dateToStr } from '@/composables/dateTools'
-  const { enums } = useEnumsStore()
+
+  import { dateToStr } from '@/composables/dateTools'
+  const enums = JSON.parse(localStorage.getItem('cachedEnums')) || {}
 
   const taskCategoryOptions = ref()
 

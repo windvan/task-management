@@ -185,9 +185,8 @@
 
   import { yupResolver } from '@primevue/forms/resolvers/yup'
   import * as yup from 'yup'
-  import { useEnumsStore } from '@/stores/enumsStore'
 
-  const { enums } = useEnumsStore()
+  const enums = JSON.parse(localStorage.getItem('cachedEnums')) || {}
   const toast = useToast()
   const confirm = useConfirm()
   const $axios = inject('$axios')

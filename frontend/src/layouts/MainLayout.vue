@@ -11,21 +11,29 @@
 <script setup>
   import TheHeader from '@/components/TheHeader.vue'
   import TheNavigation from '@/components/TheNavigation.vue'
-  import { ref } from 'vue'
 
+  import { ref, inject } from 'vue'
   import { onMounted } from 'vue';
-  import { useEnumsStore } from '../stores/enumsStore'
+  import { useToast } from 'primevue';
 
-  onMounted(async () => {
-    await useEnumsStore().getEnums()
-
-  })
-
-
+  const $axios = inject('$axios')
+  const toast = useToast()
   const isSidebarOpen = ref(true)
+  const enums = ref(null)
+  // refresh enums once refresh the page
+  onMounted(async () => { await getEnums() })
+  async function getEnums() {
+
+    enums.value = await $axios.get('/enums')  // error will be handled globally
+    try {
+      localStorage.setItem('cachedEnums', JSON.stringify(enums.value))
+    } catch (err) {
+      console.log(err)
+      toast.add({ severity: 'error', summary: 'Error Message', detail: err.customMessage })
+    }
+  }
+
 
 </script>
 
-<style module>
-
-</style>
+<style module></style>

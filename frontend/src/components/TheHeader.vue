@@ -12,6 +12,7 @@
         <span class="pi pi-user text-primary"></span>
         <span class="user-name">{{ current_user.name }}</span>
       </Button>
+      
 
       <Popover ref="op" appendTo="self" class="popover">
         <Button icon="pi pi-sign-out" label="logout" severity="secondary" class="h-8" @click="logout"></Button>

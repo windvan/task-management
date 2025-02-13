@@ -44,7 +44,7 @@
                     <span class="text-[--p-tag-info-color] font-bold">{{
                         '&nbsp;&nbsp;&nbsp;&nbsp;Total:' +
                         newTasks.filter((task) => task.task_category === data.task_category).length
-                        }}</span>
+                    }}</span>
                 </template>
 
                 <Column header="No." header-class="w-8">
@@ -104,7 +104,9 @@
     import * as yup from 'yup'
     import { useEnumsStore } from '@/stores/enumsStore'
     import { dateToStr } from '@/composables/dateTools'
+    import { useToast } from 'primevue'
 
+    const toast = useToast()
     const visible = defineModel('visible')
     const emit = defineEmits(['refresh'])
 
@@ -141,10 +143,9 @@
 
     async function getSelectOptions() {
         try {
-            let response = await $axios.get('/tasks/select-options')
-            selectOptions = response.data
-        } catch (err) {
-            console.log('get select options failed on tasks view', err)
+            selectOptions = await $axios.get('/tasks/select-options')
+        } catch (error) {
+            console.log(error)
         }
     }
 

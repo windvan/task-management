@@ -1,62 +1,64 @@
+// 通用错误处理，不需要将api请求放在错误捕获代码中
+// 如果想使用局部错误处理，将请求放在try代码块中，并在catch块中使用error.response.data.detail获取api返回的错误信息
 import router from '@/router'
 import axios from 'axios'
-
-// import router from '../router'
-
 export default function useAxios() {
   const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL, // get base url from .env
     timeout: 3000,
-    //for oauth2 authorization,Authorization must be pre-set as
-    // headers: { Authorization: 'Bearer' },
     withCredentials: true
   })
 
-  // axios 请求拦截器
-  // axiosInstance.interceptors.request.use(
-  //   // 检查access_token cookie是否存在
-  //   (config) => {
-
-  //     return config
-  //   }
-  // )
-  // axios respoonse interceptor
+  // axios request interceptor
+  // axiosInstance.interceptors.request.use((config) => {return config})
+  // axios response interceptor
   axiosInstance.interceptors.response.use(
-    (response) => response,
+    (response) => response.data,
     (error) => {
-      let errorMessage = 'An error occurred'
-
       if (error.response) {
-        // 服务器响应了，但状态码不在 2xx 范围内
+        // console.log(error)
         switch (error.response.status) {
           case 400:
-            errorMessage = 'Bad request'
-            break
+            error.customMessage=('Bad Request');
+            break;
           case 401:
-            errorMessage = `Unauthorized: ${error.response.data.message}`
-            router.push('/login')
-            break
+            error.customMessage=('Unauthorized');
+            router.push('/login');
+            break;
           case 403:
-            errorMessage = 'Forbidden'
-            break
+            error.customMessage=('Access Forbidden');
+            break;
           case 404:
-            errorMessage = 'Not found'
-            break
+            error.customMessage=('Resource Not Found');
+            break;
+          case 408:
+            error.customMessage=('Request Timeout');
+            break;
           case 500:
-            errorMessage = 'Internal server error'
-            break
+            error.customMessage=('Internal Server Error');
+            break;
+          case 501:
+            error.customMessage=('Not Implemented');
+            break;
+          case 502:
+            error.customMessage=('Bad Gateway');
+            break;
+          case 503:
+            error.customMessage=('Service Unavailable');
+            break;
+          case 504:
+            error.customMessage=('Gateway Timeout');
+            break;
+          case 505:
+            error.customMessage=('HTTP Version Not Supported');
+            break;
           default:
-            errorMessage = `Error: ${error.response.status}-${error.message}`
+            error.customMessage=(`Connection Error: ${error.response.status}`);
         }
-      } else if (error.request) {
-        // 请求已经发出，但没有收到响应
-        errorMessage = 'No response from server'
       } else {
-        // 在设置请求时发生了错误
-        errorMessage = error.message
+        error.customMessage=('Failed to connect to the server');
       }
-
-      return Promise.reject(errorMessage)
+      return Promise.reject(error);
     }
   )
   return axiosInstance
