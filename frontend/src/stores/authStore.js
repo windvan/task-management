@@ -1,39 +1,50 @@
-import { ref, inject, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-// import api from '../api'
-import { useRouter } from 'vue-router'
+import { useErrorStore } from './errorStore'
 
 export const useAuthStore = defineStore('auth', () => {
-  const router = useRouter()
-  const $axios = inject('$axios')
-  const cached_user = localStorage.getItem('cached_user')
-  const current_user=ref(JSON.parse(cached_user).current_user)
-  const loginErrorMessage = ref('')
 
-  const isLogedIn = computed(() => !!current_user.value)
+  const errorStore = useErrorStore()
 
-  async function login(credentials) {
+  const current_user = ref(null)
+  const isLoggedIn = ref(false) //computed(() => !!current_user.value)
+
+  async function login(credentials, router, axios) {
     try {
-      current_user.value = await $axios.post('/auth/login', credentials)
-      localStorage.setItem('cached_user', JSON.stringify(current_user.value))
-      router.push('/')
+      let data = await axios.post('/auth/login', credentials)
+
+      current_user.value = data.current_user
+      isLoggedIn.value = data.isAuthenticated
+
     } catch (error) {
-      console.log(error)
-      loginErrorMessage.value = error.response.data.detail
+      console.error(error)
+      errorStore.$patch({ loginErrMsg: error.response?.data?.detail || 'Login failed' })
     }
+
+    router.push('/')
   }
 
-  async function logout() {
-    await $axios.get('/auth/logout')
+  async function logout(router, axios) {
+    await axios.get('/auth/logout')
+    current_user.value = null
+    isLoggedIn.value = false
+    router.push('/login')
+  }
+
+  async function checkAuthStatus() {
+
     try {
-      localStorage.removeItem('cached_users')
+      const data = await axios.get('/auth/status')
+      isLoggedIn.value = data.isAuthenticated
+      current_user.value = data.current_user
+
+    } catch (error) {
+      console.error('Failed to check auth status', error)
+      isLoggedIn.value = false
       current_user.value = null
-      router.push('/login')
-    } catch (error) {
-      console.log(error)
-      
+      return false
     }
   }
 
-  return { current_user, login, logout, isLogedIn, loginErrorMessage}
+  return { current_user, login, logout, isLoggedIn }
 })

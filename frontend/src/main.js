@@ -18,14 +18,6 @@ import Tooltip from 'primevue/tooltip'
 import App from './App.vue'
 import { createApp } from 'vue'
 
-const app = createApp(App)
-
-app.use(createPinia())
-app.use(router)
-app.provide('$axios', useAxios())
-app.directive('tooltip', Tooltip)
-
-// prime vue plugin
 const MyPreset = definePreset(Aura, {
   semantic: {
     primary: {
@@ -43,6 +35,16 @@ const MyPreset = definePreset(Aura, {
     }
   }
 })
+
+const app = createApp(App)
+
+app.use(createPinia())
+app.use(router)
+app.provide('$axios', useAxios())
+app.directive('tooltip', Tooltip)
+
+// prime vue plugin
+
 app.use(PrimeVue, {
   theme: {
     preset: MyPreset,

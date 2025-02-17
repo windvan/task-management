@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 
 from ..schemas.user import User
 from ..utils.functions import verify_password
-from ..utils.dependencies import SessionDep, TokenDep
+from ..utils.dependencies import SessionDep, TokenDep, CurrentUserDep
 from ..config import settings
 
 router = APIRouter(prefix='/auth', tags=["JwtAuth"])
@@ -54,7 +54,7 @@ def password_login(session: SessionDep, credential: Credential):
     access_token = create_token(user, ["all"])
 
     response = JSONResponse(content={
-        "current_user": user.model_dump(include=['id', 'name', 'email','role'])
+        "current_user": user.model_dump(include=['id', 'name', 'email', 'role'])
     })
 
     response.set_cookie(
@@ -103,6 +103,14 @@ def log_out(user_id: TokenDep):
                            secure=True
                            )
     return response
+
+
+@router.get("/auth/status")
+async def get_auth_status(current_user: CurrentUserDep):
+    return {
+        "isAuthenticated": True,
+        "current_user": current_user.model_dump(include=['id', 'name', 'email', 'role'])
+    }
 
 
 @router.post('/sso')
