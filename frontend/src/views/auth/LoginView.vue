@@ -7,22 +7,24 @@
           <InputText id="email" pt:root:autocomplete="email" fluid></InputText>
           <label for="email">Email</label>
         </FloatLabel>
-        <Message  v-if="$field?.invalid" severity="error" size="small" variant="simple">{{$field.error?.message}}</Message>
+        <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{ $field.error?.message }}
+        </Message>
       </FormField>
 
       <FormField v-slot="$field" name="password">
         <FloatLabel>
-          <Password inputId="password" :feedback="false" fluid
-          toggleMask pt:pcInputText:root:autocomplete="current-password"></Password>
+          <Password inputId="password" :feedback="false" fluid toggleMask
+            pt:pcInputText:root:autocomplete="current-password"></Password>
           <label for="password">Password</label>
         </FloatLabel>
-        <Message  v-if="$field?.invalid" severity="error" size="small" variant="simple">{{$field.error?.message}}</Message>
+        <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{ $field.error?.message }}
+        </Message>
       </FormField>
       <Button label="Login" type="submit" rounded size="small" class="mx-8" />
       <Button label="SSO" @click="handleSSOLogin" rounded size="small" class="mx-8" severity="secondary"></Button>
     </Form>
     <Message severity="error" v-if="loginErrorMessage">
-      {{loginErrorMessage}}
+      {{ loginErrorMessage }}
     </Message>
   </div>
 </template>
@@ -39,15 +41,15 @@
   const { login } = authStore;
   const { loginErrorMessage } = storeToRefs(authStore);
 
-  const resolver =yupResolver(yup.object().shape({
-      username: yup.string().email("Invalid email address!").required("Email is required!"),
-      password: yup.string().required("Password is required!"),
-    }))
-    
-  
+  const resolver = yupResolver(yup.object().shape({
+    username: yup.string().email("Invalid email address!").required("Email is required!"),
+    password: yup.string().required("Password is required!"),
+  }))
+
+
   function handleLogin(e) {
-    if (e.valid){
-      login(e.values)
+    if (e.valid) {
+      login(e.values,,)
     }
   }
 
