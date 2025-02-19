@@ -68,14 +68,14 @@
 
 <script setup>
 import { onMounted, ref, inject } from "vue";
-const $axios = inject("$axios");
+const Api = inject("Api");
 
 const cro_list = ref([]);
 const selectedCro = ref();
 
 onMounted(async () => {
   try {
-    const response = await $axios.get("/cros/");
+    const response = await Api.get("/cros/");
     // 处理成功响应
     cro_list.value = response.data;
 
@@ -88,7 +88,7 @@ onMounted(async () => {
 async function onRowExpand(event) {
   // get tasks of current project
   try {
-    let response = await $axios.get(`cros/${event.data.id}/contacts`);
+    let response = await Api.get(`cros/${event.data.id}/contacts`);
     event.data.contacts = response.data;
   } catch (err) {
     if (err.status === 401) {

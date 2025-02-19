@@ -6,7 +6,7 @@ export const useEnumsStore = defineStore('enums', () => {
   
 
   async function getEnums() {
-    $axios
+    Api
       .get('/enums')
       .then((response) => {
         enums.value = response.data

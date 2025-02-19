@@ -514,7 +514,7 @@
 
   const toast = useToast()
   const visible = defineModel('visible')
-  const $axios = inject('$axios')
+  const Api = inject('Api')
   let selectOptions
   const _initialFormData = ref()
   const { initialFormData } = defineProps({
@@ -526,7 +526,7 @@
 
   onMounted(async () => {
     try {
-      let response = await $axios.get('/tasks/select-options')
+      let response = await Api.get('/tasks/select-options')
       selectOptions = response.data
     } catch (err) {
       console.log('get select options failed on tasks edit view', err)
@@ -608,7 +608,7 @@
     console.log(updatedFields)
     // update task
     try {
-      await $axios.patch(`/tasks/${initialFormData.id}`, updatedFields)
+      await Api.patch(`/tasks/${initialFormData.id}`, updatedFields)
       toast.add({
         severity: 'success',
         summary: 'Edit task successfully',

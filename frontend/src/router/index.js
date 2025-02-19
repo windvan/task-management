@@ -93,8 +93,8 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
-  const { isLogedIn } = useAuthStore()
-  if (requiresAuth && !isLogedIn) {
+  const { isLoggedIn } = useAuthStore()
+  if (requiresAuth && !isLoggedIn) {
     next({ path: '/login' })
   } else {
     next()

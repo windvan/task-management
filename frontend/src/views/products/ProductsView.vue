@@ -189,7 +189,7 @@
   const enums = JSON.parse(localStorage.getItem('cachedEnums')) || {}
   const toast = useToast()
   const confirm = useConfirm()
-  const $axios = inject('$axios')
+  const Api = inject('Api')
   const tableRef = useTemplateRef('tableRef')
   const formRef = useTemplateRef('formRef')
 
@@ -217,7 +217,7 @@
 
   onMounted(async () => {
     try {
-      const response = await $axios.get('/products')
+      const response = await Api.get('/products')
       products.value = response.data
     } catch (err) {
       console.error(err)
@@ -279,11 +279,11 @@
       accept: async () => {
         try {
           let response
-          response = await $axios.delete('/products', {
+          response = await Api.delete('/products', {
             data: selectedProducts.value.map((obj) => obj.id) //for mutiple selection
           })
           //refresh products
-          response = await $axios.get('/products')
+          response = await Api.get('/products')
           products.value = response.data
           toast.add({
             severity: 'success',
@@ -330,7 +330,7 @@
         })
           return
         }
-        response = await $axios.patch(`/products/${ initialFormData.id}`, dirty_data)
+        response = await Api.patch(`/products/${ initialFormData.id}`, dirty_data)
         
         toast.add({
           severity: 'success',
@@ -341,7 +341,7 @@
       } else {
         // add new product
 
-        response = await $axios.post('/products', values)
+        response = await Api.post('/products', values)
         toast.add({
           severity: 'success',
           summary: 'Success',
@@ -353,7 +353,7 @@
       showForm.value = false
 
       //refresh data
-      response = await $axios.get('/products')
+      response = await Api.get('/products')
       products.value = response.data
     } catch (err) {
       console.log(err)

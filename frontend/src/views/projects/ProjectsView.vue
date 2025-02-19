@@ -230,7 +230,7 @@
   const enums = JSON.parse(localStorage.getItem('cachedEnums')) || {}
   const toast = useToast()
   const confirm = useConfirm()
-  const $axios = inject('$axios')
+  const Api = inject('Api')
   const outerTableRef = useTemplateRef('outerTableRef')
   const formRef = useTemplateRef('formRef')
 
@@ -274,7 +274,7 @@
 
   onMounted(async () => {
     try {
-      const response = await $axios.get('/projects/')
+      const response = await Api.get('/projects/')
       projects.value = response.data
     } catch (err) {
       console.error(err)
@@ -305,7 +305,7 @@
   async function onRowExpand(event) {
     // get tasks of current project
     try {
-      let response = await $axios.get(`projects/${event.data.id}/tasks`)
+      let response = await Api.get(`projects/${event.data.id}/tasks`)
       event.data.tasks = response.data
     } catch (err) {
       if (err.status === 401) {
@@ -321,7 +321,7 @@
 
   async function getSelectOptions() {
     try {
-      let response = await $axios.get('/projects/select-options')
+      let response = await Api.get('/projects/select-options')
       selectOptions = response.data
     } catch (err) {
       console.log('get select options failed on projects view', err)
@@ -330,7 +330,7 @@
   // watchEffect(async () => {
   //   if (showForm.value) {
   //     try {
-  //       const response = await $axios.get('/projects/select-options')
+  //       const response = await Api.get('/projects/select-options')
   //       selectOptions = response.data
   //     } catch (err) {
   //       console.log('get select options failed on projects view', err)
@@ -432,9 +432,9 @@
       accept: async () => {
         try {
           let response
-          response = await $axios.delete(`/products/${selectedProject.value.id}`)
+          response = await Api.delete(`/products/${selectedProject.value.id}`)
           //refresh products
-          response = await $axios.get('/products')
+          response = await Api.get('/products')
           projects.value = response.data
           toast.add({
             severity: 'success',
@@ -486,11 +486,11 @@
           })
           return
         }
-        response = await $axios.patch(`/projects/${initialFormData.id}`, updatedFields)
+        response = await Api.patch(`/projects/${initialFormData.id}`, updatedFields)
         toast.add({ severity: 'success', summary: 'Modify project successfully', life: 3000 })
       } else {
         // add new product
-        response = await $axios.post('/projects', updatedFields)
+        response = await Api.post('/projects', updatedFields)
         toast.add({
           severity: 'success',
           summary: 'Add project successfully',
@@ -500,7 +500,7 @@
 
       showForm.value = false
       //refresh data
-      response = await $axios.get('/projects')
+      response = await Api.get('/projects')
       projects.value = response.data
     } catch (err) {
       console.log(err)

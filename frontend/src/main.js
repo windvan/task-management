@@ -3,7 +3,7 @@ import './assets/style.css' /* global-css */
 import 'primeicons/primeicons.css' /* primevue-icons */
 
 // utils
-import useAxios from './composables/useAxios'
+import useAxios from './composables/useApi'
 import { createPinia } from 'pinia'
 import router from './router'
 
@@ -17,6 +17,7 @@ import Tooltip from 'primevue/tooltip'
 // vue
 import App from './App.vue'
 import { createApp } from 'vue'
+import useApi from './composables/useApi'
 
 const MyPreset = definePreset(Aura, {
   semantic: {
@@ -40,7 +41,7 @@ const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
-app.provide('$axios', useAxios())
+app.provide('Api', useApi())
 app.directive('tooltip', Tooltip)
 
 // prime vue plugin

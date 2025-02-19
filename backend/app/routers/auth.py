@@ -54,7 +54,8 @@ def password_login(session: SessionDep, credential: Credential):
     access_token = create_token(user, ["all"])
 
     response = JSONResponse(content={
-        "current_user": user.model_dump(include=['id', 'name', 'email', 'role'])
+        "current_user": user.model_dump(include=['id', 'name', 'email', 'role']),
+        "isAuthenticated": True
     })
 
     response.set_cookie(

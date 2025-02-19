@@ -977,7 +977,7 @@
   const layout = ref('list')
   const toast = useToast()
   const confirm = useConfirm()
-  const $axios = inject('$axios')
+  const Api = inject('Api')
   const outerTableRef = useTemplateRef('outerTableRef')
   const colsPopoverRef = useTemplateRef('colsPopoverRef')
   const gapViewvisible = ref(false)
@@ -1043,7 +1043,7 @@
   async function showComments(data) {
     commentsViewVisible.value = true
     try {
-      // let response = await $axios.get(`/comments/${data.id}`)
+      // let response = await Api.get(`/comments/${data.id}`)
       // currentTask = response.data
       currentTask = data
     } catch (err) {
@@ -1053,7 +1053,7 @@
 
   onMounted(async () => {
 
-      tasks.value = await $axios.get('/tasks/') // errors will be handled globally
+      tasks.value = await Api.get('/tasks/') // errors will be handled globally
        
 
 
@@ -1071,7 +1071,7 @@
   //get select options if enter edit mode
   onMounted(async () => {
     try {
-      let response = await $axios.get('/tasks/select-options')
+      let response = await Api.get('/tasks/select-options')
       selectOptions.value = response.data
     } catch (err) {
       console.log('get select options failed on tasks edit view', err)
@@ -1090,7 +1090,7 @@
   async function onSamplesViewShow(task_id) {
     samplesViewVisible.value = true
     try {
-      let response = await $axios.get(`/tasks/${task_id}/samples`)
+      let response = await Api.get(`/tasks/${task_id}/samples`)
       currentTaskSamples.value = response.data
     } catch (error) {
       console.log('get task samples error', error)
@@ -1106,7 +1106,7 @@
     })
 
     try {
-      let response = await $axios.post(`/tasks/gaps/${currentTaskGaps.value.task_id}`, formData)
+      let response = await Api.post(`/tasks/gaps/${currentTaskGaps.value.task_id}`, formData)
       currentTaskGaps.value.gapURLs = response.data.gap_snapshot.split(',')
       tasks.value[currentTaskGaps.value.index].gap_snapshot = response.data.gap_snapshot
     } catch (error) {
@@ -1116,7 +1116,7 @@
 
   async function onGapDelete(task_id, gap) {
     try {
-      let response = await $axios.delete(`/tasks/gaps/${task_id}`, { params: { gap_path: gap } })
+      let response = await Api.delete(`/tasks/gaps/${task_id}`, { params: { gap_path: gap } })
       console.log(response.data)
       currentTaskGaps.value.gapURLs = response.data.gap_snapshot?.split(',')
       tasks.value[currentTaskGaps.value.index].gap_snapshot = response.data.gap_snapshot
@@ -1229,7 +1229,7 @@
 
   async function onRowEditSave(event) {
     try {
-      await $axios.patch('/tasks/', { [event.data.id]: updatedTasks[event.data.id] })
+      await Api.patch('/tasks/', { [event.data.id]: updatedTasks[event.data.id] })
       toast.add({
         severity: 'success',
         summary: 'Success',
@@ -1250,7 +1250,7 @@
   }
   async function onRowEditSaveAll() {
     try {
-      await $axios.patch('/tasks/', updatedTasks)
+      await Api.patch('/tasks/', updatedTasks)
       toast.add({
         severity: 'success',
         summary: 'Success',
@@ -1326,7 +1326,7 @@
           task_ids = selectedTasks.value.map((task) => task.id)
         }
         try {
-          response = await $axios.delete(`/tasks/`, { data: task_ids })
+          response = await Api.delete(`/tasks/`, { data: task_ids })
           console.log(response.data)
         } catch (error) {
           console.error('Error deleting tasks:', error)
@@ -1334,7 +1334,7 @@
 
         //refresh products
         try {
-          response = await $axios.get('/tasks/')
+          response = await Api.get('/tasks/')
           tasks.value = response.data
           toast.add({
             severity: 'success',
@@ -1353,7 +1353,7 @@
 
   async function refreshTasks() {
     try {
-      const response = await $axios.get('/tasks/')
+      const response = await Api.get('/tasks/')
       tasks.value = response.data
     } catch (err) {
       console.error(err)

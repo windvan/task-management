@@ -1,31 +1,38 @@
-import { ref, computed } from 'vue'
+import { ref, inject } from 'vue'
 import { defineStore } from 'pinia'
-import { useErrorStore } from './errorStore'
+import router from '../router'
+import useApi from '../composables/useApi'
 
 export const useAuthStore = defineStore('auth', () => {
 
-  const errorStore = useErrorStore()
 
+  const Api = useApi()
   const current_user = ref(null)
-  const isLoggedIn = ref(false) //computed(() => !!current_user.value)
+  const isLoggedIn = ref(false)
+  const loginErrorMessage = ref(null)
 
-  async function login(credentials, router, axios) {
+  async function login(credentials) {
+
     try {
-      let data = await axios.post('/auth/login', credentials)
-
+      let data = await Api.post('/auth/login', credentials, { skipInterceptor: true })
       current_user.value = data.current_user
       isLoggedIn.value = data.isAuthenticated
+      router.push('/')
 
     } catch (error) {
-      console.error(error)
-      errorStore.$patch({ loginErrMsg: error.response?.data?.detail || 'Login failed' })
+      // console.log(error)
+      // use response message if responed otherwise use axios error message
+      if (error.response) {
+        loginErrorMessage.value = error.response?.data?.detail
+      } else {
+        loginErrorMessage.value = error.message
+      }
     }
 
-    router.push('/')
   }
 
-  async function logout(router, axios) {
-    await axios.get('/auth/logout')
+  async function logout() {
+    await Api.get('/auth/logout')
     current_user.value = null
     isLoggedIn.value = false
     router.push('/login')
@@ -34,7 +41,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function checkAuthStatus() {
 
     try {
-      const data = await axios.get('/auth/status')
+      const data = await Api.get('/auth/status')
       isLoggedIn.value = data.isAuthenticated
       current_user.value = data.current_user
 
@@ -46,5 +53,5 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  return { current_user, login, logout, isLoggedIn }
+  return { login, isLoggedIn, checkAuthStatus, current_user, logout, loginErrorMessage }
 })

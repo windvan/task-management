@@ -162,7 +162,7 @@
   const emit = defineEmits(['refresh'])
 
   let selectOptions //all select components options on this page
-  const $axios = inject('$axios')
+  const Api = inject('Api')
   const expandedRowGroups = ref(null)
   const tableError = ref('')
   const selectedNodes = ref(null)
@@ -194,7 +194,7 @@
 
   async function getSelectOptions() {
     try {
-      let response = await $axios.get('/tasks/select-options')
+      let response = await Api.get('/tasks/select-options')
       selectOptions = response.data
     } catch (err) {
       console.log('get select options failed on tasks view', err)
@@ -275,8 +275,8 @@
       console.log(task_create)
 
       try {
-        await $axios.post('/tasks', task_create)
-        // const response = await $axios.get('/tasks/')
+        await Api.post('/tasks', task_create)
+        // const response = await Api.get('/tasks/')
         // tasks.value = response.data
         visible.value = false
         emit('refresh')

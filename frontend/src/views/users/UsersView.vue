@@ -100,7 +100,7 @@
   import { Password } from 'primevue'
 
 
-  const $axios = inject('$axios')
+  const Api = inject('Api')
   const users = ref([])
   const initialFormData = ref({})
   const formRef = useTemplateRef("formRef")
@@ -131,7 +131,7 @@
 
   onMounted(async () => {
     try {
-      const response = await $axios.get('/users')
+      const response = await Api.get('/users')
       users.value = response.data
     } catch (err) {
       console.error('Failed to fetch users:', err)
@@ -159,8 +159,8 @@
       let response
       if (initialFormData.value.id) {
         // update user
-        response = await $axios.patch(`/users/${initialFormData.value.id}`, values)
-        response = await $axios.get('/users')
+        response = await Api.patch(`/users/${initialFormData.value.id}`, values)
+        response = await Api.get('/users')
         users.value=response.data
         showUserForm.value = false
 
@@ -172,8 +172,8 @@
         })
       } else {
         // add new user
-        response = await $axios.post('/users', values)
-        response = await $axios.get('/users')
+        response = await Api.post('/users', values)
+        response = await Api.get('/users')
         users.value=response.data
         showUserForm.value = false
         toast.add({
@@ -216,10 +216,10 @@
     try {
       let response
       // delete user
-      response = await $axios.delete(`/users/${user_id}`)
+      response = await Api.delete(`/users/${user_id}`)
 
       // refresh users
-      response = await $axios.get('/users')
+      response = await Api.get('/users')
       users.value = response.data
     } catch (err) {
       toast.add({ severity: 'error', summary: 'Error', detail: err.message })
