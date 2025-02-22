@@ -1,16 +1,22 @@
 <script setup>
   import { RouterView } from 'vue-router'
-  import { watchEffect } from 'vue';
+  import { watch } from 'vue';
   import { useErrorStore } from './stores/errorStore';
   import { useToast } from 'primevue';
 
-  const { message, resetMessage } = useErrorStore()
+  const errorStore = useErrorStore()
   const toast = useToast()
 
-  watchEffect(async () => {
-    toast.add(message);// add message to toast
-    resetMessage();// reset message 
-  })
+  watch(
+    () => errorStore.message,
+    (newMessage) => {
+      if (newMessage) {
+        toast.add(newMessage)
+        errorStore.resetMessage()
+      }
+    }
+  )
+  
 </script>
 
 <template>

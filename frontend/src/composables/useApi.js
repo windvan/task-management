@@ -17,7 +17,10 @@ export default function useApi() {
   })
 
   // axios request interceptor
-  // axiosInstance.interceptors.request.use((config) => {return config})
+  axiosInstance.interceptors.request.use((config) => {
+    
+    return config
+  })
   // axios response interceptor
   axiosInstance.interceptors.response.use(
     (response) => response.data,
@@ -74,7 +77,7 @@ export default function useApi() {
             console.error(error);
             break;
           default:
-            errStore.setMessage('warn', 'Response Error', `Connection Error: ${error.response.status}`)
+            errStore.setMessage('warn', 'Response Error', `Connection Error: ${error.response.statusText}`)
             console.error(error);
         }
       } else if (error.request) {

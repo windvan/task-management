@@ -11,7 +11,7 @@ class CroBase(SQLModel):
     certification_number: str = Field(unique=True)
     certification_scope: str
     certification_expiration_date: date
-    address: str
+    address: str | None = None
     fw_contract_start: date | None = None
     fw_contract_end: date | None = None
     fw_contract_detail: str | None = None
@@ -19,7 +19,7 @@ class CroBase(SQLModel):
 
 
 class CroCreate(CroBase):
-    pass
+    created_by: int | None = None
 
 
 class CroPublic(CroBase):
@@ -27,6 +27,7 @@ class CroPublic(CroBase):
 
 
 class CroUpdate(SQLModel):
+    created_by: int | None = None
     cro_name: str | None = None
     certification_number: str | None = None
     certification_scope: str | None = None
@@ -50,11 +51,10 @@ class CroContactBase(SQLModel):
     email: EmailStr | None = None
     discipline: DisciplineEnum = Field(sa_column=dbEnum(DisciplineEnum))
     remarks: str | None = None
-    
 
 
 class CroContactCreate(CroContactBase):
-    pass
+    created_by: int | None = None
 
 
 class CroContactPublic(CroContactBase):
@@ -62,6 +62,7 @@ class CroContactPublic(CroContactBase):
 
 
 class CroContactUpdate(SQLModel):
+    created_by: int | None = None
     cro_id: int | None = None
     contact_name: str | None = None
     phone_number: str | None = None

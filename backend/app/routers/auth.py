@@ -106,7 +106,7 @@ def log_out(user_id: TokenDep):
     return response
 
 
-@router.get("/auth/status")
+@router.get("/status")
 async def get_auth_status(current_user: CurrentUserDep):
     return {
         "isAuthenticated": True,

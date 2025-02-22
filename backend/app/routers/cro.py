@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, HTTPException
+from fastapi import APIRouter, status, HTTPException,Body
 from sqlmodel import select
 
 from ..schemas.cro import Cro, CroCreate, CroPublic, CroUpdate, CroContact, CroContactCreate, CroContactPublic, CroContactUpdate
@@ -10,8 +10,8 @@ router = APIRouter(prefix='/cros', tags=["CRO"])
 
 # region CRO
 @router.post('/cros', response_model=CroPublic, status_code=status.HTTP_201_CREATED)
-def create_cro(cro_create: CroCreate, session: SessionDep, token: TokenDep):
-    db_cro = Cro.model_validate(cro_create)
+def create_cro(cro_create: CroCreate, session: SessionDep, user_id: TokenDep):
+    db_cro = Cro.model_validate(cro_create, update={"created_by": user_id})
     session.add(db_cro)
 
     try:
@@ -41,13 +41,13 @@ def get_cros(session: SessionDep, token: TokenDep):
 
 
 @router.patch('/{cro_id}', response_model=CroPublic)
-async def update_cro(cro_id: int, cro_update: CroUpdate, session: SessionDep, token: TokenDep):
+async def update_cro(cro_id: int, cro_update:CroUpdate, session: SessionDep, user_id: TokenDep):
     db_cro = session.get(Cro, cro_id)
     if not db_cro:
         raise HTTPException(status_code=404, detail="Cro not found")
 
     cro_data = cro_update.model_dump(exclude_unset=True)
-    db_cro.sqlmodel_update(cro_data)
+    db_cro.sqlmodel_update(cro_data, update={"created_by": user_id})
     session.add(db_cro)
     session.commit()
     session.refresh(db_cro)
@@ -79,7 +79,6 @@ def create_cro_contact(contact_create: CroContactCreate, session: SessionDep, to
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=400, detail=str(e))
-
     return db_contact
 
 
@@ -129,7 +128,7 @@ def update_cro_contact(contact_id: int, contact_update: CroContactUpdate, sessio
 def delete_cro_contact(contact_id: int, session: SessionDep, token: TokenDep):
     db_contact = session.get(CroContact, contact_id)
     if not db_contact:
-        raise HTTPException(status_code=404, detail="Cro not found")
+        raise HTTPException(status_code=404, detail="Contact not found")
     session.delete(db_contact)
     session.commit()
     return {"message": "CRO contact deleted successfully"}

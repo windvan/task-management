@@ -19,21 +19,17 @@
   const Api = inject('Api')
   const toast = useToast()
   const isSidebarOpen = ref(true)
-  const enums = ref(null)
+  
   // refresh enums once refresh the page
-  onMounted(async () => { await getEnums() })
-
-  async function getEnums() {
-
-    enums.value = await Api.get('/enums')  // error will be handled globally
+  onMounted(async () => {
+    const enums= await Api.get('/enums')  // error will be handled globally
     try {
-      localStorage.setItem('cachedEnums', JSON.stringify(enums.value))
+      localStorage.setItem('cachedEnums', JSON.stringify(enums))
     } catch (err) {
       console.log(err)
       toast.add({ severity: 'error', summary: 'Error Message', detail: err.customMessage })
     }
-  }
-
+  })
 
 </script>
 

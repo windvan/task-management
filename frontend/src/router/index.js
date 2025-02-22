@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/authStore'
+
 import MessageView from '../views/messages/MessageView.vue'
 import DashboardView from '@/views/dashboard/DashboardView.vue'
 import MainLayout from '../layouts/MainLayout.vue'
@@ -12,6 +12,7 @@ import CROsView from '@/views/cros/CROsView.vue'
 import UsersView from '@/views/users/UsersView.vue'
 import LinksView from '@/views/others/LinksView.vue'
 
+import { useAuthStore } from '../stores/authStore'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -91,12 +92,30 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+  // 刷新页面，会触发登陆状态验证（auth/check）
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
-  const { isLoggedIn } = useAuthStore()
-  if (requiresAuth && !isLoggedIn) {
-    next({ path: '/login' })
+  const authStore = useAuthStore()
+
+  if (requiresAuth) {
+    // 如果需要授权，先检查登录状态
+    if (authStore.isLoggedIn) {
+      // 已登录，正常跳转
+      next()
+    } else {
+      // 未登录，调用 checkAuthStatus() 更新登录状态
+      await authStore.checkAuthStatus()
+
+      if (authStore.isLoggedIn) {
+        // 更新状态成功，直接跳转
+        next()
+      } else {
+        // 更新状态失败，跳转到登录
+        next({ path: '/login', query: { redirect: to.fullPath } })
+      }
+    }
   } else {
+    // 不需要授权，直接跳转
     next()
   }
 })

@@ -24,9 +24,6 @@ async def validate_token(access_token: str = Cookie(default=None)):
         detail="Invalid token."
     )
 
-    # if access_token is None:
-    #     raise credentials_exception
-    print("\n\n\n\n",access_token)
     try:
         payload = jwt.decode(access_token, key=settings.JWT_SECRET_KEY,
                              algorithms=settings.JWT_ALGORITHM)

@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel as BaseSQLModel, create_engine, Field,Session
+from sqlmodel import SQLModel as BaseSQLModel, create_engine, Field, Session
 from pathlib import Path
 from datetime import datetime
 
@@ -10,7 +10,7 @@ from ..schemas import *
 class SQLModel(BaseSQLModel):
     # shared fields by all tables
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
-    created_by: int = Field(foreign_key='user.id')
+    created_by: int | None = Field(foreign_key='user.id')
 
 
 engine = create_engine(settings.DATABASE_URL, echo=True)

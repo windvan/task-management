@@ -1361,8 +1361,6 @@
   }
 </script>
 
-<style module></style>
-
 <style>
   /* resolve inline edit control display over frozen column when scroll */
   .p-datatable-thead {
@@ -1372,3 +1370,5 @@
     z-index: 1;
   }
 </style>
+
+

@@ -2,13 +2,7 @@
   <div>
     <Toolbar class="min-w-100 mb-3">
       <template #start>
-        <Button
-          icon="pi pi-plus"
-          label="New"
-          severity="primary"
-          size="small"
-          @click="openNew"
-        />
+        <Button icon="pi pi-plus" label="New" severity="primary" size="small" @click="handleShowCroForm('new', null)" />
       </template>
       <template #end>
         <IconField>
@@ -20,26 +14,18 @@
       </template>
     </Toolbar>
 
-    <DataTable
-      :value="cro_list"
-      v-model:selection="selectedCro"
-      v-model:expandedRows="expandedRows"
-      @rowExpand="onRowExpand"
-      scrollable
-      selectionMode="single"
-      dataKey="id"
-      resizableColumns
-      showGridlines
-      tableStyle="min-width: 50rem"
-      size="small"
-    >
+    <DataTable :value="cro_list" v-model:selection="selectedCro" v-model:expandedRows="expandedRows"
+      @rowExpand="onRowExpand" scrollable selectionMode="single" dataKey="id" resizableColumns showGridlines
+      tableStyle="min-width: 50rem" size="small">
       <Column expander class="w-12" frozen />
-      <Column field="certification_number" header="Cert Number"></Column>
+      <Column field="certification_number" header="Cert Number">
+        <template #body="{ data, field }">
+          <Button :label="data[field]" variant="link" @click="handleShowCroForm('edit', data)"
+            class="px-0 text-left"></Button>
+        </template>
+      </Column>
       <Column field="cro_name" header="CRO Name"></Column>
-      <Column
-        field="certification_expiration_date"
-        header="Expiration"
-      ></Column>
+      <Column field="certification_expiration_date" header="Expiration"></Column>
       <Column field="certification_scope" header="Scope"></Column>
       <Column field="fw_contract_start" header="Fw Contract Start"></Column>
       <Column field="fw_contract_end" header="Fw Contract End"></Column>
@@ -47,60 +33,123 @@
       <Column field="address" header="Address"></Column>
 
       <template #expansion="{ data }">
-        <DataTable :value="data.contacts" dataKey="id" size="large" scrollable>
-          <Column field="contact_name" header="Contact Name"></Column>
-          <Column field="discipline" header="Discipline"></Column>
-          <Column field="phone_number" header="Phone Number"></Column>
-          <Column field="email" header="Email"></Column>
-          <Column field="remarks" header="Remarks"></Column>
-          <template #empty>
-            <p class="text-center text-primary">No Related Tasks Found!</p>
-          </template>
-        </DataTable>
+
+        <div class="mt-4 flex flex-col gap-4 rounded">
+          <!-- <p class="font-bold">Contacts</p> -->
+          <div class="flex gap-4 items-center">
+            <p class="text-xl">Contacts</p>
+            <Button icon="pi pi-plus" rounded variant="outlined"
+              @click="handleShowContactForm('new', data.id)"></Button>
+            <Button icon="pi pi-pencil" rounded variant="outlined" v-if="selectedContacts"
+              @click="handleShowContactForm('edit', data.id)"></Button>
+            <Button icon=" pi pi-trash" rounded variant="outlined" v-if="selectedContacts"
+              @click="handleDeleteContact(data)"></Button>
+          </div>
+
+          <DataTable :value="data.contacts" dataKey="id" scrollable scrollHeight="flex" selectionMode="single"
+            v-model:selection="selectedContacts" showGridlines>
+
+
+            <Column selectionMode="single"></Column>
+            <Column field="contact_name" header="Contact Name"></Column>
+            <Column field="discipline" header="Discipline"></Column>
+            <Column field="phone_number" header="phone_number"></Column>
+            <Column field="email" header="email"></Column>
+            <Column field="remarks" header="remarks"></Column>
+
+            <template #empty>
+              <p class="text-center text-primary">No Contacts Found!</p>
+            </template>
+
+          </DataTable>
+        </div>
       </template>
 
       <template #empty>
         <p class="text-center text-primary">No Cros Found!</p>
       </template>
     </DataTable>
+    <CroForm v-if="showCroForm" :headerText="croFormHeaderText" :initialFormData="initialCro"
+      @close="showCroForm = false">
+    </CroForm>
+
+    <ContactForm v-if="showContactForm" :croId="targetCroID" :headerText="contactFormHeaderText"
+      :initialFormData="initialContact" @close="showContactForm = false" @refresh="handleRefreshContact"></ContactForm>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref, inject } from "vue";
-const Api = inject("Api");
+  import CroForm from "./CroForm.vue";
+  import ContactForm from './ContactForm.vue'
+  import { onMounted, ref, inject } from "vue";
+  // import { useErrorStore } from "../../stores/errorStore";
 
-const cro_list = ref([]);
-const selectedCro = ref();
+  const Api = inject("Api");
+  const cro_list = ref([]);
+  const expandedRows = ref([])
 
-onMounted(async () => {
-  try {
-    const response = await Api.get("/cros/");
-    // 处理成功响应
-    cro_list.value = response.data;
+  // cro form use
+  const selectedCro = ref();
+  const showCroForm = ref(false)
+  let croFormHeaderText = ""
+  let initialCro = null
+  // contact form use
+  const selectedContacts = ref()
+  const showContactForm = ref(false)
+  let contactFormHeaderText = ""
+  let initialContact = null
+  const targetCroID = ref()
 
-    console.log(response.data);
-  } catch (error) {
-    // 处理错误
-    console.error("An error occurred:", error);
+  onMounted(async () => {
+    cro_list.value = await Api.get("/cros/");
+  });
+
+  async function onRowExpand(event) {
+    event.data.contacts = await Api.get(`cros/${event.data.id}/contacts`);
   }
-});
-async function onRowExpand(event) {
-  // get tasks of current project
-  try {
-    let response = await Api.get(`cros/${event.data.id}/contacts`);
-    event.data.contacts = response.data;
-  } catch (err) {
-    if (err.status === 401) {
-      toast.add({
-        severity: "warn",
-        summary: "Warn Message",
-        detail: "Get related tasks failed!",
-        life: 3000,
-      });
+
+  async function handleShowCroForm(mode, data) {
+
+    if (mode === "new") {
+      croFormHeaderText = "Create CRO"
+    } else if (mode === "edit") {
+      croFormHeaderText = "Edit CRO"
+      // 如果未请求过contacts，则在此后请求
+      if (!data.contacts) {
+        data.contacts = await Api.get(`cros/${data.id}/contacts`);
+      }
     }
+    initialCro = data
+    showCroForm.value = true
   }
-}
+
+  function handleShowContactForm(mode, cro_id) {
+    if (mode === "new") {
+      contactFormHeaderText = "Add Contact"
+      initialContact = null
+    } else if (mode === "edit") {
+      contactFormHeaderText = "Edit Contact"
+      initialContact = selectedContacts.value
+    }
+    targetCroID.value = cro_id
+    showContactForm.value = true
+  }
+
+  async function handleDeleteContact(data) {
+    await Api.delete(`cros/contacts/${selectedContacts.value.id}`)
+    data.contacts = await Api.get(`cros/${data.id}/contacts`)
+    selectedContacts.value = null
+  }
+
+  async function handleRefreshContact(cro_id) {
+    let index = cro_list.value.findIndex(obj => obj.id = cro_id)
+    if (index == -1) {
+      throw new Error('数据更新失败');
+
+    }
+    cro_list.value[index].contacts = await Api.get(`cros/${cro_id}/contacts`)
+  }
 </script>
+
 
 <style module></style>
