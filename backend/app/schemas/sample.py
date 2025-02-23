@@ -57,5 +57,6 @@ class SampleUpdate(SQLModel):
 class Sample(SampleBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    tasks: list["Task"] = Relationship( # type: ignore
+    product: "Product" = Relationship(back_populates="samples")  # type: ignore
+    tasks: list["Task"] = Relationship(  # type: ignore
         back_populates="samples", link_model=SampleTaskRelationship)

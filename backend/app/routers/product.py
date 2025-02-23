@@ -1,6 +1,7 @@
-from fastapi import APIRouter, status, HTTPException,Body
-from sqlmodel import select,delete
+from fastapi import APIRouter, status, HTTPException, Body, Query
+from sqlmodel import select, delete
 from typing import Annotated
+from sqlalchemy import or_, func
 
 from ..schemas.product import Product, ProductCreate, ProductPublic, ProductUpdate, ProductAi, ProductAiCreate, ProductAiPublic, ProductAiUpdate
 from ..utils.dependencies import SessionDep, TokenDep
@@ -17,6 +18,28 @@ def create_product(product_create: ProductCreate, session: SessionDep, token: To
     session.commit()
     session.refresh(db_product)
     return db_product
+
+
+@router.get('/search')
+def search_products(session: SessionDep, token: TokenDep, search=Query()):
+    search_pattern = f"%{search}%"
+    conditions = or_(
+        Product.trade_name.ilike(search_pattern),
+        Product.internal_name.ilike(search_pattern),
+        Product.product_name.ilike(search_pattern),  # 不区分大小写的模糊匹配
+        Product.product_name_cn.ilike(search_pattern)
+    )
+    stmt = select(
+        Product.id,
+        # 使用SQL表达式生成计算字段
+        (func.coalesce(Product.trade_name, '') + ':' +
+         func.coalesce(Product.internal_name, '')).label("full_name")
+    ).where(conditions)
+
+    results = session.exec(stmt).mappings().all()
+    # 转换为字典格式
+    return results
+
 
 
 @router.get("/{product_id}", response_model=ProductPublic)
@@ -56,8 +79,8 @@ def delete_product(product_id: int, session: SessionDep, token: TokenDep):
     return {"message": "Product deleted successfully"}
 
 
-@router.delete("/", status_code=status.HTTP_204_NO_CONTENT,summary='delete a list of products through list[id]')
-def delete_products(product_ids:Annotated[list[int],Body()], session: SessionDep, token: TokenDep):
+@router.delete("/", status_code=status.HTTP_204_NO_CONTENT, summary='delete a list of products through list[id]')
+def delete_products(product_ids: Annotated[list[int], Body()], session: SessionDep, token: TokenDep):
     stmt = delete(Product).where(Product.id.in_(product_ids))
     session.exec(stmt)
     session.commit()

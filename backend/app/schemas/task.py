@@ -25,7 +25,7 @@ class TaskBase(SQLModel):
     start_year: int
     pi_number: str | None = None
     tk_number: str | None = None
-    gap_snapshot: str | None = None
+    gap_id: int | None = Field(default=None, foreign_key="gap.id")
     cost_center: CostCenterEnum | None = Field(
         default=None, sa_column=dbEnum(CostCenterEnum))
     tox_gov_approved: bool = False
@@ -97,6 +97,8 @@ class TaskUpdate(SQLModel):
 
     pi_number: str | None = None
     tk_number: str | None = None
+    # gap的变化,不一定导致所有的task都需要调整
+    # 因此,每个scoping task保存一个gap截图,每个gap截图,可以被多个task引用(一对多关系)
     gap_id: int | None = None
     doc_link: str | None = None
 
@@ -135,10 +137,17 @@ class TaskUpdate(SQLModel):
 class Task(TaskBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    project: "Project" = Relationship(back_populates="tasks") # type: ignore
-    notes: list["Note"] = Relationship( # type: ignore
+    project: "Project" = Relationship(back_populates="tasks", sa_relationship_kwargs={  # type: ignore
+                                      "foreign_keys": "Task.project_id"})
+    task_owner: "User" = Relationship(back_populates="tasks", sa_relationship_kwargs={  # type: ignore
+                                      "foreign_keys": "Task.task_owner_id"})  # type: ignore
+    cro: "Cro" = Relationship(back_populates="tasks", sa_relationship_kwargs={  # type: ignore
+        "foreign_keys": "Task.cro_id"})  # type: ignore
+    gap: "Gap" = Relationship(back_populates="tasks", sa_relationship_kwargs={  # type: ignore
+        "foreign_keys": "Task.gap_id"})  # type: ignore
+    notes: list["Note"] = Relationship(  # type: ignore
         back_populates="task", link_model=TaskNoteRelationship)
-    samples: list["Sample"] = Relationship( # type: ignore
+    samples: list["Sample"] = Relationship(  # type: ignore
         back_populates="tasks", link_model=SampleTaskRelationship)
 
 
@@ -154,3 +163,21 @@ class TaskLibraryCreate(SQLModel):
     task_category: TaskCategoryEnum = Field(sa_column=dbEnum(TaskCategoryEnum))
     task_name_prefix: str
     default_task_owner_id: int | None = None
+
+
+
+class TasksWithSample(TaskBase):
+    id:int
+    project: "Project" = Relationship(back_populates="tasks", sa_relationship_kwargs={  # type: ignore
+                                      "foreign_keys": "Task.project_id"})
+    task_owner: "User" = Relationship(back_populates="tasks", sa_relationship_kwargs={  # type: ignore
+                                      "foreign_keys": "Task.task_owner_id"})  # type: ignore
+    cro: "Cro" = Relationship(back_populates="tasks", sa_relationship_kwargs={  # type: ignore
+        "foreign_keys": "Task.cro_id"})  # type: ignore
+    gap: "Gap" = Relationship(back_populates="tasks", sa_relationship_kwargs={  # type: ignore
+        "foreign_keys": "Task.gap_id"})  # type: ignore
+    notes: list["Note"] = Relationship(  # type: ignore
+        back_populates="task", link_model=TaskNoteRelationship)
+    samples: list["Sample"] = Relationship(  # type: ignore
+        back_populates="tasks", link_model=SampleTaskRelationship)
+

@@ -1,4 +1,4 @@
-from sqlmodel import Field
+from sqlmodel import Field,Relationship
 from decimal import Decimal
 
 from ..database.database import SQLModel
@@ -51,8 +51,11 @@ class Gap(GapBase, table=True):
     water_volumn_unit: str = "L/ha"
     snapshot_url: str | None = None
 
+    tasks: list["Task"] = Relationship(back_populates='gap', # type: ignore
+                                      sa_relationship_kwargs={"foreign_keys": "Task.gap_id"})
 
-class GapTaskRelationship(SQLModel, table=True):
-    __tablename__ = "gap_task_rel"
-    gap_id: int = Field(foreign_key="gap.id", primary_key=True)
-    task_id: int = Field(foreign_key="task.id", primary_key=True)
+
+# class GapTaskRelationship(SQLModel, table=True):
+#     __tablename__ = "gap_task_rel"
+#     gap_id: int = Field(foreign_key="gap.id", primary_key=True)
+#     task_id: int = Field(foreign_key="task.id", primary_key=True)

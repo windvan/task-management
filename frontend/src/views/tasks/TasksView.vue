@@ -33,13 +33,20 @@
       :globalFilterFields="globalFilterFields"
       sortMode="multiple"
       removableSort
-      pt:header="px-0"
-    >
+      pt:header="px-0">
       <template #header>
         <Toolbar pt:start="gap-2" pt:end="gap-2">
           <template #start>
-            <Button icon="pi pi-plus" label="New" @click="handleNew" severity="secondary" />
-            <Button icon="pi pi-trash" label="Delete" @click="handleDelete" severity="secondary" />
+            <Button
+              icon="pi pi-plus"
+              label="New"
+              @click="handleNew"
+              severity="secondary" />
+            <Button
+              icon="pi pi-trash"
+              label="Delete"
+              @click="handleDelete"
+              severity="secondary" />
           </template>
 
           <template #center>
@@ -47,7 +54,9 @@
               <InputIcon>
                 <i class="pi pi-search" />
               </InputIcon>
-              <InputText placeholder="Search" v-model="filters['global'].value" />
+              <InputText
+                placeholder="Search"
+                v-model="filters['global'].value" />
             </IconField>
           </template>
 
@@ -57,39 +66,37 @@
               rounded
               severity="secondary"
               v-tooltip.top="'Select columns'"
-              @click="toggleColsPopover"
-            ></Button>
+              @click="toggleColsPopover"></Button>
 
-            <Popover ref="colsPopoverRef" @show="onPopoverShow" pt:content="flex flex-col gap-4">
+            <Popover
+              ref="colsPopoverRef"
+              @show="onPopoverShow"
+              pt:content="flex flex-col gap-4">
               <div class="flex gap-8 justify-center">
                 <Button
                   label="Apply"
                   icon="pi pi-check"
                   variant="outlined"
                   size="small"
-                  @click="onApply"
-                ></Button>
+                  @click="onApply"></Button>
                 <Button
                   label="Cancel"
                   icon="pi pi-times"
                   severity="secondary"
                   size="small"
-                  @click="onCancel"
-                ></Button>
+                  @click="onCancel"></Button>
                 <Button
                   label="Default"
                   icon="pi pi-undo"
                   severity="secondary"
                   size="small"
-                  @click="onDefault"
-                ></Button>
+                  @click="onDefault"></Button>
               </div>
               <PickList
                 v-model="columnPicker"
                 dataKey="idx"
                 breakpoint="800px"
-                scroll-height="20rem"
-              >
+                scroll-height="20rem">
                 <template #option="{ option }">
                   {{ option.col }}
                 </template>
@@ -103,7 +110,11 @@
                 </template>
               </PickList>
               <div class="flex items-center gap-2">
-                <Checkbox v-model="rememberSelection" binary inputId="remember" size="small" />
+                <Checkbox
+                  v-model="rememberSelection"
+                  binary
+                  inputId="remember"
+                  size="small" />
                 <label for="remember"> Remember my selection</label>
               </div>
             </Popover>
@@ -112,10 +123,10 @@
               v-model="layout"
               :options="['list', 'grid']"
               :allowEmpty="false"
-              v-tooltip.top="'Toggle display list/grid'"
-            >
+              v-tooltip.top="'Toggle display list/grid'">
               <template #option="{ option }">
-                <i :class="[option === 'list' ? 'pi pi-bars' : 'pi pi-table']" />
+                <i
+                  :class="[option === 'list' ? 'pi pi-bars' : 'pi pi-table']" />
               </template>
             </SelectButton>
             <SplitButton
@@ -123,8 +134,7 @@
               label="Export"
               icon="pi pi-download"
               @click="handleExport"
-              :model="splitBtnItems"
-            >
+              :model="splitBtnItems">
             </SplitButton>
           </template>
         </Toolbar>
@@ -135,18 +145,17 @@
       <!-- <Column frozen selectionMode="multiple"></Column> -->
 
       <Column
-        v-if="visibleColumns.has('project_id')"
-        field="project_id"
+        v-if="visibleColumns.has('project_name')"
+        field="project_name"
         header="Project Name"
         header-class="min-w-48"
         frozen
-        sortable
-      >
-        <template #body="{ data, field }">
-          {{ selectOptions?.projectOptions?.find((proj) => proj.id === data[field])?.project_name }}
-        </template>
+        sortable>
         <template #filter="{ filterModel }">
-          <InputText v-model="filterModel.value" type="text" placeholder="Search by country" />
+          <InputText
+            v-model="filterModel.value"
+            type="text"
+            placeholder="Search Tasks" />
         </template>
       </Column>
 
@@ -157,15 +166,13 @@
         header-class="min-w-48"
         class="border-r border-r-gray-300"
         frozen
-        sortable
-      >
+        sortable>
         <template #body="{ data, field }">
           <Button
             :label="data[field]"
             variant="link"
             @click="handleEdit(data)"
-            class="px-0 text-left"
-          ></Button>
+            class="px-0 text-left"></Button>
         </template>
         <!-- <template #editor="{data,field}">
           <InputText v-model="data[field]"></InputText>
@@ -177,28 +184,35 @@
         field="task_category"
         header="Task Category"
         sortable
-        header-class="min-w-40"
-      ></Column>
+        header-class="min-w-40"></Column>
       <Column v-if="visibleColumns.has('tags')" field="tags" header="Tags">
         <template #editor="{ data, field }">
           <InputText
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></InputText>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
+          </InputText>
         </template>
       </Column>
 
-      <Column v-if="visibleColumns.has('task_status')" field="task_status" header="Task Status">
+      <Column
+        v-if="visibleColumns.has('task_status')"
+        field="task_status"
+        header="Task Status">
         <template #body="{ data, field }">
-          <Tag :severity="getTaskStatusSeverity(data[field])" :value="data[field]"></Tag>
+          <Tag
+            :severity="getTaskStatusSeverity(data[field])"
+            :value="data[field]"></Tag>
         </template>
         <template #editor="{ data, field }">
           <Select
             :options="enums.TaskStatusEnum"
             class="w-full"
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          >
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
           </Select>
         </template>
       </Column>
@@ -206,8 +220,11 @@
         v-if="visibleColumns.has('start_year')"
         field="start_year"
         header="Start Year"
-        :pt="{ headerCell: ({ parent }) => ({ class: { 'min-w-48': parent.state['d_editing'] } }) }"
-      >
+        :pt="{
+          headerCell: ({ parent }) => ({
+            class: { 'min-w-48': parent.state['d_editing'] },
+          }),
+        }">
         <template #editor="{ data, field }">
           <DatePicker
             showIcon
@@ -217,15 +234,15 @@
             date-format="yy"
             :min-date="new Date()"
             :model-value="new Date(data[field], 0)"
-            @update:model-value="(value) => onCellChange(data.id, field, value?.getFullYear())"
-          />
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value?.getFullYear())
+            " />
         </template>
       </Column>
       <Column
         v-if="visibleColumns.has('expected_delivery_date')"
         field="expected_delivery_date"
-        header="Expected Delivery Date"
-      >
+        header="Expected Delivery Date">
         <template #editor="{ data, field }">
           <DatePicker
             showIcon
@@ -234,155 +251,191 @@
             date-format="yy-mm-dd"
             :min-date="new Date()"
             :model-value="new Date(data[field])"
-            @update:model-value="(value) => onCellChange(data.id, field, dateToStr(value))"
-          />
+            @update:model-value="
+              (value) => onCellChange(data.id, field, dateToStr(value))
+            " />
         </template>
       </Column>
-      <Column v-if="visibleColumns.has('task_owner_id')" field="task_owner_id" header="Task Owner">
+      <Column
+        v-if="visibleColumns.has('task_owner_id')"
+        field="task_owner_id"
+        header="Task Owner">
         <template #body="{ data, field }">
-          {{ selectOptions?.userOptions?.find((user) => user.id === data[field])?.name }}
+          {{
+            selectOptions?.userOptions?.find((user) => user.id === data[field])
+              ?.name
+          }}
         </template>
         <template #editor="{ data, field }">
           <Select
             :options="selectOptions?.userOptions"
             option-label="name"
-            :model-value="selectOptions?.userOptions?.find((user) => user.id === data[field])"
-            @update:model-value="(value) => onCellChange(data.id, field, value.id)"
-          ></Select>
+            :model-value="
+              selectOptions?.userOptions?.find(
+                (user) => user.id === data[field]
+              )
+            "
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value.id)
+            "></Select>
         </template>
       </Column>
       <Column v-if="visibleColumns.has('crop')" field="crop" header="Crop">
         <template #editor="{ data, field }">
           <InputText
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></InputText>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
+          </InputText>
         </template>
       </Column>
-      <Column v-if="visibleColumns.has('target')" field="target" header="Target">
+      <Column
+        v-if="visibleColumns.has('target')"
+        field="target"
+        header="Target">
         <template #editor="{ data, field }">
           <InputText
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></InputText>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
+          </InputText>
         </template>
       </Column>
 
       <Column
         v-if="visibleColumns.has('task_confirmed')"
         field="task_confirmed"
-        header="Task Confirmed"
-      >
+        header="Task Confirmed">
         <template #body="{ data, field }">
           <Tag
             :severity="data[field] ? 'success' : 'warn'"
-            :value="data[field] ? 'YES' : 'NO'"
-          ></Tag>
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
         </template>
         <template #editor="{ data, field }">
           <Checkbox
             binary
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></Checkbox>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            "></Checkbox>
         </template>
 
-        ></Column
-      >
+        >
+      </Column>
       <Column
         v-if="visibleColumns.has('budget_confirmed')"
         field="budget_confirmed"
-        header="Budget Confirmed"
-      >
+        header="Budget Confirmed">
         <template #body="{ data, field }">
           <Tag
             :severity="data[field] ? 'success' : 'warn'"
-            :value="data[field] ? 'YES' : 'NO'"
-          ></Tag>
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
         </template>
         <template #editor="{ data, field }">
           <Checkbox
             binary
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></Checkbox>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            "></Checkbox>
         </template>
       </Column>
-      <Column v-if="visibleColumns.has('cost_center')" field="cost_center" header="Cost Center">
+      <Column
+        v-if="visibleColumns.has('cost_center')"
+        field="cost_center"
+        header="Cost Center">
         <template #editor="{ data, field }">
           <Select
             :options="enums.CostCenterEnum"
             class="w-full"
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          >
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
           </Select>
         </template>
       </Column>
       <Column
         v-if="visibleColumns.has('tox_gov_approved')"
         field="tox_gov_approved"
-        header="Tox_Gov Approved"
-      >
+        header="Tox_Gov Approved">
         <template #body="{ data, field }">
           <Tag
             :severity="data[field] ? 'success' : 'warn'"
-            :value="data[field] ? 'YES' : 'NO'"
-          ></Tag>
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
         </template>
         <template #editor="{ data, field }">
           <Checkbox
             binary
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></Checkbox>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            "></Checkbox>
         </template>
       </Column>
       <Column
         v-if="visibleColumns.has('ecotox_gov_approved')"
         field="ecotox_gov_approved"
-        header="EcoTox_Gov Approved"
-      >
+        header="EcoTox_Gov Approved">
         <template #body="{ data, field }">
           <Tag
             :severity="data[field] ? 'success' : 'warn'"
-            :value="data[field] ? 'YES' : 'NO'"
-          ></Tag>
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
         </template>
         <template #editor="{ data, field }">
           <Checkbox
             binary
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></Checkbox>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            "></Checkbox>
         </template>
       </Column>
-      <Column v-if="visibleColumns.has('pi_number')" field="pi_number" header="PI NO.">
+      <Column
+        v-if="visibleColumns.has('pi_number')"
+        field="pi_number"
+        header="PI NO.">
         <template #editor="{ data, field }">
           <InputText
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></InputText> </template
-      ></Column>
-      <Column v-if="visibleColumns.has('tk_number')" field="tk_number" header="TK NO.">
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
+          </InputText>
+        </template>
+      </Column>
+      <Column
+        v-if="visibleColumns.has('tk_number')"
+        field="tk_number"
+        header="TK NO.">
         <template #editor="{ data, field }">
           <InputText
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          >
-          </InputText> </template
-      ></Column>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
+          </InputText>
+        </template>
+      </Column>
       <!-- gap is not necessary and mainly for scoping tasks -->
-      <Column v-if="visibleColumns.has('gap_snapshot')" field="gap_snapshot" header="GAP Sanpshot">
+      <Column
+        v-if="visibleColumns.has('gap_snapshot_url')"
+        field="gap_snapshot_url"
+        header="GAP Sanpshot">
         <template #body="{ data, field, index }">
           <a
             @click.prevent="onGapViewShow(data.id, data[field], index)"
             class="text-primary hover:underline"
-            >{{ data[field] ? 'Show' : 'Add' }}</a
+            >{{ data[field] ? "Show" : "Add" }}</a
           >
         </template>
       </Column>
-      <Column v-if="visibleColumns.has('doc_link')" field="doc_link" header="Doc Link">
+      <Column
+        v-if="visibleColumns.has('doc_link')"
+        field="doc_link"
+        header="Doc Link">
         <template #body="{ data, field }">
           <a
             v-if="data[field]"
@@ -395,129 +448,138 @@
         <template #editor="{ data, field }">
           <InputText
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></InputText>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
+          </InputText>
         </template>
       </Column>
       <Column
         v-if="visibleColumns.has('estimated_cost')"
         field="estimated_cost"
-        header="Estimated Cost"
-      >
+        header="Estimated Cost">
         <template #body="{ data, field }">
           {{ data[field] ? `&yen; ${data[field]}` : null }}
         </template>
         <template #editor="{ data, field }">
           <InputNumber
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></InputNumber>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
+          </InputNumber>
         </template>
       </Column>
-      <Column v-if="visibleColumns.has('actual_cost')" field="actual_cost" header="Actual Cost">
+      <Column
+        v-if="visibleColumns.has('actual_cost')"
+        field="actual_cost"
+        header="Actual Cost">
         <template #body="{ data, field }">
           {{ data[field] ? `￥${data[field]}` : null }}
         </template>
         <template #editor="{ data, field }">
           <InputNumber
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></InputNumber>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
+          </InputNumber>
         </template>
       </Column>
-      <Column v-if="visibleColumns.has('po_placed')" field="po_placed" header="PO Placed">
+      <Column
+        v-if="visibleColumns.has('po_placed')"
+        field="po_placed"
+        header="PO Placed">
         <template #body="{ data, field }">
           <Tag
             :severity="data[field] ? 'success' : 'warn'"
-            :value="data[field] ? 'YES' : 'NO'"
-          ></Tag>
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
         </template>
         <template #editor="{ data, field }">
           <Checkbox
             binary
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></Checkbox>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            "></Checkbox>
         </template>
       </Column>
       <Column
         v-if="visibleColumns.has('contract_signed')"
         field="contract_signed"
-        header="Contract Signed"
-      >
+        header="Contract Signed">
         <template #body="{ data, field }">
           <Tag
             :severity="data[field] ? 'success' : 'warn'"
-            :value="data[field] ? 'YES' : 'NO'"
-          ></Tag>
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
         </template>
         <template #editor="{ data, field }">
           <Checkbox
             binary
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></Checkbox>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            "></Checkbox>
         </template>
       </Column>
       <Column
         v-if="visibleColumns.has('payment_method')"
         field="payment_method"
-        header="Payment Method"
-      >
+        header="Payment Method">
         <template #editor="{ data, field }">
           <Select
             :options="enums.PaymentMethodEnum"
             class="w-full"
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          >
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
           </Select>
         </template>
       </Column>
       <Column
         v-if="visibleColumns.has('payment_status')"
         field="payment_status"
-        header="Payment Status"
-      >
+        header="Payment Status">
         <template #editor="{ data, field }">
           <Select
             :options="enums.PaymentStatusEnum"
             class="w-full"
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          >
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
           </Select>
         </template>
       </Column>
       <Column
         v-if="visibleColumns.has('vv_doc_uploaded')"
         field="vv_doc_uploaded"
-        header="Veeva Uploaded"
-      >
+        header="Veeva Uploaded">
         <template #body="{ data, field }">
           <Tag
             :severity="data[field] ? 'success' : 'warn'"
-            :value="data[field] ? 'YES' : 'NO'"
-          ></Tag>
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
         </template>
         <template #editor="{ data, field }">
           <Checkbox
             binary
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></Checkbox>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            "></Checkbox>
         </template>
       </Column>
       <Column
         v-if="visibleColumns.has('vv_doc_number')"
         field="vv_doc_number"
-        header="Veeva Doc Number"
-      >
+        header="Veeva Doc Number">
         <template #editor="{ data, field }">
           <InputText
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          >
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
           </InputText>
         </template>
       </Column>
@@ -525,22 +587,22 @@
       <Column
         v-if="visibleColumns.has('task_progress')"
         field="task_progress"
-        header="Task Progress"
-      >
+        header="Task Progress">
         <template #editor="{ data, field }">
           <Select
             :options="enums.TaskProgressEnum"
             class="w-full"
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          >
-          </Select> </template
-      ></Column>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
+          </Select>
+        </template>
+      </Column>
       <Column
         v-if="visibleColumns.has('planned_start')"
         field="planned_start"
-        header="Planned Start"
-      >
+        header="Planned Start">
         <template #editor="{ data, field }">
           <DatePicker
             showIcon
@@ -549,15 +611,15 @@
             date-format="yy-mm-dd"
             :min-date="new Date()"
             :model-value="data[field] ? new Date(data[field]) : null"
-            @update:model-value="(value) => onCellChange(data.id, field, dateToStr(value))"
-          />
+            @update:model-value="
+              (value) => onCellChange(data.id, field, dateToStr(value))
+            " />
         </template>
       </Column>
       <Column
         v-if="visibleColumns.has('expected_finish')"
         field="expected_finish"
-        header="Expected Finish"
-      >
+        header="Expected Finish">
         <template #editor="{ data, field }">
           <DatePicker
             showIcon
@@ -566,11 +628,15 @@
             date-format="yy-mm-dd"
             :min-date="new Date()"
             :model-value="data[field] ? new Date(data[field]) : null"
-            @update:model-value="(value) => onCellChange(data.id, field, dateToStr(value))"
-          />
+            @update:model-value="
+              (value) => onCellChange(data.id, field, dateToStr(value))
+            " />
         </template>
       </Column>
-      <Column v-if="visibleColumns.has('actual_start')" field="actual_start" header="Actual Start">
+      <Column
+        v-if="visibleColumns.has('actual_start')"
+        field="actual_start"
+        header="Actual Start">
         <template #editor="{ data, field }">
           <DatePicker
             showIcon
@@ -579,15 +645,15 @@
             date-format="yy-mm-dd"
             :min-date="new Date()"
             :model-value="data[field] ? new Date(data[field]) : null"
-            @update:model-value="(value) => onCellChange(data.id, field, dateToStr(value))"
-          />
+            @update:model-value="
+              (value) => onCellChange(data.id, field, dateToStr(value))
+            " />
         </template>
       </Column>
       <Column
         v-if="visibleColumns.has('actual_finish')"
         field="actual_finish"
-        header="Actual Finish"
-      >
+        header="Actual Finish">
         <template #editor="{ data, field }">
           <DatePicker
             showIcon
@@ -596,15 +662,15 @@
             date-format="yy-mm-dd"
             :min-date="new Date()"
             :model-value="data[field] ? new Date(data[field]) : null"
-            @update:model-value="(value) => onCellChange(data.id, field, dateToStr(value))"
-          />
+            @update:model-value="
+              (value) => onCellChange(data.id, field, dateToStr(value))
+            " />
         </template>
       </Column>
       <Column
         v-if="visibleColumns.has('delivery_date')"
         field="delivery_date"
-        header="Delivery Date"
-      >
+        header="Delivery Date">
         <template #editor="{ data, field }">
           <DatePicker
             showIcon
@@ -613,41 +679,58 @@
             date-format="yy-mm-dd"
             :min-date="new Date()"
             :model-value="data[field] ? new Date(data[field]) : null"
-            @update:model-value="(value) => onCellChange(data.id, field, dateToStr(value))"
-          />
+            @update:model-value="
+              (value) => onCellChange(data.id, field, dateToStr(value))
+            " />
         </template>
       </Column>
-      <Column v-if="visibleColumns.has('stuff_days')" field="stuff_days" header="Stuff Days">
+      <Column
+        v-if="visibleColumns.has('stuff_days')"
+        field="stuff_days"
+        header="Stuff Days">
         <template #editor="{ data, field }">
           <InputNumber
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></InputNumber>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
+          </InputNumber>
         </template>
       </Column>
-      <Column v-if="visibleColumns.has('cro_id')" field="cro_id" header="CRO Name">
+      <Column
+        v-if="visibleColumns.has('cro_id')"
+        field="cro_id"
+        header="CRO Name">
         <template #body="{ data, field }">
-          {{ selectOptions?.croOptions?.find((cro) => cro.id === data[field])?.cro_name }}
+          {{
+            selectOptions?.croOptions?.find((cro) => cro.id === data[field])
+              ?.cro_name
+          }}
         </template>
         <template #editor="{ data, field }">
           <Select
             :options="selectOptions?.croOptions"
             option-label="cro_name"
-            :model-value="selectOptions?.croOptions?.find((cro) => cro.id === data[field])"
-            @update:model-value="(value) => onCellChange(data.id, field, value.id)"
-          ></Select>
+            :model-value="
+              selectOptions?.croOptions?.find((cro) => cro.id === data[field])
+            "
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value.id)
+            "></Select>
         </template>
       </Column>
-      <Column v-if="visibleColumns.has('samples')" field="samples" header="Sample Status">
+      <Column
+        v-if="visibleColumns.has('samples')"
+        field="samples"
+        header="Sample Status">
         <template #body="{ data, field }">
           <a @click.prevent="onSamplesViewShow(data.id)">
-            <template v-if="data[field].length > 0"
-              ><Tag
+            <template v-if="data[field].length > 0">
+              <Tag
                 v-for="(sample, index) in data[field]"
                 :value="sample.sample_status"
                 :Key="index"
-                class="hover:underline"
-              />
+                class="hover:underline" />
             </template>
             <span v-else class="text-primary hover:underline">Add</span>
           </a>
@@ -656,34 +739,40 @@
       <Column
         v-if="visibleColumns.has('study_notified')"
         field="study_notified"
-        header="Study Notified"
-      >
+        header="Study Notified">
         <template #body="{ data, field }">
           <Tag
             :severity="data[field] ? 'success' : 'warn'"
-            :value="data[field] ? 'YES' : 'NO'"
-          ></Tag>
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
         </template>
         <template #editor="{ data, field }">
           <Checkbox
             binary
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></Checkbox>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            "></Checkbox>
         </template>
       </Column>
 
-      <Column v-if="visibleColumns.has('analytes')" field="analytes" header="Analytes">
+      <Column
+        v-if="visibleColumns.has('analytes')"
+        field="analytes"
+        header="Analytes">
         <template #editor="{ data, field }">
           <InputText
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          >
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
           </InputText>
         </template>
       </Column>
 
-      <Column v-if="visibleColumns.has('key_results')" field="key_results" header="Key Results">
+      <Column
+        v-if="visibleColumns.has('key_results')"
+        field="key_results"
+        header="Key Results">
         <template #body="{ data, field, index }">
           <a
             @click.prevent="onKeyResultsViewShow(data.id, data[field], index)"
@@ -692,92 +781,102 @@
           >
         </template>
       </Column>
-      <Column v-if="visibleColumns.has('guidelines')" field="guidelines" header="Guidelines">
+      <Column
+        v-if="visibleColumns.has('guidelines')"
+        field="guidelines"
+        header="Guidelines">
         <template #editor="{ data, field }">
           <InputText
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          >
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
           </InputText>
         </template>
       </Column>
       <Column
         v-if="visibleColumns.has('test_item_info_sent')"
         field="test_item_info_sent"
-        header="Test Item Info Sent"
-      >
+        header="Test Item Info Sent">
         <template #body="{ data, field }">
           <Tag
             :severity="data[field] ? 'success' : 'warn'"
-            :value="data[field] ? 'YES' : 'NO'"
-          ></Tag>
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
         </template>
 
         <template #editor="{ data, field }">
           <Checkbox
             binary
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></Checkbox>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            "></Checkbox>
         </template>
       </Column>
-      <Column v-if="visibleColumns.has('ssd_finished')" field="ssd_finished" header="SSD Finished">
+      <Column
+        v-if="visibleColumns.has('ssd_finished')"
+        field="ssd_finished"
+        header="SSD Finished">
         <template #body="{ data, field }">
           <Tag
             :severity="data[field] ? 'success' : 'warn'"
-            :value="data[field] ? 'YES' : 'NO'"
-          ></Tag>
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
         </template>
 
         <template #editor="{ data, field }">
           <Checkbox
             binary
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></Checkbox>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            "></Checkbox>
         </template>
       </Column>
-      <Column v-if="visibleColumns.has('sed_uploaded')" field="sed_uploaded" header="SED Uploaded">
+      <Column
+        v-if="visibleColumns.has('sed_uploaded')"
+        field="sed_uploaded"
+        header="SED Uploaded">
         <template #body="{ data, field }">
           <Tag
             :severity="data[field] ? 'success' : 'warn'"
-            :value="data[field] ? 'YES' : 'NO'"
-          ></Tag>
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
         </template>
 
         <template #editor="{ data, field }">
           <Checkbox
             binary
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          ></Checkbox>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            "></Checkbox>
         </template>
       </Column>
       <Column
         v-if="visibleColumns.has('global_study_manager')"
         field="global_study_manager"
-        header="Global Study Manager"
-      >
+        header="Global Study Manager">
         <template #editor="{ data, field }">
           <InputText
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          >
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
           </InputText>
         </template>
       </Column>
       <Column
         v-if="visibleColumns.has('cro_study_director')"
         field="cro_study_director"
-        header="CRO Study Director"
-      >
+        header="CRO Study Director">
         <template #editor="{ data, field }">
           <InputText
             :model-value="data[field]"
-            @update:model-value="(value) => onCellChange(data.id, field, value)"
-          >
-          </InputText> </template
-      ></Column>
+            @update:model-value="
+              (value) => onCellChange(data.id, field, value)
+            ">
+          </InputText>
+        </template>
+      </Column>
 
       <Column
         rowEditor
@@ -790,10 +889,9 @@
           pcRowEditorSave: { root: 'size-7' },
           pcRowEditorCancel: { root: 'size-7' },
           headerCell: ({ parent }) => ({
-            class: parent.state['d_editing'] ? 'min-w-16' : 'min-w-8'
-          })
-        }"
-      >
+            class: parent.state['d_editing'] ? 'min-w-16' : 'min-w-8',
+          }),
+        }">
         <template #header>
           <Button
             icon="pi pi-pencil"
@@ -802,8 +900,7 @@
             class="size-7"
             size="small"
             severity="secondary"
-            @click="onToggleRowEditAll"
-          />
+            @click="onToggleRowEditAll" />
           <Button
             icon="pi pi-times"
             v-show="editingRows.length"
@@ -811,8 +908,7 @@
             class="size-7"
             size="small"
             severity="secondary"
-            @click="onRowEditCancelAll"
-          />
+            @click="onRowEditCancelAll" />
           <Button
             icon="pi pi-check"
             v-show="editingRows.length"
@@ -820,11 +916,15 @@
             class="size-7"
             size="small"
             severity="secondary"
-            @click="onRowEditSaveAll"
-          />
+            @click="onRowEditSaveAll" />
         </template>
       </Column>
-      <Column frozen align-frozen="right" header=" " class="text-center p-2" header-class="w-8">
+      <Column
+        frozen
+        align-frozen="right"
+        header=" "
+        class="text-center p-2"
+        header-class="w-8">
         <template #body="{ data }">
           <Button
             severity="secondary"
@@ -832,8 +932,7 @@
             class="size-7"
             size="small"
             icon="pi pi-comments"
-            @click="showComments(data)"
-          ></Button>
+            @click="showComments(data)"></Button>
         </template>
       </Column>
       <template #empty>
@@ -846,41 +945,36 @@
       modal
       maximizable
       header="Gap Snapshots"
-      :style="{ width: '80rem' }"
-    >
+      :style="{ width: '80rem' }">
       <div class="flex flex-col gap-4">
         <div
           v-for="(gap, index) in currentTaskGaps.gapURLs"
           :key="index"
-          class="border rounded-md p-2"
-        >
+          class="border rounded-md p-2">
           <div class="flex items-center gap-4 mb-2">
             <span>{{ index + 1 }} </span>
-            <span>{{ gap.split('/').pop() }}</span>
+            <span>{{ gap.split("/").pop() }}</span>
             <Button
               icon="pi pi-times"
               rounded
               severity="warn"
               variant="outlined"
               class="size-8"
-              @click="onGapDelete(currentTaskGaps.task_id, gap)"
-            ></Button>
+              @click="onGapDelete(currentTaskGaps.task_id, gap)"></Button>
           </div>
           <!-- <img :src="apiBaseStaticUrl + gap" class=" max-w-full max-h-96 object-contain rounded" /> -->
           <Image
             :src="apiBaseStaticUrl + gap"
             class="h-64"
             preview
-            pt:originalContainer="max-w-full overflow-auto"
-          />
+            pt:originalContainer="max-w-full overflow-auto" />
         </div>
         <FileUpload
           name="gap_snapshot"
           customUpload
           @uploader="onGapUpload"
           accept="image/*"
-          :maxFileSize="1048576"
-        >
+          :maxFileSize="1048576">
           <template #empty>
             <span>Drag and drop image to here to upload.</span>
           </template>
@@ -893,8 +987,7 @@
       modal
       maximizable
       header="Key Results"
-      :style="{ width: '80rem' }"
-    >
+      :style="{ width: '80rem' }">
       <div class="flex flex-col gap-4">
         <pre>{{ currentTaskKeyResults }}</pre>
       </div>
@@ -904,12 +997,14 @@
       modal
       maximizable
       header="Task Samples"
-      :style="{ width: '80rem' }"
-    >
+      :style="{ width: '80rem' }">
       <pre>{{ currentTaskSamples }}</pre>
     </Dialog>
 
-    <Drawer v-model:visible="commentsViewVisible" position="right" class="w-[40rem]">
+    <Drawer
+      v-model:visible="commentsViewVisible"
+      position="right"
+      class="w-[40rem]">
       <template #header>
         <div class="flex items-center gap-2">
           <span class="font-bold">header="Task Comments"</span>
@@ -918,19 +1013,23 @@
 
       <template #footer>
         <div class="flex items-center gap-2">
-          <Button label="Account" icon="pi pi-user" class="flex-auto" outlined></Button>
+          <Button
+            label="Account"
+            icon="pi pi-user"
+            class="flex-auto"
+            outlined></Button>
           <Button
             label="Logout"
             icon="pi pi-sign-out"
             class="flex-auto"
             severity="danger"
-            text
-          ></Button>
+            text></Button>
         </div>
       </template>
       <pre
         >{{ currentTask }}
-      </pre>
+  </pre
+      >
     </Drawer>
 
     <ConfirmDialog></ConfirmDialog>
@@ -938,211 +1037,227 @@
     <CreatTasks
       v-if="showCreateForm"
       v-model:visible="showCreateForm"
-      @refresh="refreshTasks"
-    ></CreatTasks>
+      @refresh="refreshTasks"></CreatTasks>
 
     <EditTask
       v-if="showEditForm"
       v-model:visible="showEditForm"
       :initialFormData="initialFormData"
-      @refresh="refreshTasks"
-    ></EditTask>
+      @refresh="refreshTasks"></EditTask>
     <template v-if="layout === 'grid'">
-      <SelectButton v-model="layout" :options="['list', 'grid']" :allowEmpty="false">
+      <SelectButton
+        v-model="layout"
+        :options="['list', 'grid']"
+        :allowEmpty="false">
         <template #option="{ option }">
           <i :class="[option === 'list' ? 'pi pi-bars' : 'pi pi-table']" />
         </template>
       </SelectButton>
-      <TaskCard v-for="task of tasks" :key="task.id" :task-data="task"></TaskCard>
+      <TaskCard
+        v-for="task of tasks"
+        :key="task.id"
+        :task-data="task"></TaskCard>
     </template>
   </div>
 </template>
 
 <script setup>
-  import { onMounted, inject, ref, useTemplateRef, toRaw } from 'vue'
+  import { onMounted, inject, ref, useTemplateRef, toRaw } from "vue";
 
-  import { useToast } from 'primevue/usetoast'
-  import { useConfirm } from 'primevue/useconfirm'
-  import { FilterMatchMode } from '@primevue/core'
+  import { useToast } from "primevue/usetoast";
+  import { useConfirm } from "primevue/useconfirm";
+  import { FilterMatchMode } from "@primevue/core";
 
+  import { dateToStr } from "@/composables/dateTools";
+  import EditTask from "./EditTask.vue";
+  import CreatTasks from "./CreatTasks.vue";
+  import TaskCard from "./TaskCard.vue";
 
-  import { dateToStr } from '@/composables/dateTools'
-  import EditTask from './EditTask.vue'
-  import CreatTasks from './CreatTasks.vue'
-  import TaskCard from './TaskCard.vue'
+  const apiBaseStaticUrl = import.meta.env.VITE_API_BASE_STATIC_URL;
 
-  const apiBaseStaticUrl = import.meta.env.VITE_API_BASE_STATIC_URL
+  const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};
+  const layout = ref("list");
+  const toast = useToast();
+  const confirm = useConfirm();
+  const Api = inject("Api");
+  const outerTableRef = useTemplateRef("outerTableRef");
+  const colsPopoverRef = useTemplateRef("colsPopoverRef");
+  const gapViewvisible = ref(false);
+  const keyResultsvisible = ref(false);
+  const samplesViewVisible = ref(false);
+  const currentTaskSamples = ref();
+  const currentTaskGaps = ref();
+  const currentTaskKeyResults = ref();
+  let currentTask; //for showing comments, id needed
 
-  const enums = JSON.parse(localStorage.getItem('cachedEnums')) || {}
-  const layout = ref('list')
-  const toast = useToast()
-  const confirm = useConfirm()
-  const Api = inject('Api')
-  const outerTableRef = useTemplateRef('outerTableRef')
-  const colsPopoverRef = useTemplateRef('colsPopoverRef')
-  const gapViewvisible = ref(false)
-  const keyResultsvisible = ref(false)
-  const samplesViewVisible = ref(false)
-  const currentTaskSamples = ref()
-  const currentTaskGaps = ref()
-  const currentTaskKeyResults = ref()
-  let currentTask //for showing comments, id needed
-
-  const tasks = ref([])
-  const expandedRows = ref([])
-  const selectedTasks = ref([])
-  const showCreateForm = ref(false)
-  const showEditForm = ref(false)
-  const splitBtnItems = [{ label: 'Import', icon: 'pi pi-upload', command: handleImport }]
-  let initialFormData
-  const selectOptions = ref()
-  const globalFilterFields = ['porject_id', 'task_name', 'tags']
+  const tasks = ref([]);
+  const expandedRows = ref([]);
+  const selectedTasks = ref([]);
+  const showCreateForm = ref(false);
+  const showEditForm = ref(false);
+  const splitBtnItems = [
+    { label: "Import", icon: "pi pi-upload", command: handleImport },
+  ];
+  let initialFormData;
+  const selectOptions = ref();
+  const globalFilterFields = ["porject_id", "task_name", "tags"];
 
   const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     task_category: { value: null, matchMode: FilterMatchMode.EQUALS },
-    project_id: { value: null, matchMode: FilterMatchMode.EQUALS }
+    project_id: { value: null, matchMode: FilterMatchMode.EQUALS },
     // internal_name: { value: null, matchMode: FilterMatchMode.STARTS_WITH }
-  })
+  });
 
-  const columnPicker = ref(null)
-  const visibleColumns = ref(new Set())
+  const columnPicker = ref(null);
+  const visibleColumns = ref(new Set());
 
-  const rememberSelection = ref(true)
-  let updatedTasks = {}
+  const rememberSelection = ref(true);
+  let updatedTasks = {};
 
   let defaultCol = [
-    'project_id',
-    'task_name',
-    'tags',
-    'task_owner_id',
-    'task_confirmed',
-    'task_status',
-    'start_year',
-    'expected_delivery_date',
-    'pi_number',
-    'tk_number',
-    'tox_gov_approved',
-    'ecotox_gov_approved'
-  ]
+    "project_id",
+    "task_name",
+    "tags",
+    "task_owner_id",
+    "task_confirmed",
+    "task_status",
+    "start_year",
+    "expected_delivery_date",
+    "pi_number",
+    "tk_number",
+    "tox_gov_approved",
+    "ecotox_gov_approved",
+  ];
   // requiredCol must be a subset of defaultCol
   let requiredCol = [
-    'project_id',
-    'task_name',
-    'tags',
-    'task_owner_id',
-    'task_confirmed',
-    'task_status',
-    'start_year',
-    'expected_delivery_date'
-  ]
+    "project_id",
+    "task_name",
+    "tags",
+    "task_owner_id",
+    "task_confirmed",
+    "task_status",
+    "start_year",
+    "expected_delivery_date",
+  ];
 
-  const editingRows = ref([])
-  const commentsViewVisible = ref(false)
+  const editingRows = ref([]);
+  const commentsViewVisible = ref(false);
 
   async function showComments(data) {
-    commentsViewVisible.value = true
+    commentsViewVisible.value = true;
     try {
       // let response = await Api.get(`/comments/${data.id}`)
       // currentTask = response.data
-      currentTask = data
+      currentTask = data;
     } catch (err) {
-      console.log('Get Task Comments Error!', err)
+      console.log("Get Task Comments Error!", err);
     }
   }
 
   onMounted(async () => {
-
-      tasks.value = await Api.get('/tasks/') // errors will be handled globally
-       
-
+    tasks.value = await Api.get("/tasks/"); // errors will be handled globally
 
     // load visibleColumns from localstorage: [col1,col2,col3...]
 
-    let cachedCol = localStorage.getItem('taskVisibleColumns')
+    let cachedCol = localStorage.getItem("taskVisibleColumns");
 
     if (cachedCol) {
-      visibleColumns.value = new Set([...JSON.parse(cachedCol), ...requiredCol])
+      visibleColumns.value = new Set([
+        ...JSON.parse(cachedCol),
+        ...requiredCol,
+      ]);
     } else {
-      visibleColumns.value = new Set(defaultCol)
+      visibleColumns.value = new Set(defaultCol);
     }
-  })
+  });
 
   //get select options if enter edit mode
   onMounted(async () => {
     try {
-      let response = await Api.get('/tasks/select-options')
-      selectOptions.value = response.data
+      let response = await Api.get("/tasks/select-options");
+      selectOptions.value = response.data;
     } catch (err) {
-      console.log('get select options failed on tasks edit view', err)
+      console.log("get select options failed on tasks edit view", err);
     }
-  })
+  });
 
   function onGapViewShow(task_id, gap_snapshot, index) {
-    currentTaskGaps.value = { task_id, index, gapURLs: gap_snapshot?.split(',') ?? [] }
-    gapViewvisible.value = true
+    currentTaskGaps.value = {
+      task_id,
+      index,
+      gapURLs: gap_snapshot?.split(",") ?? [],
+    };
+    gapViewvisible.value = true;
   }
   function onKeyResultsViewShow(task_id, results, index) {
-    currentTaskKeyResults.value = { task_id, results, index }
-    keyResultsvisible.value = true
+    currentTaskKeyResults.value = { task_id, results, index };
+    keyResultsvisible.value = true;
   }
 
   async function onSamplesViewShow(task_id) {
-    samplesViewVisible.value = true
+    samplesViewVisible.value = true;
     try {
-      let response = await Api.get(`/tasks/${task_id}/samples`)
-      currentTaskSamples.value = response.data
+      let response = await Api.get(`/tasks/${task_id}/samples`);
+      currentTaskSamples.value = response.data;
     } catch (error) {
-      console.log('get task samples error', error)
+      console.log("get task samples error", error);
     }
 
     // currentTaskSamples.value = { task_id, samples }
   }
   async function onGapUpload(event) {
-    const formData = new FormData()
+    const formData = new FormData();
 
     event.files.forEach((file) => {
-      formData.append('files', file)
-    })
+      formData.append("files", file);
+    });
 
     try {
-      let response = await Api.post(`/tasks/gaps/${currentTaskGaps.value.task_id}`, formData)
-      currentTaskGaps.value.gapURLs = response.data.gap_snapshot.split(',')
-      tasks.value[currentTaskGaps.value.index].gap_snapshot = response.data.gap_snapshot
+      let response = await Api.post(
+        `/tasks/gaps/${currentTaskGaps.value.task_id}`,
+        formData
+      );
+      currentTaskGaps.value.gapURLs = response.data.gap_snapshot.split(",");
+      tasks.value[currentTaskGaps.value.index].gap_snapshot =
+        response.data.gap_snapshot;
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
   async function onGapDelete(task_id, gap) {
     try {
-      let response = await Api.delete(`/tasks/gaps/${task_id}`, { params: { gap_path: gap } })
-      console.log(response.data)
-      currentTaskGaps.value.gapURLs = response.data.gap_snapshot?.split(',')
-      tasks.value[currentTaskGaps.value.index].gap_snapshot = response.data.gap_snapshot
+      let response = await Api.delete(`/tasks/gaps/${task_id}`, {
+        params: { gap_path: gap },
+      });
+      console.log(response.data);
+      currentTaskGaps.value.gapURLs = response.data.gap_snapshot?.split(",");
+      tasks.value[currentTaskGaps.value.index].gap_snapshot =
+        response.data.gap_snapshot;
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
   function toggleColsPopover(event) {
-    colsPopoverRef.value?.toggle(event)
+    colsPopoverRef.value?.toggle(event);
   }
 
   function getTaskStatusSeverity(status) {
     switch (status) {
-      case 'Idle':
-        return 'secondary'
-      case 'Go':
-        return 'info'
-      case 'Finished':
-        return 'success'
-      case 'Pending':
-        return 'danger'
-      case 'Terminated':
-        return 'danger'
+      case "Idle":
+        return "secondary";
+      case "Go":
+        return "info";
+      case "Finished":
+        return "success";
+      case "Pending":
+        return "danger";
+      case "Terminated":
+        return "danger";
       default:
-        return 'primary' // 或者其他默认值
+        return "primary"; // 或者其他默认值
     }
   }
 
@@ -1151,34 +1266,39 @@
 
     // get all columns list:[{idx:number,col:string}]
     let allCols = Object.keys(tasks.value[0] ?? {}).map((col, idx) => {
-      return { idx, col }
-    })
+      return { idx, col };
+    });
 
     // set columnpicker based on current visiblecolumns
-    let targetCols = []
-    let sourceCols = []
+    let targetCols = [];
+    let sourceCols = [];
 
     allCols.forEach((item) => {
       if (visibleColumns.has(item.col)) {
-        targetCols.push(item)
+        targetCols.push(item);
       } else {
-        sourceCols.push(item)
+        sourceCols.push(item);
       }
-    })
-    columnPicker.value = [sourceCols, targetCols]
+    });
+    columnPicker.value = [sourceCols, targetCols];
   }
   function onPopoverShow() {
-    setColumnPicker(visibleColumns.value)
+    setColumnPicker(visibleColumns.value);
   }
 
   function onApply() {
-    visibleColumns.value = new Set(columnPicker.value[1].map((item) => item.col))
-    colsPopoverRef.value.hide()
+    visibleColumns.value = new Set(
+      columnPicker.value[1].map((item) => item.col)
+    );
+    colsPopoverRef.value.hide();
 
     if (rememberSelection.value) {
-      localStorage.setItem('taskVisibleColumns', JSON.stringify(Array.from(visibleColumns.value)))
+      localStorage.setItem(
+        "taskVisibleColumns",
+        JSON.stringify(Array.from(visibleColumns.value))
+      );
     } else {
-      localStorage.removeItem('taskVisibleColumns')
+      localStorage.removeItem("taskVisibleColumns");
     }
   }
 
@@ -1187,176 +1307,182 @@
     // columnPicker.value[1] = visibleColumns.value.map((col) => {
     //   return { idx: columnPicker.value[0].find((item) => item.col === col).idx, col: col }
     // })
-    colsPopoverRef.value.hide()
+    colsPopoverRef.value.hide();
   }
 
   function onDefault() {
-    setColumnPicker(new Set(defaultCol))
+    setColumnPicker(new Set(defaultCol));
   }
   async function onRowExpand(event) {
-    console.log('onRowExpand', event)
+    console.log("onRowExpand", event);
   }
 
   function handleImport() {
     toast.add({
-      severity: 'warn',
-      summary: 'Warn Message',
-      detail: 'To be implemented',
-      life: 3000
-    })
+      severity: "warn",
+      summary: "Warn Message",
+      detail: "To be implemented",
+      life: 3000,
+    });
   }
 
   function handleExport() {
-    outerTableRef.value.exportCSV()
+    outerTableRef.value.exportCSV();
   }
 
   function handleEdit(row) {
-    initialFormData = toRaw(row)
-    showEditForm.value = true
+    initialFormData = toRaw(row);
+    showEditForm.value = true;
   }
 
   function handleNew() {
-    showCreateForm.value = true
+    showCreateForm.value = true;
   }
 
   function onCellChange(task_id, field, value) {
     if (task_id in updatedTasks) {
-      updatedTasks[task_id][field] = value
+      updatedTasks[task_id][field] = value;
     } else {
-      updatedTasks[task_id] = { [field]: value }
+      updatedTasks[task_id] = { [field]: value };
     }
   }
 
   async function onRowEditSave(event) {
     try {
-      await Api.patch('/tasks/', { [event.data.id]: updatedTasks[event.data.id] })
+      await Api.patch("/tasks/", {
+        [event.data.id]: updatedTasks[event.data.id],
+      });
       toast.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Update task successfully',
-        life: 3000
-      })
-      delete updatedTasks[event.data.id]
-      await refreshTasks()
+        severity: "success",
+        summary: "Success",
+        detail: "Update task successfully",
+        life: 3000,
+      });
+      delete updatedTasks[event.data.id];
+      await refreshTasks();
     } catch (error) {
       toast.add({
-        severity: 'error',
-        summary: 'Error',
+        severity: "error",
+        summary: "Error",
         detail: `Update task failed: ${event.data.id}`,
-        life: 3000
-      })
-      console.log(error)
+        life: 3000,
+      });
+      console.log(error);
     }
   }
   async function onRowEditSaveAll() {
     try {
-      await Api.patch('/tasks/', updatedTasks)
+      await Api.patch("/tasks/", updatedTasks);
       toast.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Update task successfully',
-        life: 3000
-      })
-      updatedTasks = {}
-      editingRows.value = []
+        severity: "success",
+        summary: "Success",
+        detail: "Update task successfully",
+        life: 3000,
+      });
+      updatedTasks = {};
+      editingRows.value = [];
 
-      await refreshTasks()
+      await refreshTasks();
     } catch (error) {
       toast.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Update tasks failed',
-        life: 3000
-      })
-      console.log(error)
+        severity: "error",
+        summary: "Error",
+        detail: "Update tasks failed",
+        life: 3000,
+      });
+      console.log(error);
     }
   }
 
   function onRowEditCancel(event) {
-    delete updatedTasks[event.data.id]
+    delete updatedTasks[event.data.id];
   }
   function onToggleRowEditAll() {
     // edit selected rows
     if (selectedTasks.value.length) {
-      editingRows.value = selectedTasks.value
+      editingRows.value = selectedTasks.value;
     } else {
       toast.add({
-        severity: 'warn',
-        summary: 'Warning!',
-        detail: 'Please select rows first!',
-        life: 3000
-      })
+        severity: "warn",
+        summary: "Warning!",
+        detail: "Please select rows first!",
+        life: 3000,
+      });
     }
   }
 
   function onRowEditCancelAll() {
-    updatedTasks = {}
-    editingRows.value = []
+    updatedTasks = {};
+    editingRows.value = [];
   }
 
   async function handleDelete() {
     if (!selectedTasks.value.length) {
       toast.add({
-        severity: 'warn',
-        summary: 'Warning!',
-        detail: 'Please select rows first!',
-        life: 2000
-      })
-      return
+        severity: "warn",
+        summary: "Warning!",
+        detail: "Please select rows first!",
+        life: 2000,
+      });
+      return;
     }
     confirm.require({
-      position: 'top',
-      message: 'Sure to delete selected tasks?',
-      header: 'Confirmation',
-      icon: 'pi pi-exclamation-triangle',
+      position: "top",
+      message: "Sure to delete selected tasks?",
+      header: "Confirmation",
+      icon: "pi pi-exclamation-triangle",
       rejectProps: {
-        label: 'Cancel',
-        severity: 'secondary',
-        outlined: true
+        label: "Cancel",
+        severity: "secondary",
+        outlined: true,
       },
       acceptProps: {
-        label: 'Confirm'
+        label: "Confirm",
       },
       accept: async () => {
-        let response
-        let task_ids
+        let response;
+        let task_ids;
         if (selectedTasks.value.length === 1) {
-          task_ids = selectedTasks.value[0].id
+          task_ids = selectedTasks.value[0].id;
         } else {
-          task_ids = selectedTasks.value.map((task) => task.id)
+          task_ids = selectedTasks.value.map((task) => task.id);
         }
         try {
-          response = await Api.delete(`/tasks/`, { data: task_ids })
-          console.log(response.data)
+          response = await Api.delete(`/tasks/`, { data: task_ids });
+          console.log(response.data);
         } catch (error) {
-          console.error('Error deleting tasks:', error)
+          console.error("Error deleting tasks:", error);
         }
 
         //refresh products
         try {
-          response = await Api.get('/tasks/')
-          tasks.value = response.data
+          response = await Api.get("/tasks/");
+          tasks.value = response.data;
           toast.add({
-            severity: 'success',
-            summary: 'Success',
+            severity: "success",
+            summary: "Success",
             detail: response.data.message,
-            life: 3000
-          })
+            life: 3000,
+          });
         } catch (err) {
-          toast.add({ severity: 'error', summary: 'Error', detail: err.message })
+          toast.add({
+            severity: "error",
+            summary: "Error",
+            detail: err.message,
+          });
         }
-        selectedTasks.value = null
+        selectedTasks.value = null;
       },
-      reject: () => {}
-    })
+      reject: () => {},
+    });
   }
 
   async function refreshTasks() {
     try {
-      const response = await Api.get('/tasks/')
-      tasks.value = response.data
+      const response = await Api.get("/tasks/");
+      tasks.value = response.data;
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
   }
 </script>
@@ -1366,9 +1492,8 @@
   .p-datatable-thead {
     z-index: 2;
   }
+
   .p-datatable-frozen-column {
     z-index: 1;
   }
 </style>
-
-

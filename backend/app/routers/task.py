@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, HTTPException, UploadFile, Body
 from sqlmodel import select, delete, SQLModel
-from sqlalchemy.orm import joinedload, selectinload, Load
+from sqlalchemy.orm import joinedload, selectinload, load_only
 from pathlib import Path
 from uuid import uuid4
 
@@ -8,6 +8,7 @@ from ..schemas.task import Task, TaskCreate, TaskPublic, TaskUpdate, TaskLibrary
 from ..schemas.project import Project
 from ..schemas.user import User
 from ..schemas.cro import Cro
+from ..schemas.gap import Gap
 from ..schemas.sample import Sample, SamplePublic
 from ..utils.dependencies import SessionDep, TokenDep
 from ..schemas.enums import SampleStatusEnum
@@ -92,19 +93,24 @@ class TaskWithSample(TaskPublic):
     samples: list[TaskSamples]
 
 
-@router.get("/", response_model=list[TaskWithSample])
+@router.get("/")
 def get_tasks(session: SessionDep, token: TokenDep):
-    stmt = (
-        select(Task)
-        .options(
-            selectinload(Task.samples).load_only(
-                Sample.sample_status
-            )  # 选择性加载 Sample 的部分列
-        )
-    )
 
-    db_tasks = session.exec(stmt).all()
-    return db_tasks
+    db_tasks = session.exec(select(Task)).all()
+
+    return [{
+        **task.model_dump(exclude={"project_id", "task_owner_id", "cro_id", "gap_id"}),
+        "project_name": task.project.project_name if task.project else None,
+        "task_owner_name": task.task_owner.name if task.task_owner else None,
+        "cro_name": task.cro.cro_name if task.cro else None,
+        "gap_snapshot_url": task.gap.snapshot_url if task.gap else None,
+        "samples": [
+            {"id": s.id, "status": s.sample_status}
+            for s in task.samples
+        ]
+        } for task in db_tasks]
+
+    
 
 
 # one or more tasks to patch

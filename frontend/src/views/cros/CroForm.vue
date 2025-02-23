@@ -132,12 +132,13 @@
 
         if (props.initialFormData) {
             // edit mode
-            await Api.patch(`/cros/${props.initialFormData.id}`, updatedFields)
+            await Api.patch(`/cros/${props.initialFormData.id}/`, updatedFields)
         } else {
             // new mode
             await Api.post('/cros', updatedFields)
         }
         visible.value = false
+        emit("refresh")
     }
 
     function handleCancel() {

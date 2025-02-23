@@ -9,7 +9,7 @@ router = APIRouter(prefix='/cros', tags=["CRO"])
 
 
 # region CRO
-@router.post('/cros', response_model=CroPublic, status_code=status.HTTP_201_CREATED)
+@router.post('/', response_model=CroPublic, status_code=status.HTTP_201_CREATED)
 def create_cro(cro_create: CroCreate, session: SessionDep, user_id: TokenDep):
     db_cro = Cro.model_validate(cro_create, update={"created_by": user_id})
     session.add(db_cro)
@@ -85,10 +85,11 @@ def create_cro_contact(contact_create: CroContactCreate, session: SessionDep, to
 @router.get('/{cro_id}/contacts', response_model=list[CroContactPublic])
 def get_cro_contact(cro_id: int, session: SessionDep, token: TokenDep):
     # get all contacts related to a cro
-    db_contacts = session.exec(select(CroContact).where(cro_id == cro_id)).all()
-
-    if not db_contacts:
-        raise HTTPException(status_code=404, detail="Cro contacts not found")
+    db_contacts = session.exec(select(CroContact).where(
+        CroContact.cro_id == cro_id)).all()
+    # print(db_contacts)
+    # if not db_contacts:
+    #     raise HTTPException(status_code=404, detail="Cro contacts not found")
 
     return db_contacts
 

@@ -42,7 +42,7 @@ class Cro(CroBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     contacts: list['CroContact'] = Relationship(back_populates='cro')
-
+    tasks: list['Task'] = Relationship(back_populates='cro') # type: ignore
 
 class CroContactBase(SQLModel):
     cro_id: int = Field(foreign_key="cro.id")

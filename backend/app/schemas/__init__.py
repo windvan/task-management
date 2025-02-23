@@ -7,7 +7,7 @@ from .sample import Sample, SampleTaskRelationship
 from .cro import Cro, CroContact
 from .crop import Crop
 from .message import Message
-from .gap import Gap, GapTaskRelationship
+from .gap import Gap
 
 
 __all__ = ['User',
@@ -19,5 +19,5 @@ __all__ = ['User',
            'Cro', 'CroContact',
            'Crop',
            'Message',
-           'Gap', 'GapTaskRelationship'
+           'Gap'
            ]

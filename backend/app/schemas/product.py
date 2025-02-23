@@ -29,6 +29,7 @@ class Product(ProductBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     ais: list['ProductAi'] = Relationship(back_populates='product')
+    samples: list['Sample'] = Relationship(back_populates='product') # type: ignore
 
 
 class ProductUpdate(SQLModel):

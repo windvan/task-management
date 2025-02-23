@@ -26,7 +26,8 @@ app.add_middleware(
     allow_origins=[settings.FRONT_END_HOST, "http://127.0.0.1:8000"],  # 允许前端源,allow credetial时不能为*
     allow_credentials=True,
     allow_methods=["*"],  # 允许所有方法
-    allow_headers=["*"])  # 允许所有头
+    allow_headers=["*"],
+    )  # 允许所有头
 
 
 app.include_router(auth.router)

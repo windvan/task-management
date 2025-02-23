@@ -2,55 +2,99 @@
   <div>
     <Toolbar class="min-w-100 mb-3">
       <template #start>
-        <Button icon="pi pi-plus" label="New" severity="primary" size="small" @click="handleShowCroForm('new', null)" />
+        <Button
+          icon="pi pi-plus"
+          label="New"
+          severity="primary"
+          size="small"
+          @click="handleShowCroForm('new', null)" />
       </template>
       <template #end>
         <IconField>
           <InputIcon>
             <i class="pi pi-search" />
           </InputIcon>
-          <InputText placeholder="Search" size="small" />
+          <InputText
+            v-model="filters['global'].value"
+            placeholder="Search Cro"
+            v-tooltip="'Search by Name, Scope, Cert Number'"
+            size="small" />
         </IconField>
       </template>
     </Toolbar>
 
-    <DataTable :value="cro_list" v-model:selection="selectedCro" v-model:expandedRows="expandedRows"
-      @rowExpand="onRowExpand" scrollable selectionMode="single" dataKey="id" resizableColumns showGridlines
-      tableStyle="min-width: 50rem" size="small">
+    <DataTable
+      :value="cro_list"
+      v-model:selection="selectedCro"
+      v-model:expandedRows="expandedRows"
+      v-model:filters="filters"
+      :globalFilterFields="globalFilterFields"
+      @rowExpand="onRowExpand"
+      scrollable
+      selectionMode="single"
+      dataKey="id"
+      resizableColumns
+      columnResizeMode="expand"
+      showGridlines
+      tableStyle="min-width: 50rem"
+      size="small">
       <Column expander class="w-12" frozen />
       <Column field="certification_number" header="Cert Number">
         <template #body="{ data, field }">
-          <Button :label="data[field]" variant="link" @click="handleShowCroForm('edit', data)"
+          <Button
+            :label="data[field]"
+            variant="link"
+            @click="handleShowCroForm('edit', data)"
             class="px-0 text-left"></Button>
         </template>
       </Column>
       <Column field="cro_name" header="CRO Name"></Column>
-      <Column field="certification_expiration_date" header="Expiration"></Column>
-      <Column field="certification_scope" header="Scope"></Column>
+      <Column
+        field="certification_expiration_date"
+        header="Expiration"></Column>
+      <Column field="certification_scope" header="Scope" class="w-20"></Column>
       <Column field="fw_contract_start" header="Fw Contract Start"></Column>
       <Column field="fw_contract_end" header="Fw Contract End"></Column>
       <Column field="fw_contract_detail" header="Fw Contract Detail"></Column>
       <Column field="address" header="Address"></Column>
 
       <template #expansion="{ data }">
-
-        <div class="mt-4 flex flex-col gap-4 rounded">
+        <div
+          class="mt-4 flex flex-col gap-4 rounded"
+          @click="selectedCro = data">
           <!-- <p class="font-bold">Contacts</p> -->
           <div class="flex gap-4 items-center">
             <p class="text-xl">Contacts</p>
-            <Button icon="pi pi-plus" rounded variant="outlined"
+            <Button
+              icon="pi pi-plus"
+              rounded
+              variant="outlined"
               @click="handleShowContactForm('new', data.id)"></Button>
-            <Button icon="pi pi-pencil" rounded variant="outlined" v-if="selectedContacts"
+            <Button
+              icon="pi pi-pencil"
+              rounded
+              variant="outlined"
+              v-if="selectedContact?.cro_id === data.id"
               @click="handleShowContactForm('edit', data.id)"></Button>
-            <Button icon=" pi pi-trash" rounded variant="outlined" v-if="selectedContacts"
+            <Button
+              icon=" pi pi-trash"
+              rounded
+              variant="outlined"
+              v-if="selectedContact?.cro_id === data.id"
               @click="handleDeleteContact(data)"></Button>
           </div>
 
-          <DataTable :value="data.contacts" dataKey="id" scrollable scrollHeight="flex" selectionMode="single"
-            v-model:selection="selectedContacts" showGridlines>
-
-
-            <Column selectionMode="single"></Column>
+          <DataTable
+            :value="data.contacts"
+            dataKey="id"
+            scrollable
+            scrollHeight="flex"
+            selectionMode="single"
+            v-model:selection="selectedContact"
+            showGridlines
+            resizableColumns
+            columnResizeMode="expand">
+            <Column selectionMode="single" class="w-8"></Column>
             <Column field="contact_name" header="Contact Name"></Column>
             <Column field="discipline" header="Discipline"></Column>
             <Column field="phone_number" header="phone_number"></Column>
@@ -60,7 +104,6 @@
             <template #empty>
               <p class="text-center text-primary">No Contacts Found!</p>
             </template>
-
           </DataTable>
         </div>
       </template>
@@ -69,36 +112,51 @@
         <p class="text-center text-primary">No Cros Found!</p>
       </template>
     </DataTable>
-    <CroForm v-if="showCroForm" :headerText="croFormHeaderText" :initialFormData="initialCro"
-      @close="showCroForm = false">
+    <CroForm
+      v-if="showCroForm"
+      :headerText="croFormHeaderText"
+      :initialFormData="initialCro"
+      @close="showCroForm = false"
+      @refresh="handleRefreshCro">
     </CroForm>
 
-    <ContactForm v-if="showContactForm" :croId="targetCroID" :headerText="contactFormHeaderText"
-      :initialFormData="initialContact" @close="showContactForm = false" @refresh="handleRefreshContact"></ContactForm>
+    <ContactForm
+      v-if="showContactForm"
+      :croId="targetCroID"
+      :headerText="contactFormHeaderText"
+      :initialFormData="initialContact"
+      @close="showContactForm = false"
+      @refresh="handleRefreshContact"></ContactForm>
   </div>
 </template>
 
 <script setup>
   import CroForm from "./CroForm.vue";
-  import ContactForm from './ContactForm.vue'
+  import ContactForm from "./ContactForm.vue";
   import { onMounted, ref, inject } from "vue";
+  import { FilterMatchMode } from "@primevue/core/api";
   // import { useErrorStore } from "../../stores/errorStore";
 
   const Api = inject("Api");
   const cro_list = ref([]);
-  const expandedRows = ref([])
+  const expandedRows = ref([]);
 
   // cro form use
   const selectedCro = ref();
-  const showCroForm = ref(false)
-  let croFormHeaderText = ""
-  let initialCro = null
+  const showCroForm = ref(false);
+  let croFormHeaderText = "";
+  let initialCro = null;
   // contact form use
-  const selectedContacts = ref()
-  const showContactForm = ref(false)
-  let contactFormHeaderText = ""
-  let initialContact = null
-  const targetCroID = ref()
+  const selectedContact = ref();
+  const showContactForm = ref(false);
+  let contactFormHeaderText = "";
+  let initialContact = null;
+  const targetCroID = ref();
+
+  const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  });
+  const globalFilterFields = ["certification_number", "cro_name", "scope"];
 
   onMounted(async () => {
     cro_list.value = await Api.get("/cros/");
@@ -109,47 +167,48 @@
   }
 
   async function handleShowCroForm(mode, data) {
-
     if (mode === "new") {
-      croFormHeaderText = "Create CRO"
+      croFormHeaderText = "Create CRO";
     } else if (mode === "edit") {
-      croFormHeaderText = "Edit CRO"
+      croFormHeaderText = "Edit CRO";
       // 如果未请求过contacts，则在此后请求
       if (!data.contacts) {
         data.contacts = await Api.get(`cros/${data.id}/contacts`);
       }
     }
-    initialCro = data
-    showCroForm.value = true
+    initialCro = data;
+    showCroForm.value = true;
   }
 
   function handleShowContactForm(mode, cro_id) {
     if (mode === "new") {
-      contactFormHeaderText = "Add Contact"
-      initialContact = null
+      contactFormHeaderText = "Add Contact";
+      initialContact = null;
     } else if (mode === "edit") {
-      contactFormHeaderText = "Edit Contact"
-      initialContact = selectedContacts.value
+      contactFormHeaderText = "Edit Contact";
+      initialContact = selectedContact.value;
     }
-    targetCroID.value = cro_id
-    showContactForm.value = true
+    targetCroID.value = cro_id;
+    showContactForm.value = true;
   }
 
   async function handleDeleteContact(data) {
-    await Api.delete(`cros/contacts/${selectedContacts.value.id}`)
-    data.contacts = await Api.get(`cros/${data.id}/contacts`)
-    selectedContacts.value = null
+    await Api.delete(`cros/contacts/${selectedContact.value.id}`);
+    data.contacts = await Api.get(`cros/${data.id}/contacts`);
+    selectedContact.value = null;
   }
 
   async function handleRefreshContact(cro_id) {
-    let index = cro_list.value.findIndex(obj => obj.id = cro_id)
+    let index = cro_list.value.findIndex((obj) => (obj.id = cro_id));
     if (index == -1) {
-      throw new Error('数据更新失败');
-
+      throw new Error("数据更新失败");
     }
-    cro_list.value[index].contacts = await Api.get(`cros/${cro_id}/contacts`)
+    cro_list.value[index].contacts = await Api.get(`cros/${cro_id}/contacts`);
+  }
+
+  async function handleRefreshCro() {
+    cro_list.value = await Api.get("/cros/");
   }
 </script>
-
 
 <style module></style>
