@@ -1,6 +1,9 @@
 from fastapi import APIRouter, status, HTTPException
 from sqlmodel import select
 
+from app.schemas.project import Project
+from app.schemas.user import User
+
 from ..schemas.sample import Sample, SampleCreate, SamplePublic
 from ..schemas.task import Task
 
@@ -41,8 +44,12 @@ def get_samples(session: SessionDep, token: TokenDep):
 
 @router.get('/{sample_id}/tasks')
 def get_sample_tasks(sample_id: int, session: SessionDep, token: TokenDep):
-    stmt = (select(Sample.id.label('sample_id'), Task.task_name, Task.task_status, Task.task_owner_id,
-            Task.task_progress).join(Sample.tasks).where(Sample.id == sample_id))
+    stmt = (select(Sample.id.label('sample_id'),
+                   Task.task_name,
+                   Task.task_status,
+                   Task.task_progress,
+                   User.name.label('task_owner'),
+                   Project.project_name).join(Sample.tasks).where(Sample.id == sample_id).join(Task.task_owner).join(Task.project).order_by(Task.task_status))
     sample_tasks = session.exec(stmt).mappings().all()
 
     return sample_tasks

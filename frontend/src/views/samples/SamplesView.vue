@@ -105,6 +105,9 @@
             <Column selectionMode="single" class="w-8"></Column>
             <Column field="project_name" header="Project Name"></Column>
             <Column field="task_name" header="Task Name"></Column>
+            <Column field="task_status" header="Task Status"></Column>
+            <Column field="task_progress" header="Task Progress"></Column>
+            <Column field="task_owner" header="Task Owner"></Column>
 
             <template #empty>
               <p class="text-center text-primary">No Contacts Found!</p>
