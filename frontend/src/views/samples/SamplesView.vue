@@ -41,7 +41,7 @@
       tableStyle="min-width: 50rem"
       size="small">
       <Column expander class="w-12" frozen />
-      <Column field="product_name" header="Product Name"></Column>
+      <Column field="product.internal_name" header="Product Name"></Column>
       <Column field="sample_name" header="Sample Name">
         <template #body="{ data, field }">
           <Button
@@ -51,6 +51,7 @@
             class="px-0 text-left"></Button>
         </template>
       </Column>
+      <Column field="sample_status" header="Sample Status"></Column>
       <Column field="batch_number" header="Batch Number"></Column>
       <Column
         field="sealing_number"
@@ -78,7 +79,7 @@
           class="mt-4 flex flex-col gap-4 rounded"
           @click="selectedSample = data">
           <div class="flex gap-4 items-center">
-            <p class="text-xl">Contacts</p>
+            <p class="text-xl">Samples</p>
             <Button
               icon="pi pi-plus"
               rounded
@@ -89,7 +90,7 @@
               icon=" pi pi-trash"
               rounded
               variant="outlined"
-              @click="handleDeleteContact(data)"></Button>
+              @click="handleDeleteSample(data)"></Button>
           </div>
 
           <DataTable
@@ -98,7 +99,7 @@
             scrollable
             scrollHeight="flex"
             selectionMode="single"
-            v-model:selection="selectedContact"
+            v-model:selection="selectedTask"
             showGridlines
             resizableColumns
             columnResizeMode="expand">
@@ -110,7 +111,7 @@
             <Column field="task_owner" header="Task Owner"></Column>
 
             <template #empty>
-              <p class="text-center text-primary">No Contacts Found!</p>
+              <p class="text-center text-primary">No Sample Found!</p>
             </template>
           </DataTable>
         </div>
@@ -147,6 +148,8 @@
   let sampleFormHeaderText = "";
   let initialSample = null;
 
+  const selectedTask = ref();
+  
   const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
@@ -172,9 +175,9 @@
   }
 
   async function handleDeleteSample(data) {
-    await Api.delete(`cros/contacts/${selectedContact.value.id}`);
-    data.contacts = await Api.get(`cros/${data.id}/contacts`);
-    selectedContact.value = null;
+    await Api.delete(`samples/${selectedSample.value.id}`);
+    // data.contacts = await Api.get(`cros/${data.id}/contacts`);
+    selectedSample.value = null;
   }
 
   async function handleRefreshSample() {

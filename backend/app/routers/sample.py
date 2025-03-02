@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status, HTTPException
 from sqlmodel import select
 
+from app.schemas.product import Product
 from app.schemas.project import Project
 from app.schemas.user import User
 
@@ -36,10 +37,18 @@ def create_sample(sample_create: SampleCreate | list[SampleCreate], session: Ses
 
 @router.get('/')
 def get_samples(session: SessionDep, token: TokenDep):
-    db_samples = session.exec(select(Sample)).all()
+    stmt = select(Sample,Product.id,Product.internal_name).join(Sample.product)
+    db_samples = session.exec(stmt).mappings().all()
+    return [{
+        **sample.Sample.model_dump(exclude={'product_id'}),
+        "product": {
+            "id": sample.id,
+            "internal_name": sample.internal_name
+        }
+    } for sample in db_samples]
 
-    return [{**sample.model_dump(exclude={'product_id'}),
-             "product_name": sample.product.product_name} for sample in db_samples]
+    # return [{**sample.model_dump(exclude={'product_id'}),
+    #          "product_name": sample.product.product_name} for sample in db_samples]
 
 
 @router.get('/{sample_id}/tasks')
