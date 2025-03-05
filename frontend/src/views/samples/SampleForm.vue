@@ -6,14 +6,14 @@
     maximizable
     @hide="emit('close')">
     <template #header>
-      <p class="font-bold text-lg">{{ props.headerText }}</p>
+      <p class="font-bold text-lg">{{ props.header }}</p>
       <div class="flex gap-4">
         <Button type="submit" form="croForm" icon="pi pi-save" label="Save" />
         <Button icon="pi pi-times" label="Cancel" @click="handleCancel" />
       </div>
     </template>
     <Form
-      pt:root:id="croForm"
+      pt:root:id="sampleForm"
       :resolver="resolver"
       @submit="handleSave"
       :initialValues="props.initialFormData"
@@ -23,7 +23,7 @@
         <AutoComplete
           inputId="product"
           dropdown
-          optionLabel="full_name"
+          optionLabel="internal_name"
           :suggestions="productSuggestions"
           @complete="searchProductSuggestion" />
         <Message
@@ -35,11 +35,36 @@
         >
       </FormField>
 
-      <FormField v-slot="$field" name="certification_number" class="form-field">
-        <label for="certification_number" class="required-mark"
-          >Certification Number</label
+      <FormField v-slot="$field" name="sample_name" class="form-field">
+        <label for="sample_name" class="required-mark">Sample Name</label>
+        <InputText id="sample_name"></InputText>
+        <Message
+          v-if="$field?.invalid"
+          size="small"
+          variant="simple"
+          severity="error"
+          >{{ $field.error?.message }}</Message
         >
-        <InputText id="certification_number"></InputText>
+      </FormField>
+      <FormField v-slot="$field" name="sample_status" class="form-field">
+        <label for="sample_status" class="required-mark">Sample Status</label>
+        <Select
+          inputId="sample_status"
+          :options="enums?.SampleStatusEnum"
+          showClear></Select>
+        <Message
+          v-if="$field?.invalid"
+          size="small"
+          variant="simple"
+          severity="error"
+          >{{ $field.error?.message }}</Message
+        >
+      </FormField>
+      <FormField v-slot="$field" name="sample_quantity" class="form-field">
+        <label for="sample_quantity"
+          >Sample Quantity</label
+        >
+        <InputText id="sample_quantity"></InputText>
         <Message
           v-if="$field?.invalid"
           size="small"
@@ -49,14 +74,49 @@
         >
       </FormField>
 
-      <FormField
-        v-slot="$field"
-        name="certification_expiration_date"
-        class="form-field">
-        <label for="certification_expiration_date" class="required-mark"
-          >Expiration Date</label
+      <FormField v-slot="$field" name="batch_number" class="form-field">
+        <label for="batch_number">Batch Number</label>
+        <InputText id="batch_number"></InputText>
+        <Message
+          v-if="$field?.invalid"
+          size="small"
+          variant="simple"
+          severity="error"
+          >{{ $field.error?.message }}</Message
         >
+      </FormField>
+      <FormField v-slot="$field" name="sealing_number" class="form-field">
+        <label for="sealing_number">Sealing Number</label>
+        <InputText id="sealing_number"></InputText>
+        <Message
+          v-if="$field?.invalid"
+          size="small"
+          variant="simple"
+          severity="error"
+          >{{ $field.error?.message }}</Message
+        >
+      </FormField>
+
+      <FormField v-slot="$field" name="production_date" class="form-field">
+        <label for="production_date">Production Date</label>
         <DatePicker
+          inputId="production_date"
+          showIcon
+          showButtonBar
+          iconDisplay="input"
+          dateFormat="yy-mm-dd" />
+        <Message
+          v-if="$field?.invalid"
+          size="small"
+          variant="simple"
+          severity="error"
+          >{{ $field.error?.message }}</Message
+        >
+      </FormField>
+      <FormField v-slot="$field" name="expiration_date" class="form-field">
+        <label for="expiration_date">Production Date</label>
+        <DatePicker
+          inputId="expiration_date"
           showIcon
           showButtonBar
           iconDisplay="input"
@@ -70,11 +130,9 @@
         >
       </FormField>
 
-      <FormField v-slot="$field" name="certification_scope" class="form-field">
-        <label for="certification_scope" class="required-mark"
-          >Certification Scope</label
-        >
-        <InputText id="certification_scope"></InputText>
+      <FormField v-slot="$field" name="shipped_quantity" class="form-field">
+        <label for="shipped_quantity">Shipped Quantity</label>
+        <InputText id="shipped_quantity"></InputText>
         <Message
           v-if="$field?.invalid"
           size="small"
@@ -84,53 +142,9 @@
         >
       </FormField>
 
-      <FormField v-slot="$field" name="fw_contract_start" class="form-field">
-        <label for="fw_contract_start">FW Contract Start</label>
-        <DatePicker
-          showIcon
-          showButtonBar
-          iconDisplay="input"
-          dateFormat="yy-mm-dd" />
-        <Message
-          v-if="$field?.invalid"
-          size="small"
-          variant="simple"
-          severity="error"
-          >{{ $field.error?.message }}</Message
-        >
-      </FormField>
-
-      <FormField v-slot="$field" name="fw_contract_end" class="form-field">
-        <label for="fw_contract_end">FW Contract End</label>
-        <DatePicker
-          showIcon
-          showButtonBar
-          iconDisplay="input"
-          dateFormat="yy-mm-dd" />
-        <Message
-          v-if="$field?.invalid"
-          size="small"
-          variant="simple"
-          severity="error"
-          >{{ $field.error?.message }}</Message
-        >
-      </FormField>
-
-      <FormField v-slot="$field" name="fw_contract_detail" class="form-field">
-        <label for="fw_contract_detail">FW Contract Detail</label>
-        <InputText id="fw_contract_detail"></InputText>
-        <Message
-          v-if="$field?.invalid"
-          size="small"
-          variant="simple"
-          severity="error"
-          >{{ $field.error?.message }}</Message
-        >
-      </FormField>
-
-      <FormField v-slot="$field" name="address" class="form-field">
-        <label for="address">Address</label>
-        <InputText id="address"></InputText>
+      <FormField v-slot="$field" name="receiver_information" class="form-field">
+        <label for="receiver_information">Receiver Information</label>
+        <InputText id="receiver_information"></InputText>
         <Message
           v-if="$field?.invalid"
           size="small"
@@ -150,16 +164,18 @@
   import { dateToStr } from "@/composables/dateTools";
   import { AutoComplete, useToast } from "primevue";
 
-  const props = defineProps({ headerText: String, initialFormData: Object });
+  const props = defineProps({ header: String, initialFormData: Object });
   const visible = ref(true);
-  // const enums = JSON.parse(localStorage.getItem('cachedEnums')) || {}
+  const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};
   // const toast = useToast()
 
   const emit = defineEmits(["refresh", "close"]);
 
   const productSuggestions = ref([]);
   async function searchProductSuggestion(event) {
-    productSuggestions.value =await Api.get(`/products/search?search=${event.query}`);
+    productSuggestions.value = await Api.get(
+      `/products/search?search=${event.query}`
+    );
     // if (query.length === 0) {
     //     productSuggestions.value = Api.get('/products/')
     // } else {
@@ -173,10 +189,9 @@
 
   const resolver = yupResolver(
     yup.object().shape({
-      cro_name: yup.string().required(),
-      certification_number: yup.string().required(),
-      certification_expiration_date: yup.date().required(),
-      certification_scope: yup.string().required(),
+      product: yup.object().required(),
+      sample_name: yup.string().required(),
+      sample_status: yup.string().required(),
     })
   );
 

@@ -41,7 +41,7 @@
       tableStyle="min-width: 50rem"
       size="small">
       <Column expander class="w-12" frozen />
-      <Column field="product.internal_name" header="Product Name"></Column>
+      <Column field="product_internal_name" header="Product Name"></Column>
       <Column field="sample_name" header="Sample Name">
         <template #body="{ data, field }">
           <Button
@@ -52,6 +52,7 @@
         </template>
       </Column>
       <Column field="sample_status" header="Sample Status"></Column>
+      <Column field="sample_quantity" header="Sample Quantity"></Column>
       <Column field="batch_number" header="Batch Number"></Column>
       <Column
         field="sealing_number"
@@ -59,16 +60,7 @@
         class="w-20"></Column>
       <Column field="production_date" header="Production Date"></Column>
       <Column field="expiration_date" header="Expiration Date"></Column>
-      <Column field="estimated_quantity" header="Estimated Quantity">
-        <template #body="{ data }">
-          {{ data.estimated_quantity }} {{ data.estimated_quantity_unit }}
-        </template>
-      </Column>
-      <Column field="received_quantity" header="Received Quantity">
-        <template #body="{ data }">
-          {{ data.received_quantity }} {{ data.received_quantity_unit }}
-        </template>
-      </Column>
+
       <Column field="shipped_quantity" header="Shipped Quantity"></Column>
       <Column
         field="receiver_information"
@@ -79,7 +71,7 @@
           class="mt-4 flex flex-col gap-4 rounded"
           @click="selectedSample = data">
           <div class="flex gap-4 items-center">
-            <p class="text-xl">Samples</p>
+            <p class="text-xl">Tasks</p>
             <Button
               icon="pi pi-plus"
               rounded
@@ -123,8 +115,7 @@
     </DataTable>
     <SampleForm
       v-if="showSampleForm"
-      :headerText="sampleFormHeaderText"
-      :initialFormData="initialSample"
+      v-bind="sampleFormData"
       @close="showSampleForm = false"
       @refresh="handleRefreshSample">
     </SampleForm>
@@ -145,11 +136,12 @@
   // cro form use
   const selectedSample = ref();
   const showSampleForm = ref(false);
-  let sampleFormHeaderText = "";
-  let initialSample = null;
+  let sampleFormData = { header: "", initialFormData: null };
+  // let sampleFormHeaderText = "";
+  // let initialSample = null;
 
   const selectedTask = ref();
-  
+
   const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
@@ -166,11 +158,16 @@
 
   async function handleShowSampleForm(mode, data) {
     if (mode === "new") {
-      sampleFormHeaderText = "Create Sample";
+      sampleFormData.header = "Create Sample";
     } else if (mode === "edit") {
-      sampleFormHeaderText = "Edit Sample";
+      sampleFormData.header = "Edit Sample";
     }
-    initialSample = data;
+    // transform data here
+    const product = {
+      id: data.product_id,
+      internal_name: data.product_internal_name,
+    };
+    sampleFormData.initialFormData = { ...data, product: product };
     showSampleForm.value = true;
   }
 

@@ -31,9 +31,7 @@ def search_products(session: SessionDep, token: TokenDep, search=Query()):
     )
     stmt = select(
         Product.id,
-        # 使用SQL表达式生成计算字段
-        (func.coalesce(Product.trade_name, '') + ':' +
-         func.coalesce(Product.internal_name, '')).label("full_name")
+        Product.internal_name,        
     ).where(conditions)
 
     results = session.exec(stmt).mappings().all()

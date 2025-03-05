@@ -17,12 +17,7 @@ class SampleBase(SQLModel):
     sample_name: str
     sample_status: SampleStatusEnum = Field(
         default=SampleStatusEnum.Waiting, sa_column=dbEnum(SampleStatusEnum))
-    estimated_quantity: int | None = None
-    estimated_quantity_unit: QuantityUnitEnum | None = Field(
-        default=None, sa_column=dbEnum(QuantityUnitEnum))
-    received_quantity: int | None = None
-    received_quantity_unit: QuantityUnitEnum | None = Field(
-        default=None, sa_column=dbEnum(QuantityUnitEnum))
+    sample_quantity: str | None = None
     batch_number: str | None = None
     sealing_number: str | None = None
     production_date: date | None = None
@@ -42,10 +37,7 @@ class SamplePublic(SampleBase):
 class SampleUpdate(SQLModel):
     task_id: int | None = None
     sample_status: SampleStatusEnum | None = None
-    estimated_quantity: int | None = None
-    estimated_quantity_unit: QuantityUnitEnum | None = None
-    received_quantity: int | None = None
-    received_quantity_unit: QuantityUnitEnum | None = None
+    sample_quantity: str | None = None
     batch_number: str | None = None
     sealing_number: str | None = None
     production_date: date | None = None

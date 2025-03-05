@@ -37,19 +37,19 @@ def create_sample(sample_create: SampleCreate | list[SampleCreate], session: Ses
 
 @router.get('/')
 def get_samples(session: SessionDep, token: TokenDep):
-    stmt = select(Sample,Product.id,Product.internal_name).join(Sample.product)
+    stmt = select(*(Sample.__table__.columns), Product.internal_name.label("product_internal_name")).join(Sample.product)
     db_samples = session.exec(stmt).mappings().all()
-    return [{
-        **sample.Sample.model_dump(exclude={'product_id'}),
-        "product": {
-            "id": sample.id,
-            "internal_name": sample.internal_name
-        }
-    } for sample in db_samples]
 
-    # return [{**sample.model_dump(exclude={'product_id'}),
-    #          "product_name": sample.product.product_name} for sample in db_samples]
+    return db_samples
+    # return [{
+    #     **sample.Sample.model_dump(exclude={'product_id'}),
+    #     "product": {
+    #         "id": sample.id,
+    #         "internal_name": sample.internal_name
+    #     }
+    # } for sample in db_samples]
 
+  
 
 @router.get('/{sample_id}/tasks')
 def get_sample_tasks(sample_id: int, session: SessionDep, token: TokenDep):
