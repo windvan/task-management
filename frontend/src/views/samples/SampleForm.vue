@@ -8,7 +8,7 @@
     <template #header>
       <p class="font-bold text-lg">{{ props.header }}</p>
       <div class="flex gap-4">
-        <Button type="submit" form="croForm" icon="pi pi-save" label="Save" />
+        <Button type="submit" form="sampleForm" icon="pi pi-save" label="Save" />
         <Button icon="pi pi-times" label="Cancel" @click="handleCancel" />
       </div>
     </template>
@@ -98,7 +98,7 @@
       </FormField>
 
       <FormField v-slot="$field" name="production_date" class="form-field">
-        <label for="production_date">Production Date</label>
+        <label>Production Date</label>
         <DatePicker
           inputId="production_date"
           showIcon
@@ -114,7 +114,7 @@
         >
       </FormField>
       <FormField v-slot="$field" name="expiration_date" class="form-field">
-        <label for="expiration_date">Production Date</label>
+        <label>Production Date</label>
         <DatePicker
           inputId="expiration_date"
           showIcon
@@ -218,10 +218,10 @@
 
     if (props.initialFormData) {
       // edit mode
-      await Api.patch(`/cros/${props.initialFormData.id}/`, updatedFields);
+      await Api.patch(`/samples/${props.initialFormData.id}`, updatedFields);
     } else {
       // new mode
-      await Api.post("/cros", updatedFields);
+      await Api.post("/samples/", updatedFields);
     }
     visible.value = false;
     emit("refresh");

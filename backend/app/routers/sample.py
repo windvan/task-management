@@ -5,7 +5,7 @@ from app.schemas.product import Product
 from app.schemas.project import Project
 from app.schemas.user import User
 
-from ..schemas.sample import Sample, SampleCreate, SamplePublic
+from ..schemas.sample import Sample, SampleCreate, SamplePublic, SampleUpdate
 from ..schemas.task import Task
 
 from ..utils.dependencies import SessionDep, TokenDep
@@ -14,12 +14,12 @@ router = APIRouter(prefix='/samples', tags=["Sample"])
 
 
 @router.post("/", response_model=SamplePublic | list[SamplePublic], status_code=status.HTTP_201_CREATED)
-def create_sample(sample_create: SampleCreate | list[SampleCreate], session: SessionDep, token: TokenDep):
+def create_sample(sample_create: SampleCreate, session: SessionDep, user_id: TokenDep):
     if isinstance(sample_create, list):
         # 处理多条记录
         db_samples = []
         for sample in sample_create:
-            db_sample = Sample.model_validate(sample)
+            db_sample = Sample.model_validate(sample, update={"created_by": user_id})
             session.add(db_sample)
             db_samples.append(db_sample)
         session.commit()
@@ -28,7 +28,7 @@ def create_sample(sample_create: SampleCreate | list[SampleCreate], session: Ses
         return db_samples
     else:
         # 处理单条记录
-        db_sample = Sample.model_validate(sample_create)
+        db_sample = Sample.model_validate(sample_create, update={"created_by": user_id})
         session.add(db_sample)
         session.commit()
         session.refresh(db_sample)
@@ -41,19 +41,22 @@ def get_samples(session: SessionDep, token: TokenDep):
     db_samples = session.exec(stmt).mappings().all()
 
     return db_samples
-    # return [{
-    #     **sample.Sample.model_dump(exclude={'product_id'}),
-    #     "product": {
-    #         "id": sample.id,
-    #         "internal_name": sample.internal_name
-    #     }
-    # } for sample in db_samples]
 
-  
+
+@router.delete('/{sample_id}')
+def delete_sample(sample_id: int, session: SessionDep, user_id: TokenDep):
+    db_sample = session.get(Sample, sample_id)
+    if not db_sample:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sample not found")
+    session.delete(db_sample)
+    session.commit()
+    return db_sample
+
 
 @router.get('/{sample_id}/tasks')
 def get_sample_tasks(sample_id: int, session: SessionDep, token: TokenDep):
     stmt = (select(Sample.id.label('sample_id'),
+                   Task.id,
                    Task.task_name,
                    Task.task_status,
                    Task.task_progress,
@@ -62,3 +65,44 @@ def get_sample_tasks(sample_id: int, session: SessionDep, token: TokenDep):
     sample_tasks = session.exec(stmt).mappings().all()
 
     return sample_tasks
+
+
+@router.post('/{sample_id}/tasks')
+def relate_sample_task(sample_id: int, task_id_list: list[int], session: SessionDep, user_id: TokenDep):
+    db_sample = session.get(Sample, sample_id)
+    if not db_sample:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sample not found")
+    if not task_id_list:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Task list is empty")
+    for task_id in task_id_list:
+        db_task = session.get(Task, task_id)
+        db_sample.tasks.append(db_task)
+    session.commit()
+
+    return db_sample.tasks
+
+
+@router.delete('/{sample_id}/tasks/{task_id}')
+def delete_sample_task(sample_id: int, task_id: int, session: SessionDep, user_id: TokenDep):
+    db_sample = session.get(Sample, sample_id)
+    if not db_sample:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sample not found")
+    db_task = session.get(Task, task_id)
+    if not db_task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    db_sample.tasks.remove(db_task)
+    session.commit()
+    return db_sample.tasks
+
+
+@router.patch('/{sample_id}', response_model=SamplePublic)
+def update_sample(sample_id: int, sample_update: SampleUpdate, session: SessionDep, user_id: TokenDep):
+    db_sample = session.get(Sample, sample_id)
+    if not db_sample:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sample not found")
+    db_sample.sqlmodel_update(sample_update.model_dump(exclude_unset=True))
+
+    session.add(db_sample)
+    session.commit()
+    session.refresh(db_sample)
+    return db_sample

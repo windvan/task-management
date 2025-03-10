@@ -1,8 +1,11 @@
-from fastapi import APIRouter, status, HTTPException, UploadFile, Body
+from fastapi import APIRouter, Query, status, HTTPException, UploadFile, Body
+from sqlalchemy import or_, and_
 from sqlmodel import select, delete, SQLModel
 from sqlalchemy.orm import joinedload, selectinload, load_only
 from pathlib import Path
 from uuid import uuid4
+
+from app.schemas.product import Product
 
 from ..schemas.task import Task, TaskCreate, TaskPublic, TaskUpdate, TaskLibrary, TaskLibraryCreate
 from ..schemas.project import Project
@@ -73,6 +76,32 @@ def get_select_options(session: SessionDep, token: TokenDep):
     }
 
 
+@router.get('/search')
+def search_tasks(session: SessionDep, user_id: TokenDep, query: str = "",sample_id=None):
+    search_pattern = f"%{query}%"
+    conditions = and_(
+        or_(
+            Product.trade_name.ilike(search_pattern),
+            Product.internal_name.ilike(search_pattern),
+            Task.task_name.ilike(search_pattern),  # 不区分大小写的模糊匹配
+            Task.tags.ilike(search_pattern)),
+        User.id == user_id,
+        ~Task.samples.any(Sample.id == sample_id) if sample_id else True
+    )
+    stmt = select(
+        Task.id,
+        Task.task_name,
+        Task.tags,
+        Product.internal_name.label("product_internal_name"),
+        Product.trade_name.label("product_trade_name"),
+
+    ).join(Task.project).join(Project.product).join(Task.task_owner).where(conditions)
+
+    results = session.exec(stmt).mappings().all()
+    # 转换为字典格式
+    return results
+
+
 @router.get("/{task_id}", response_model=TaskPublic)
 def get_task(task_id: int, session: SessionDep, token: TokenDep):
     db_task = session.get(Task, task_id)
@@ -108,9 +137,7 @@ def get_tasks(session: SessionDep, token: TokenDep):
             {"id": s.id, "status": s.sample_status}
             for s in task.samples
         ]
-        } for task in db_tasks]
-
-    
+    } for task in db_tasks]
 
 
 # one or more tasks to patch

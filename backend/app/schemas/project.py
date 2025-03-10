@@ -55,6 +55,7 @@ class ProjectUpdate(SQLModel):
 class Project(ProjectBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
+    product: "Product" = Relationship(back_populates="projects")  # type: ignore
     tasks: list["Task"] = Relationship(back_populates="project")  # type: ignore
     notes: list["Note"] = Relationship(  # type: ignore
         back_populates="project", link_model=ProjectNoteRelationship)

@@ -16,7 +16,6 @@ class ProductBase(SQLModel):
     # is_three_new: bool = False
 
 
-
 class ProductCreate(ProductBase):
     pass
 
@@ -29,7 +28,8 @@ class Product(ProductBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     ais: list['ProductAi'] = Relationship(back_populates='product')
-    samples: list['Sample'] = Relationship(back_populates='product') # type: ignore
+    samples: list['Sample'] = Relationship(back_populates='product')  # type: ignore
+    projects: list['Project'] = Relationship(back_populates='product')  # type: ignore
 
 
 class ProductUpdate(SQLModel):

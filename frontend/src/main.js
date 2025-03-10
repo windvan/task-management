@@ -18,6 +18,7 @@ import Tooltip from "primevue/tooltip";
 import App from "./App.vue";
 import { createApp } from "vue";
 import useApi from "./composables/useApi";
+import { FormField } from "@primevue/forms";
 
 const MyPreset = definePreset(Aura, {
   semantic: {
@@ -34,7 +35,15 @@ const MyPreset = definePreset(Aura, {
       900: "{cyan.900}",
       950: "{cyan.950}",
     },
-  },
+    colorScheme: {
+      light: {
+        formField: {
+          shadow:  null,
+          borderColor: "{gray.300}",
+        }
+      }
+    }
+  }
 });
 
 const app = createApp(App);

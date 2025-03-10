@@ -24,7 +24,7 @@
       </Column>
       <Column key="action" header="Action" class="text-center" :pt="{ columnTitle: 'mx-auto' }">
         <template #body="{ data }">
-          <Button icon="pi pi-user-edit" severity="success" rounded outlined @click="handleEdit(data)" class="mr-4"/>
+          <Button icon="pi pi-user-edit" severity="success" rounded outlined @click="handleEdit(data)" class="mr-4" />
           <Button icon="pi pi-trash" severity="danger" rounded outlined @click="handleDelete(data)" />
         </template>
       </Column>
@@ -130,12 +130,7 @@
   const globalFilterFields = ['name', 'email', 'role']
 
   onMounted(async () => {
-    try {
-      const response = await Api.get('/users')
-      users.value = response.data
-    } catch (err) {
-      console.error('Failed to fetch users:', err)
-    }
+    users.value = await Api.get('/users')
   })
 
   function handleNew() {
@@ -161,7 +156,7 @@
         // update user
         response = await Api.patch(`/users/${initialFormData.value.id}`, values)
         response = await Api.get('/users')
-        users.value=response.data
+        users.value = response.data
         showUserForm.value = false
 
         toast.add({
@@ -174,7 +169,7 @@
         // add new user
         response = await Api.post('/users', values)
         response = await Api.get('/users')
-        users.value=response.data
+        users.value = response.data
         showUserForm.value = false
         toast.add({
           severity: 'success',
