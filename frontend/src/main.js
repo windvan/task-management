@@ -38,12 +38,20 @@ const MyPreset = definePreset(Aura, {
     colorScheme: {
       light: {
         formField: {
-          shadow:  null,
+          shadow: null,
           borderColor: "{gray.300}",
-        }
-      }
-    }
-  }
+        },
+      },
+    },
+  },
+  components: {
+    tooltip: {
+      color: "{red.500}",
+      background: "white",
+      maxWidth: "30rem",
+      shadow:'none'
+    },
+  },
 });
 
 const app = createApp(App);
@@ -65,7 +73,7 @@ app.use(PrimeVue, {
         order: "base,primevue,components,utilities",
       },
     },
-  },
+  }
 });
 
 app.use(ConfirmationService);

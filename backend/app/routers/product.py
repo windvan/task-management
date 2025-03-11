@@ -104,6 +104,14 @@ def create_product_ai(ai_create: ProductAiCreate, session: SessionDep, token: To
     return db_product_ai
 
 
+@router.get('/{product_id}/ais')
+def get_product_ais(product_id: int, session: SessionDep, user_id: TokenDep):
+    db_product = session.get(Product, product_id)
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return db_product.ais
+
+
 @router.get('/ais/{ai_id}', response_model=ProductAiPublic)
 def get_product_ai(ai_id: int, session: SessionDep, token: TokenDep):
     db_ai = session.get(ProductAi, ai_id)
@@ -121,7 +129,7 @@ def get_product_ais(session: SessionDep, token: TokenDep):
 
 @router.patch('/ais/{ai_id}', response_model=ProductAiPublic)
 def update_product_ai(ai_id: int, ai_update: ProductAiUpdate, session: SessionDep, token: TokenDep):
-    db_ai = session.get(ProductAi(), ai_id)
+    db_ai = session.get(ProductAi, ai_id)
     if not db_ai:
         raise HTTPException(status_code=404, detail="Ai not found")
 
