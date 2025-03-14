@@ -21,8 +21,8 @@ def create_product(product_create: ProductCreate, session: SessionDep, token: To
 
 
 @router.get('/search')
-def search_products(session: SessionDep, token: TokenDep, search=Query()):
-    search_pattern = f"%{search}%"
+def search_products(session: SessionDep, user_id: TokenDep, query:str = ""):
+    search_pattern = f"%{query}%"
     conditions = or_(
         Product.trade_name.ilike(search_pattern),
         Product.internal_name.ilike(search_pattern),
@@ -89,8 +89,8 @@ def delete_products(product_ids: Annotated[list[int], Body()], session: SessionD
 # region Product Ai
 
 
-@router.post('/ais', response_model=ProductAiPublic, status_code=status.HTTP_201_CREATED)
-def create_product_ai(ai_create: ProductAiCreate, session: SessionDep, token: TokenDep):
+@router.post('/{product_id}/ais', response_model=ProductAiPublic, status_code=status.HTTP_201_CREATED)
+def create_product_ai(ai_create: ProductAiCreate, session: SessionDep, user_id: TokenDep):
     db_product_ai = ProductAi.model_validate(ai_create)
     session.add(db_product_ai)
 
@@ -127,23 +127,22 @@ def get_product_ais(session: SessionDep, token: TokenDep):
     return db_ais
 
 
-@router.patch('/ais/{ai_id}', response_model=ProductAiPublic)
-def update_product_ai(ai_id: int, ai_update: ProductAiUpdate, session: SessionDep, token: TokenDep):
+@router.patch('/{product_id}/ais/{ai_id}', response_model=ProductAiPublic)
+def update_product_ai(ai_id: int, ai_update: dict, session: SessionDep, token: TokenDep):
     db_ai = session.get(ProductAi, ai_id)
     if not db_ai:
         raise HTTPException(status_code=404, detail="Ai not found")
 
-    ai_data = ai_update.model_dump(exclude_unset=True)
-    db_ai.sqlmodel_update(ai_data)
+    db_ai.sqlmodel_update(ai_update)
     session.add(db_ai)
     session.commit()
     session.refresh(db_ai)
     return db_ai
 
 
-@router.delete("/ais/{ai_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_product_ai(cro_contact_id: int, session: SessionDep, token: TokenDep):
-    db_ai = session.get(ProductAi, cro_contact_id)
+@router.delete("/{product_id}/ais/{ai_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_product_ai(ai_id: int, session: SessionDep, token: TokenDep):
+    db_ai = session.get(ProductAi, ai_id)
     if not db_ai:
         raise HTTPException(status_code=404, detail="Ai not found")
     session.delete(db_ai)

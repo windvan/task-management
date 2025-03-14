@@ -1,31 +1,23 @@
 <template>
-  <Dialog v-model:visible="visible" :style="{ width: '900px' }" :modal="true" maximizable>
+  <Dialog v-model:visible="visible" :style="{ width: '80%' }" :modal="true" maximizable>
     <template #header>
-      <p class="font-bold text-lg">Edit Task</p>
+      <p class="font-bold text-lg">
+        {{ initialFormData.id ? "Edit Task" : "Create Task" }}
+      </p>
       <div class="flex gap-4">
-        <Button icon="pi pi-save" label="Save" type="submit" form="editTaskForm" />
+        <Button icon="pi pi-save" label="Save" type="submit" form="taskForm" />
         <Button icon="pi pi-times" label="Cancel" @click="handleCancel" />
       </div>
     </template>
-    <Form
-      v-if="_initialFormData"
-      :resolver
-      :initialValues="_initialFormData"
-      @submit="handleSave"
-      pt:root:id="editTaskForm"
-      class="flex flex-col gap-4 overflow-auto p-4 mb-32"
-    >
+    <Form v-if="_initialFormData" :resolver :initialValues="_initialFormData" @submit="handleSave"
+      id="taskForm" class="flex flex-col gap-4 overflow-auto p-4 mb-32">
       <!-- project field:project_id -->
       <FormField v-slot="$field" name="project" class="form-field">
         <label for="project" class="required-mark">Project</label>
-        <Select
-          inputId="project"
-          :options="selectOptions?.projectOptions"
-          optionLabel="project_name"
-        />
+        <Select inputId="project" :options="selectOptions?.projectOptions" optionLabel="project_name" />
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
       <!-- task group field -->
       <FormField v-slot="$field" name="tags" class="form-field">
@@ -33,7 +25,7 @@
         <InputText id="tags"></InputText>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
       <!-- task category field -->
       <FormField v-slot="$field" name="task_category" class="form-field">
@@ -41,7 +33,7 @@
         <Select inputId="task_category" :options="taskCategoryOptions" />
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
       <!-- task name field -->
       <FormField v-slot="$field" name="task_name" class="form-field">
@@ -49,7 +41,7 @@
         <InputText id="task_name" />
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
       <!-- task owner:task_owner_id -->
       <FormField v-slot="$field" name="task_owner" class="form-field">
@@ -57,7 +49,7 @@
         <Select :options="selectOptions?.userOptions" option-label="name"></Select>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
       <!-- task status -->
       <FormField v-slot="$field" name="task_status" class="form-field">
@@ -65,39 +57,25 @@
         <Select inputId="task_status" :options="enums?.TaskStatusEnum" showClear></Select>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
       <!-- start_year -->
       <FormField v-slot="$field" name="start_year" class="form-field">
         <label for="start_year">Start Year</label>
-        <DatePicker
-          inputId="start_year"
-          name="start_year"
-          view="year"
-          date-format="yy"
-          showIcon
-          iconDisplay="input"
-          showButtonBar
-          :min-date="new Date()"
-        />
+        <DatePicker inputId="start_year" name="start_year" view="year" date-format="yy" showIcon iconDisplay="input"
+          showButtonBar :min-date="new Date()" />
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
       <!-- expected_delivery_date -->
       <FormField v-slot="$field" name="expected_delivery_date" class="form-field">
         <label for="expected_delivery_date">Expected Delivery Date</label>
-        <DatePicker
-          inputId="expected_delivery_date"
-          date-format="yy-mm-dd"
-          showIcon
-          iconDisplay="input"
-          showButtonBar
-          :min-date="new Date()"
-        />
+        <DatePicker inputId="expected_delivery_date" date-format="yy-mm-dd" showIcon iconDisplay="input" showButtonBar
+          :min-date="new Date()" />
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
       <!-- pi_number -->
       <FormField v-slot="$field" name="pi_number" class="form-field">
@@ -105,7 +83,7 @@
         <InputText id="pi_number"></InputText>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
       <!-- tk_number -->
       <FormField v-slot="$field" name="tk_number" class="form-field">
@@ -113,7 +91,7 @@
         <InputText id="tk_number"></InputText>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
       <!-- cost_center -->
       <FormField v-slot="$field" name="cost_center" class="form-field">
@@ -121,7 +99,7 @@
         <Select inputId="cost_center" :options="enums?.CostCenterEnum" showClear></Select>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
       <!-- tox_gov_approved -->
       <FormField v-slot="$field" name="tox_gov_approved" class="form-field">
@@ -135,7 +113,7 @@
         </RadioButtonGroup>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- ecotox_gov_approved -->
@@ -149,7 +127,7 @@
         </RadioButtonGroup>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- budget_confirmed -->
@@ -163,7 +141,7 @@
         </RadioButtonGroup>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- doc_link -->
@@ -172,7 +150,7 @@
         <InputText id="doc_link"></InputText>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- task_confirmed -->
@@ -186,7 +164,7 @@
         </RadioButtonGroup>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- po_placed -->
@@ -200,7 +178,7 @@
         </RadioButtonGroup>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- contract_signed -->
@@ -214,7 +192,7 @@
         </RadioButtonGroup>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
       <!-- payment_method -->
       <FormField v-slot="$field" name="payment_method" class="form-field">
@@ -222,7 +200,7 @@
         <Select inputId="payment_method" :options="enums?.PaymentMethodEnum" showClear></Select>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- payment_status -->
@@ -231,7 +209,7 @@
         <Select inputId="payment_status" :options="enums?.PaymentStatusEnum" showClear></Select>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
       <!-- vv_doc_uploaded -->
       <FormField v-slot="$field" name="vv_doc_uploaded" class="form-field">
@@ -244,7 +222,7 @@
         </RadioButtonGroup>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
       <!-- vv_doc_number -->
       <FormField v-slot="$field" name="vv_doc_number" class="form-field">
@@ -252,82 +230,52 @@
         <InputText id="vv_doc_number"></InputText>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- planned_start -->
       <FormField v-slot="$field" name="planned_start" class="form-field">
         <label for="planned_start">Planned Start</label>
-        <DatePicker
-          inputId="planned_start"
-          date-format="yy-mm-dd"
-          showIcon
-          iconDisplay="input"
-          showButtonBar
-        />
+        <DatePicker inputId="planned_start" date-format="yy-mm-dd" showIcon iconDisplay="input" showButtonBar />
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- expected_finish -->
       <FormField v-slot="$field" name="expected_finish" class="form-field">
         <label for="expected_finish">Expected Finish</label>
-        <DatePicker
-          inputId="expected_finish"
-          date-format="yy-mm-dd"
-          showIcon
-          iconDisplay="input"
-          showButtonBar
-        />
+        <DatePicker inputId="expected_finish" date-format="yy-mm-dd" showIcon iconDisplay="input" showButtonBar />
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- actual_start -->
       <FormField v-slot="$field" name="actual_start" class="form-field">
         <label for="actual_start">Actual Start</label>
-        <DatePicker
-          inputId="actual_start"
-          date-format="yy-mm-dd"
-          showIcon
-          iconDisplay="input"
-          showButtonBar
-        />
+        <DatePicker inputId="actual_start" date-format="yy-mm-dd" showIcon iconDisplay="input" showButtonBar />
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- actual_finish -->
       <FormField v-slot="$field" name="actual_finish" class="form-field">
         <label for="actual_finish">Actual Finish</label>
-        <DatePicker
-          inputId="actual_finish"
-          date-format="yy-mm-dd"
-          showIcon
-          iconDisplay="input"
-          showButtonBar
-        />
+        <DatePicker inputId="actual_finish" date-format="yy-mm-dd" showIcon iconDisplay="input" showButtonBar />
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- delivery_date -->
       <FormField v-slot="$field" name="delivery_date" class="form-field">
         <label for="delivery_date">Delivery Date</label>
-        <DatePicker
-          inputId="delivery_date"
-          date-format="yy-mm-dd"
-          showIcon
-          iconDisplay="input"
-          showButtonBar
-        />
+        <DatePicker inputId="delivery_date" date-format="yy-mm-dd" showIcon iconDisplay="input" showButtonBar />
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- stuff_days -->
@@ -336,7 +284,7 @@
         <InputNumber id="stuff_days" :min-fraction-digits="0" :max-fraction-digits="1" />
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- task_progress -->
@@ -345,7 +293,7 @@
         <Select inputId="task_progress" :options="enums?.TaskProgressEnum" showClear></Select>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- cro_id -->
@@ -354,7 +302,7 @@
         <Select :options="selectOptions?.croOptions" option-label="cro_name"></Select>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- sample_id -->
@@ -363,7 +311,7 @@
         <Select :options="selectOptions?.sampleOptions" option-label="sample_name"></Select>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- study_notified -->
@@ -377,7 +325,7 @@
         </RadioButtonGroup>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- estimated_cost -->
@@ -386,7 +334,7 @@
         <InputNumber id="estimated_cost" mode="currency" currency="CNY" locale="zh-CN" />
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- actual_cost -->
@@ -395,7 +343,7 @@
         <InputNumber id="actual_cost" mode="currency" currency="CNY" locale="zh-CN" />
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- analytes -->
@@ -404,7 +352,7 @@
         <InputText id="analytes"></InputText>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- key_results -->
@@ -413,7 +361,7 @@
         <InputText id="key_results"></InputText>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- guidelines -->
@@ -422,7 +370,7 @@
         <InputText id="guidelines"></InputText>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- test_item_data_sheet -->
@@ -436,7 +384,7 @@
         </RadioButtonGroup>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- ssd_finished -->
@@ -450,7 +398,7 @@
         </RadioButtonGroup>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- sed_uploaded -->
@@ -464,7 +412,7 @@
         </RadioButtonGroup>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- global_study_manager -->
@@ -473,7 +421,7 @@
         <InputText id="global_study_manager"></InputText>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- global_study_manager_email -->
@@ -482,7 +430,7 @@
         <InputText id="global_study_manager_email" type="email"></InputText>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
 
       <!-- cro_study_director -->
@@ -491,7 +439,7 @@
         <InputText id="cro_study_director"></InputText>
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
           $field.error?.message
-        }}</Message>
+          }}</Message>
       </FormField>
     </Form>
   </Dialog>
@@ -510,19 +458,15 @@
 
   const taskCategoryOptions = ref()
 
-  const emit = defineEmits(['refresh'])
-
   const toast = useToast()
-  const visible = defineModel('visible')
   const Api = inject('Api')
-  let selectOptions
-  const _initialFormData = ref()
-  const { initialFormData } = defineProps({
-    initialFormData: {
-      type: Object,
-      required: true
-    }
-  })
+
+  const emit = defineEmits(['close', 'refresh'])
+  const visible = ref(true)
+  const { initialFormData } = defineProps({ initialFormData: Object })
+
+
+
 
   onMounted(async () => {
     try {
@@ -594,8 +538,8 @@
       if (state.dirty) {
         if (state.value instanceof Date) {
           // for date fields
-          updatedFields[field] =dateToStr(state.value)
-            
+          updatedFields[field] = dateToStr(state.value)
+
         } else if (state.value && typeof state.value === 'object') {
           // for relational fields
           updatedFields[field + '_id'] = state.value.id

@@ -5,12 +5,12 @@
                 {{ initialFormData.id ? "Edit Product" : "Create Product" }}
             </p>
             <div class="flex gap-4">
-                <Button icon="pi pi-save" label="Save" @click="handleSave" />
+                <Button icon="pi pi-save" label="Save" type="submit" form="productForm" />
                 <Button icon="pi pi-times" label="Cancel" @click="handleCancel" />
             </div>
         </template>
-        <Form :resolver="resolver" :initialValues="initialFormData" :validateOnValueUpdate="true" ref="formRef"
-            class="flex flex-col gap-4 overflow-auto p-4 mb-32">
+        <Form :resolver="resolver" :initialValues="initialFormData" :validateOnValueUpdate="true" id="productForm"
+            @submit="handleSave" class="flex flex-col gap-4 overflow-auto p-4 mb-32">
             <FormField v-slot="$field" name="internal_name" class="form-field">
                 <label for="internal_name" class="required-mark">Internal Name</label>
                 <InputText id="internal_name"></InputText>
@@ -94,7 +94,7 @@
 
 <script setup>
 
-    import { toRefs, useTemplateRef, ref,inject } from "vue";
+    import { toRefs, useTemplateRef, ref, inject } from "vue";
     import { yupResolver } from "@primevue/forms/resolvers/yup";
     import * as yup from "yup";
     import { useToast } from "primevue/usetoast";
@@ -122,47 +122,48 @@
     async function handleSave() {
         // only post modified form fields
         //form filed values are matained by primevue Form, no need to bind to a ref or reactive
-        const { values, errors } = await formRef.value.validate();
 
-        if (Object.keys(errors).length !== 0) {
+        if (!e.valid) return;
+        // distinguish add and patch through formData.id (Undefined == add)
+
+        // modify current porduct
+        let updatedFields = {};
+        Object.entries(formRef.value.states).forEach(([key, value]) => {
+            if (state.dirty) {
+                if (state.value instanceof Date) {
+                    // for date fields
+                    updatedFields[field] = dateToStr(state.value)
+
+                } else if (state.value && typeof state.value === 'object') {
+                    // for relational fields
+                    updatedFields[field + '_id'] = state.value.id
+                } else {
+                    // for string and select field
+                    updatedFields[field] = state.value
+                }
+            }
+        });
+
+        if (Object.keys(updatedFields).length === 0) {
             return;
         }
-        // distinguish add and patch through formData.id (Undefined == add)
-        let response;
-        if (initialFormData.id) {
-            // modify current porduct
-            let dirty_data = {};
-            Object.entries(formRef.value.states).forEach(([key, value]) => {
-                if (value.dirty) {
-                    dirty_data[key] = value.value;
-                }
-            });
 
-            if (Object.keys(dirty_data).length === 0) {
-                return;
-            }
-            response = await Api.patch(`/products/${initialFormData.id}`, dirty_data
-            );
+        let newData;
+        if (initialFormData.id) {
+            // edit product
+            newData = await Api.patch(`/products/${initialFormData.id}`, updatedFields);
         } else {
             // add new product
-            await Api.post("/products", values);
+            newData = await Api.post("/products", updatedFields);
         }
         // close dialog form
         emit('close');
         //refresh data
-        emit('refresh');
+        emit('refresh', initialFormData.id, newData);
     }
 
     function handleCancel() {
         emit('close');
     }
-
-    function handleReset() {
-        formRef.value.reset();
-    }
-
-
-
-
 
 </script>

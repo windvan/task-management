@@ -46,7 +46,7 @@ class ProductUpdate(SQLModel):
 
 class ProductAiBase(SQLModel):
     product_id: int = Field(foreign_key='product.id')
-    abbreviation: str | None = None
+    abbreviation: str
     common_name: str
     common_name_cn: str | None = None
     design_code: str | None = None
@@ -73,3 +73,9 @@ class ProductAi(ProductAiBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     product: Product = Relationship(back_populates="ais")
+    
+
+# class ProductAiRelationship(SQLModel, table=True):
+#     __tablename__ = "product_ai_rel"
+#     product_id: int = Field(foreign_key="product.id", primary_key=True)
+#     ai_id: int = Field(foreign_key="product_ai.id", primary_key=True)

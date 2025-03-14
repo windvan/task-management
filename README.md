@@ -1,3 +1,9 @@
+# todo：
+## product ai many to many relationship refactoring
+## date handel by backend and stored with UTC format
+## on empty autocomplete drop behavior(Project Form)
+
+
 # task-management
 ## technology stack: 
 #### vue 3.5 + primevue 4.2.5 + vue-router + pinia + axios

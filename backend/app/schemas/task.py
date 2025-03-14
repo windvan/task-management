@@ -5,7 +5,7 @@ from datetime import date
 
 
 from .note import TaskNoteRelationship
-from .sample import SampleTaskRelationship
+
 from ..database.database import SQLModel
 from .enums import (TaskCategoryEnum, TaskProgressEnum, TaskStatusEnum,
                     CostCenterEnum, PaymentMethodEnum, PaymentStatusEnum)
@@ -56,6 +56,7 @@ class TaskBase(SQLModel):
     crop: str | None = None
     target: str | None = None
     cro_id: int | None = Field(default=None, foreign_key="cro.id")
+    sample_id: int | None = Field(default=None, foreign_key="sample.id")
     study_notified: bool = False
     estimated_cost: Decimal | None = Field(
         default=None, max_digits=10, decimal_places=2)
@@ -120,6 +121,7 @@ class TaskUpdate(SQLModel):
     stuff_days: float | None = None
 
     cro_id: int | None = None
+    sample_id: int | None = None
     study_notified: bool | None = None
     estimated_cost: Decimal | None = None
     analytes_count: int | None = None
@@ -145,10 +147,10 @@ class Task(TaskBase, table=True):
         "foreign_keys": "Task.cro_id"})  # type: ignore
     gap: "Gap" = Relationship(back_populates="tasks", sa_relationship_kwargs={  # type: ignore
         "foreign_keys": "Task.gap_id"})  # type: ignore
+    sample: "Sample" = Relationship(back_populates="tasks", sa_relationship_kwargs={  # type: ignore
+            "foreign_keys": "Task.sample_id"})  # type: ignore
     notes: list["Note"] = Relationship(  # type: ignore
         back_populates="task", link_model=TaskNoteRelationship)
-    samples: list["Sample"] = Relationship(  # type: ignore
-        back_populates="tasks", link_model=SampleTaskRelationship)
 
 
 class TaskLibrary(SQLModel, table=True):
@@ -163,21 +165,3 @@ class TaskLibraryCreate(SQLModel):
     task_category: TaskCategoryEnum = Field(sa_column=dbEnum(TaskCategoryEnum))
     task_name_prefix: str
     default_task_owner_id: int | None = None
-
-
-
-class TasksWithSample(TaskBase):
-    id:int
-    project: "Project" = Relationship(back_populates="tasks", sa_relationship_kwargs={  # type: ignore
-                                      "foreign_keys": "Task.project_id"})
-    task_owner: "User" = Relationship(back_populates="tasks", sa_relationship_kwargs={  # type: ignore
-                                      "foreign_keys": "Task.task_owner_id"})  # type: ignore
-    cro: "Cro" = Relationship(back_populates="tasks", sa_relationship_kwargs={  # type: ignore
-        "foreign_keys": "Task.cro_id"})  # type: ignore
-    gap: "Gap" = Relationship(back_populates="tasks", sa_relationship_kwargs={  # type: ignore
-        "foreign_keys": "Task.gap_id"})  # type: ignore
-    notes: list["Note"] = Relationship(  # type: ignore
-        back_populates="task", link_model=TaskNoteRelationship)
-    samples: list["Sample"] = Relationship(  # type: ignore
-        back_populates="tasks", link_model=SampleTaskRelationship)
-

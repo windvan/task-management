@@ -42,42 +42,39 @@ def create_task(task_create: TaskCreate | list[TaskCreate], session: SessionDep,
         return db_task
 
 
-@router.get('/select-options')
-def get_select_options(session: SessionDep, token: TokenDep):
+@router.get("/")
+def get_tasks(session: SessionDep, user_id: TokenDep):
 
-    project_list = session.exec(
-        select(Project.id, Project.project_name)).mappings().all()
-    user_list = session.exec(select(User.id, User.name)).mappings().all()
-    cro_list = session.exec(select(Cro.id, Cro.cro_name)).mappings().all()
-    sample_list = session.exec(
-        select(Sample.id, Sample.sample_name)).mappings().all()
+    stmt = select(Task.__table__.columns,
+                  Project.project_name,
+                  User.name.label('task_owner_name'),
+                  Cro.cro_name,
+                  Gap.snapshot_url.label('gap_snapshot_url'),
+                  Sample.sample_status).outerjoin(
+        Project, Project.id == Task.project_id).outerjoin(
+        User, User.id == Task.task_owner_id,).outerjoin(
+        Gap, Gap.id == Task.gap_id).outerjoin(
+        Cro, Cro.id == Task.cro_id).outerjoin(
+        Sample, Sample.id == Task.sample_id).where(User.id == user_id)
 
-    task_library = session.exec(select(TaskLibrary)).all()
+    db_tasks = session.exec(stmt).mappings().all()
 
-    tree = []
-    for task in task_library:
-        node = [item for item in tree if item.get(
-            'label') == task.task_category]
+    return db_tasks
 
-        if node:
-            node[0]["children"].append(
-                {'key': task.id, 'label': task.task_name_prefix, 'data': task.task_name_prefix})
-        else:
-            tree.append({'key': task.task_category, 'label': task.task_category,
-                         'data': task.task_category, 'children': [{'key': task.id, 'label': task.task_name_prefix, 'data': task.task_name_prefix}]})
 
-    return {
-        "projectOptions": project_list,
-        "userOptions": user_list,
-        "croOptions": cro_list,
-        "sampleOptions": sample_list,
-        "taskLibrary": task_library,
-        "taskTree": tree
-    }
+@router.get('/task-columns')
+def get_task_columns(user_id: SessionDep):
+    stmt = select(Task.__table__.columns,
+                  Project.project_name,
+                  User.name.label('task_owner_name'),
+                  Cro.cro_name,
+                  Gap.snapshot_url.label('gap_snapshot_url'),
+                  Sample.sample_status)
+    return [col.name for col in stmt.selected_columns]
 
 
 @router.get('/search')
-def search_tasks(session: SessionDep, user_id: TokenDep, query: str = "",sample_id=None):
+def search_tasks(session: SessionDep, user_id: TokenDep, query: str = "", sample_id=None):
     search_pattern = f"%{query}%"
     conditions = and_(
         or_(
@@ -108,36 +105,6 @@ def get_task(task_id: int, session: SessionDep, token: TokenDep):
     if not db_task:
         raise HTTPException(status_code=404, detail="task not found")
     return db_task
-
-
-class TaskSamples(SQLModel):
-    # id: int
-    # sample_name: str
-    sample_status: SampleStatusEnum
-
-
-class TaskWithSample(TaskPublic):
-    # project_name: str
-    # cro_name: str
-    samples: list[TaskSamples]
-
-
-@router.get("/")
-def get_tasks(session: SessionDep, token: TokenDep):
-
-    db_tasks = session.exec(select(Task)).all()
-
-    return [{
-        **task.model_dump(exclude={"project_id", "task_owner_id", "cro_id", "gap_id"}),
-        "project_name": task.project.project_name if task.project else None,
-        "task_owner_name": task.task_owner.name if task.task_owner else None,
-        "cro_name": task.cro.cro_name if task.cro else None,
-        "gap_snapshot_url": task.gap.snapshot_url if task.gap else None,
-        "samples": [
-            {"id": s.id, "status": s.sample_status}
-            for s in task.samples
-        ]
-    } for task in db_tasks]
 
 
 # one or more tasks to patch

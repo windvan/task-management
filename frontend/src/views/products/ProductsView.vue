@@ -7,8 +7,8 @@
       <template #header>
         <Toolbar pt:start="gap-2">
           <template #start>
-            <Button icon="pi pi-plus" label="New" @click="handleOpenForm('new')" severity="secondary" />
-            <Button icon="pi pi-trash" label="Delete" @click="handleDelete" severity="secondary" />
+            <Button icon="pi pi-plus" label="New" @click="handleOpenProductForm('new')" severity="secondary" />
+
           </template>
 
           <template #center>
@@ -34,7 +34,8 @@
       <Column expander style="width: 3rem"></Column>
       <Column field="internal_name" header="Internal Name" frozen>
         <template #body="{ data }">
-          <Button :label="data.internal_name" variant="link" @click="handleOpenForm('edit', data)"></Button> </template>
+          <Button :label="data.internal_name" variant="link" @click="handleOpenProductForm('edit', data)"></Button>
+        </template>
       </Column>
       <Column field="lead_ai" header="Lead AI"></Column>
       <Column field="stage" header="Stage">
@@ -60,9 +61,42 @@
         </template>
       </Column>
       <template #expansion="{ data, index }">
-        <div>
-          {{ data.ais }}
+        <div class="mt-4 flex flex-col gap-4" @click="selectedSample = data">
+          <div class="flex gap-4 items-center">
+            <p class="text-xl">Product Ais</p>
+            <Button icon="pi pi-plus" label="Add" size="small" outlined @click="handleOpenAiForm('new', data)"></Button>
+          </div>
+
+          <DataTable :value="data.ais" dataKey="id" scrollable scrollHeight="flex" selectionMode="single"
+            v-model:selection="selectedAi" showGridlines resizableColumns columnResizeMode="expand">
+            <Column selectionMode="single" class="w-8"></Column>
+            <Column field="abbreviation" header="Abbreviation">
+              <template #body="props">
+                <Button :label="props.data.abbreviation" variant="link"
+                  @click="handleOpenAiForm('edit', data, props.data)"></Button>
+              </template>
+            </Column>
+            <Column field="common_name" header="Common Name"></Column>
+            <Column field="common_name_cn" header="Common Name(CN)"></Column>
+            <Column field="design_code" header="Design Code"></Column>
+
+            <Column header="Action">
+              <template #body="props">
+                <Button icon=" pi pi-trash" rounded variant="outlined"
+                  @click="handleDeletePorductAi(data.id, props.data.id)"></Button>
+              </template>
+            </Column>
+
+            <template #empty>
+              <p class="text-center text-primary">No Related Ai Found!</p>
+            </template>
+          </DataTable>
+          <AiForm v-if="showAiForm" :initialFormData="initialAiFormData" @close="handleCloseAiForm"
+            @refresh="handleRefreshAi">
+          </AiForm>
+
         </div>
+
       </template>
 
       <template #empty>
@@ -76,7 +110,8 @@
 
     <!-- #Region Product Form -->
 
-    <ProductForm v-if="showProductForm" :initialFormData @close="handleCloseForm" @refresh="handleRefresh" />
+    <ProductForm v-if="showProductForm" :initialFormData="initialProductFormData" @close="handleCloseProductForm"
+      @refresh="handleRefreshProduct" />
 
     <!-- #endregion -->
 
@@ -91,6 +126,7 @@
   import { useConfirm } from "primevue/useconfirm";
   import { FilterMatchMode } from "@primevue/core";
   import ProductForm from "./ProductForm.vue";
+  import AiForm from "./AiForm.vue";
 
   const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};
   const toast = useToast();
@@ -142,26 +178,23 @@
   }
 
 
-
+  // #region Product Form
 
   const showProductForm = ref(false);
-  const initialFormData = ref();
-  function handleOpenForm(mode, data = null) {
+  const initialProductFormData = ref();
+  function handleOpenProductForm(mode, data = null) {
     if (mode === 'new') {
-      initialFormData.value = {};
+      initialProductFormData.value = {};
     } else if (mode === 'edit') {
-      initialFormData.value = data;
+      initialProductFormData.value = data;
     }
     showProductForm.value = true;
   }
 
 
-
-
-  function handleCloseForm() {
+  function handleCloseProductForm() {
     showProductForm.value = false;
   }
-
 
   async function handleDeleteProduct(product_id) {
 
@@ -190,14 +223,88 @@
     });
   }
 
-  async function handleRefresh() {
-    products.value = await Api.get("/products");
+  async function handleRefreshProduct(product_id,newData) {
+    const index = products.value.findIndex((product) => product.id === product_id);
+    if (index === -1) {
+      products.value.push(await Api.get(`/products/${product_id}`));
+    } else {
+      products.value[index] = await Api.get(`/products/${product_id}`);
+    }
+    products.value[index] = await Api.get(`/products/${product_id}`);
+
+
   }
 
   async function onRowExpand(event) {
     event.data.ais = await Api.get(`/products/${event.data.id}/ais`);
   }
+
+
+  // #endregion
+
+  const initialAiFormData = ref();
+  const showAiForm = ref(false);
+  const selectedAi = ref();
+
+  function handleOpenAiForm(mode, product, data = null) {
+    if (mode === 'new') {
+      initialAiFormData.value = { product_id: product.id, product_internal_name: product.internal_name };
+    } else if (mode === 'edit') {
+
+      initialAiFormData.value = data;
+      initialAiFormData.value.product_internal_name = product.internal_name;
+    }
+    showAiForm.value = true;
+  }
+
+  function handleCloseAiForm() {
+    showAiForm.value = false;
+  }
+
+  async function handleRefreshAi(product_id, newData) {
+
+    const p_index = products.value.findIndex((product) => product.id === product_id);
+    const ai_index = products.value[p_index].ais?.findIndex((ai) => ai.id === newData.id);
+
+    if (ai_index === undefined) {
+      products.value[p_index].ais = [newData];
+    } else if (ai_index === -1) {
+      products.value[p_index].ais.push(newData);
+    } else {
+      products.value[p_index].ais[ai_index] = newData;
+    }
+  }
+
+
+  function handleDeletePorductAi(product_id, ai_id) {
+    confirm.require({
+      position: "top",
+      message: "Are you sure you want delete?",
+      header: "Confirmation",
+      icon: "pi pi-exclamation-triangle",
+      rejectProps: {
+        label: "Cancel",
+        severity: "secondary",
+        outlined: true,
+      },
+      acceptProps: {
+        label: "Confirm",
+      },
+      accept: async () => {
+
+        await Api.delete(`/products/${product_id}/ais/${ai_id}`);
+        //refresh ais
+        const p_index = products.value.findIndex((product) => product.id === product_id);
+        const ai_index = products.value[p_index].ais.findIndex((ai) => ai.id === ai_id);
+        products.value[p_index].ais.splice(ai_index, 1);
+
+      },
+      reject: null,
+    });
+  }
 </script>
+
+
 
 
 

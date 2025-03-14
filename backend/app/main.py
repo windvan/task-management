@@ -27,7 +27,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],  # 允许所有方法
     allow_headers=["*"],
-    )  # 允许所有头
+)  # 允许所有头
 
 
 app.include_router(auth.router)
@@ -58,7 +58,8 @@ def get_model_schema(model_name: str):
     model = globals().get(model_name)
     if not model:
         return None
-    return model.model_json_schema()
+    # return model.__table__.columns
+    return model.__table__.columns.keys()
 
 
 @app.get("/enums", tags=['root'])

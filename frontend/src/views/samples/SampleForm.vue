@@ -25,7 +25,7 @@
           dropdown
           optionLabel="internal_name"
           :suggestions="productSuggestions"
-          @complete="searchProductSuggestion" />
+          @complete="filterProductSuggestion" />
         <Message
           v-if="$field?.invalid"
           size="small"
@@ -172,9 +172,9 @@
   const emit = defineEmits(["refresh", "close"]);
 
   const productSuggestions = ref([]);
-  async function searchProductSuggestion(event) {
+  async function filterProductSuggestion(event) {
     productSuggestions.value = await Api.get(
-      `/products/search?search=${event.query}`
+      `/products/search?query=${event.query}`
     );
     // if (query.length === 0) {
     //     productSuggestions.value = Api.get('/products/')

@@ -1,5 +1,5 @@
-from fastapi import APIRouter, status, HTTPException
-from sqlmodel import select
+from fastapi import APIRouter, status, HTTPException, Query
+from sqlmodel import select, or_
 
 from ..schemas.user import User, UserCreate, UserPublic, UserUpdate
 from ..utils.functions import get_password_hash
@@ -35,6 +35,22 @@ def update_user(user_id: int, user_update: UserUpdate, session: SessionDep, toke
     session.add(db_user)
     session.commit()
     return db_user
+
+
+@router.get('/search')
+def search_users(session: SessionDep, user_id: TokenDep, query: str = ""):
+
+    search_pattern = f"%{query}%"
+    conditions = or_(
+        User.name.ilike(search_pattern),
+        User.role.ilike(search_pattern),  # 不区分大小写的模糊匹配
+    )
+    stmt = select(
+        User.id,
+        User.name,
+    ).where(conditions)
+    results = session.exec(stmt).mappings().all()
+    return results
 
 
 @router.get('/{user_id}', response_model=UserPublic)

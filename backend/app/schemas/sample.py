@@ -3,13 +3,7 @@ from datetime import date
 
 
 from ..database.database import SQLModel
-from .enums import SampleStatusEnum, QuantityUnitEnum
-
-
-class SampleTaskRelationship(SQLModel, table=True):
-    __tablename__ = "sample_task_rel"
-    sample_id: int = Field(foreign_key="sample.id", primary_key=True)
-    task_id: int = Field(foreign_key="task.id", primary_key=True)
+from .enums import SampleStatusEnum
 
 
 class SampleBase(SQLModel):
@@ -50,5 +44,4 @@ class Sample(SampleBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     product: "Product" = Relationship(back_populates="samples")  # type: ignore
-    tasks: list["Task"] = Relationship(  # type: ignore
-        back_populates="samples", link_model=SampleTaskRelationship)
+    tasks: list["Task"] = Relationship(back_populates="sample")  # type: ignore
