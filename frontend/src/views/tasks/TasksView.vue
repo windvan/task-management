@@ -1,22 +1,32 @@
 <script setup>
   // #region view
-  import { ref, inject, onMounted, useTemplateRef, onBeforeMount } from 'vue';
+  import { ref, inject, onMounted, useTemplateRef, nextTick } from "vue";
   import { FilterMatchMode } from "@primevue/core";
-  import TaskCardView from './TaskCardView.vue';
-  import TaskForm from './TaskForm.vue';
-  import ColumnSetting from './ColumnSetting.vue';
-  import { useToast } from 'primevue';
+  import TaskCardView from "./TaskCardView.vue";
+  import TaskForm from "./TaskForm.vue";
+  import ColumnSetting from "./ColumnSetting.vue";
+  import { Portal, useToast } from "primevue";
 
-  const layout = ref('table');
+  const layout = ref("table");
   const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    task_category: { value: null, matchMode: FilterMatchMode.EQUALS },
-    project_id: { value: null, matchMode: FilterMatchMode.EQUALS },
-    // internal_name: { value: null, matchMode: FilterMatchMode.STARTS_WITH }
+    task_name: { value: null, matchMode: FilterMatchMode.EQUALS },
+    project_name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    start_year: { value: null, matchMode: FilterMatchMode.EQUALS },
   });
-  const tasks = ref()
+  const globalFilterFields = [
+    "task_name",
+    "project_name",
+    "pi_number",
+    "tk_number",
+    "cro_name",
+    "crop",
+    "tags",
+  ];
+
+  const tasks = ref();
   const Api = inject("Api");
-  const toast = useToast()
+  const toast = useToast();
 
   onMounted(async () => {
     tasks.value = await Api.get("/tasks/");
@@ -32,48 +42,48 @@
   }
 
   function handleExportTasks() {
-    taskTableRef.value.export()
+    taskTableRef.value.exportCSV();
   }
-  // #endregion
 
-  // #region Task Table
-  const taskTableRef = useTemplateRef('taskTableRef')
-  const showTaskForm = ref(false)
+  //#region Task Table
+  const taskTableRef = useTemplateRef("taskTableRef");
+  const showTaskForm = ref(false);
   const defaultTaskColumns = {
-    "project_name": "Project Name",
-    "task_name": "Task Name",
-    "tags": "Tags",
-    "task_owner_name": "Task Owner Name",
-    "task_confirmed": "Task Confirmed",
-    "task_status": "Task Status",
-    "start_year": "Start Year",
-    "expected_delivery_date": "Expected Delivery Date",
-    "pi_number": "PI Number",
-    "tk_number": "TK Number",
-    "tox_gov_approved": "Tox Gov Approved",
-    "ecotox_gov_approved": "EcoTox Gov Approved",
-  }
-  const visibleTaskColumns = JSON.parse(localStorage.getItem("visibleTaskColumns")) ?? defaultTaskColumns
+    project_name: "Project Name",
+    task_name: "Task Name",
+    tags: "Tags",
+    task_owner_name: "Task Owner Name",
+    task_confirmed: "Task Confirmed",
+    task_status: "Task Status",
+    start_year: "Start Year",
+    expected_delivery_date: "Expected Delivery Date",
+    pi_number: "PI Number",
+    tk_number: "TK Number",
+    tox_gov_approved: "Tox Gov Approved",
+    ecotox_gov_approved: "EcoTox Gov Approved",
+  };
+  const visibleTaskColumns = ref(
+    JSON.parse(localStorage.getItem("visibleTaskColumns")) ?? defaultTaskColumns
+  );
+  const selectedTasks = ref([]);
+  const expandedRows = ref([]);
+  const editingRows = ref([]);
 
+  let initialTaskFormData;
 
-  let initialTaskFormData
-
-  // onBeforeMount(async () => {
-  //   allTaskColumns = await Api.get('')
-  // }),
   function handleShowTaskForm(mode, data) {
     if (mode === "new") {
       initialTaskFormData = {};
     } else if (mode === "edit") {
-      const project = { project_id: data.id, project_name: data.project_name }
+      const project = { project_id: data.id, project_name: data.project_name };
       initialTaskFormData = { ...data, project };
     }
     showTaskForm.value = true;
   }
 
   function handleCloseTaskForm() {
-    showTaskForm.value = false
-    initialTaskFormData = null
+    showTaskForm.value = false;
+    initialTaskFormData = null;
   }
 
   function handleRefreshTasks(task_id, newData) {
@@ -86,511 +96,538 @@
     }
   }
 
-  // #endregion Task Table
+  function handleShowCreateTasks() {
+    toast.add({
+      severity: "warn",
+      summary: "Warn Message",
+      detail: "To be implemented",
+      life: 3000,
+    });
+  }
 
+  function getTaskStatusSeverity(status) {
+    switch (status) {
+      case "Idle":
+        return "secondary";
+      case "Go":
+        return "info";
+      case "Finished":
+        return "success";
+      case "Pending":
+        return "danger";
+      case "Terminated":
+        return "danger";
+      default:
+        return "primary"; // 或者其他默认值
+    }
+  }
 
+  // #endregion
+
+  // #region Column Setting
+  const showColumnSetting = ref(false);
+  const columnSettingRef = useTemplateRef("columnSettingRef");
+
+  async function handleToggleColumnSetting(event) {
+    if (showColumnSetting.value) {
+      showColumnSetting.value = false;
+    } else {
+      showColumnSetting.value = true;
+      await nextTick();
+      columnSettingRef.value.toggle(event);
+    }
+  }
+  function handleApplyColumnSelection(selectedColumns) {
+    // selectedColumns is an array of column names
+
+    visibleTaskColumns.value = selectedColumns;
+    showColumnSetting.value = false;
+    localStorage.setItem("visibleTaskColumns", JSON.stringify(selectedColumns));
+  }
+
+  // #endregion
 </script>
 
 <template>
   <div>
-    <DataTable v-if="layout === 'table'" ref="taskTableRef" pt:header="px-0">
+    <DataTable
+      v-if="layout === 'table'"
+      ref="taskTableRef"
+      :value="tasks"
+      dataKey="id"
+      scrollable
+      scroll-height="flex"
+      resizable-columns
+      column-resize-mode="expand"
+      v-model:selection="selectedTasks"
+      selectionMode="single"
+      v-model:expandedRows="expandedRows"
+      @rowExpand="onRowExpand"
+      v-model:editingRows="editingRows"
+      editMode="row"
+      @rowEditSave="onRowEditSave"
+      v-model:filters="filters"
+      filterDisplay="menu"
+      :globalFilterFields="globalFilterFields"
+      sortMode="multiple"
+      removableSort
+      pt:header="px-0">
       <template #header>
         <Toolbar pt:start="gap-2" pt:end="gap-2">
           <template #start>
-            <SplitButton severity="secondary" label="Create" icon='pi pi-plus' @click="handleShowTaskForm('new', null)"
-              :model='[{ label: "Batch Create", icon: "pi pi-cart-plus", command: handleShowCreateTasks }]'>
+            <SplitButton
+              severity="secondary"
+              label="Create"
+              icon="pi pi-plus"
+              @click="handleShowTaskForm('new', null)"
+              :model="[
+                {
+                  label: 'Batch Create',
+                  icon: 'pi pi-cart-plus',
+                  command: handleShowCreateTasks,
+                },
+              ]">
             </SplitButton>
           </template>
 
           <template #center>
-            <IconField>
+            <IconField
+              v-tooltip.top="'Search by ' + globalFilterFields.join(',')">
               <InputIcon>
                 <i class="pi pi-search" />
               </InputIcon>
-              <InputText placeholder="Search" v-model="filters['global'].value" />
+              <InputText
+                placeholder="Search"
+                v-model="filters['global'].value" />
             </IconField>
           </template>
 
           <template #end>
-            <Button icon="pi pi-cog" rounded severity="secondary" v-tooltip.top="'Select columns'"
-              @click="showColumnSetting = !showColumnSetting"></Button>
+            <Button
+              icon="pi pi-cog"
+              rounded
+              severity="secondary"
+              v-tooltip.top="'Select columns'"
+              @click="handleToggleColumnSetting"></Button>
 
-            <ColumnSetting v-if="showColumnSetting"></ColumnSetting>
-
-            <SelectButton v-model="layout" :options="['table', 'grid']" :allowEmpty="false"
+            <SelectButton
+              v-model="layout"
+              :options="['table', 'grid']"
+              :allowEmpty="false"
               v-tooltip.top="'Toggle display table/grid'">
               <template #option="{ option }">
-                <i :class="[option === 'grid' ? 'pi pi-bars' : 'pi pi-table']" />
+                <i
+                  :class="[option === 'grid' ? 'pi pi-bars' : 'pi pi-table']" />
               </template>
             </SelectButton>
-            <SplitButton severity="secondary" label="Export" icon="pi pi-download" @click="handleExportTasks"
-              :model="[{ label: 'Import', icon: 'pi pi-upload', command: handleImportTasks }]">
+            <SplitButton
+              severity="secondary"
+              label="Export"
+              icon="pi pi-download"
+              @click="handleExportTasks"
+              :model="[
+                {
+                  label: 'Import',
+                  icon: 'pi pi-upload',
+                  command: handleImportTasks,
+                },
+              ]">
             </SplitButton>
           </template>
         </Toolbar>
       </template>
 
-
-      <!-- <Column v-if="field in visibleTaskColumns" expander class="w-12" frozen /> -->
-      <Column expander />
-      <!-- <Column frozen selectionMode="multiple"></Column> -->
-
-      <Column v-if="visibleTaskColumns['task_name']" field="task_name" header="Task Name" sortable>
-        <template #body="{ data, field }">
-          <Button :label="data[field]" variant="link" @click="handleShowTaskForm('edit', data)"
-            class="text-nowrap"></Button>
-        </template>
-        <!-- <template #editor="{data,field}">
-          <InputText v-model="data[field]"></InputText>
-        </template> -->
-      </Column>
-
-      <Column v-if="visibleTaskColumns['project_name']" field="project_name" header="Project Name" sortable>
-        <template #filter="{ filterModel }">
-          <InputText v-model="filterModel.value" type="text" placeholder="Search Tasks" />
-        </template>
-      </Column>
-
-
-      <Column filter-field="" v-if="visibleTaskColumns['task_category']" field="task_category" header="Task Category"
-        sortable header-class="min-w-40"></Column>
-      <Column v-if="visibleTaskColumns['tags']" field="tags" header="Tags">
-        <template #editor="{ data, field }">
-          <InputText :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </InputText>
-        </template>
-      </Column>
-
-      <Column v-if="visibleTaskColumns['task_status']" field="task_status" header="Task Status">
-        <template #body="{ data, field }">
-          <Tag :severity="getTaskStatusSeverity(data[field])" :value="data[field]"></Tag>
-        </template>
-        <template #editor="{ data, field }">
-          <Select :options="enums.TaskStatusEnum" class="w-full" :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </Select>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['start_year']" field="start_year" header="Start Year" :pt="{
-        headerCell: ({ parent }) => ({
-          class: { 'min-w-48': parent.state['d_editing'] },
-        }),
-      }">
-        <template #editor="{ data, field }">
-          <DatePicker showIcon iconDisplay="input" showButtonBar view="year" date-format="yy" :min-date="new Date()"
-            :model-value="new Date(data[field], 0)" @update:model-value="
-              (value) => onCellChange(data.id, field, value?.getFullYear())
-            " />
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['expected_delivery_date']" field="expected_delivery_date"
-        header="Expected Delivery Date">
-        <template #editor="{ data, field }">
-          <DatePicker showIcon iconDisplay="input" showButtonBar date-format="yy-mm-dd" :min-date="new Date()"
-            :model-value="new Date(data[field])" @update:model-value="
-              (value) => onCellChange(data.id, field, dateToStr(value))
-            " />
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['task_owner_id']" field="task_owner_id" header="Task Owner">
-        <template #body="{ data, field }">
-          {{
-            selectOptions?.userOptions?.find((user) => user.id === data[field])
-              ?.name
-          }}
-        </template>
-        <template #editor="{ data, field }">
-          <Select :options="selectOptions?.userOptions" option-label="name" :model-value="selectOptions?.userOptions?.find(
-            (user) => user.id === data[field]
-          )
-            " @update:model-value="
-              (value) => onCellChange(data.id, field, value.id)
-            "></Select>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['crop']" field="crop" header="Crop">
-        <template #editor="{ data, field }">
-          <InputText :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </InputText>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['target']" field="target" header="Target">
-        <template #editor="{ data, field }">
-          <InputText :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </InputText>
-        </template>
-      </Column>
-
-      <Column v-if="visibleTaskColumns['task_confirmed']" field="task_confirmed" header="Task Confirmed">
-        <template #body="{ data, field }">
-          <Tag :severity="data[field] ? 'success' : 'warn'" :value="data[field] ? 'YES' : 'NO'"></Tag>
-        </template>
-        <template #editor="{ data, field }">
-          <Checkbox binary :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          "></Checkbox>
-        </template>
-
-        >
-      </Column>
-      <Column v-if="visibleTaskColumns['budget_confirmed']" field="budget_confirmed" header="Budget Confirmed">
-        <template #body="{ data, field }">
-          <Tag :severity="data[field] ? 'success' : 'warn'" :value="data[field] ? 'YES' : 'NO'"></Tag>
-        </template>
-        <template #editor="{ data, field }">
-          <Checkbox binary :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          "></Checkbox>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['cost_center']" field="cost_center" header="Cost Center">
-        <template #editor="{ data, field }">
-          <Select :options="enums.CostCenterEnum" class="w-full" :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </Select>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['tox_gov_approved']" field="tox_gov_approved" header="Tox_Gov Approved">
-        <template #body="{ data, field }">
-          <Tag :severity="data[field] ? 'success' : 'warn'" :value="data[field] ? 'YES' : 'NO'"></Tag>
-        </template>
-        <template #editor="{ data, field }">
-          <Checkbox binary :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          "></Checkbox>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['ecotox_gov_approved']" field="ecotox_gov_approved" header="EcoTox_Gov Approved">
-        <template #body="{ data, field }">
-          <Tag :severity="data[field] ? 'success' : 'warn'" :value="data[field] ? 'YES' : 'NO'"></Tag>
-        </template>
-        <template #editor="{ data, field }">
-          <Checkbox binary :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          "></Checkbox>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['pi_number']" field="pi_number" header="PI NO.">
-        <template #editor="{ data, field }">
-          <InputText :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </InputText>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['tk_number']" field="tk_number" header="TK NO.">
-        <template #editor="{ data, field }">
-          <InputText :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </InputText>
-        </template>
-      </Column>
-      <!-- gap is not necessary and mainly for scoping tasks -->
-      <Column v-if="visibleTaskColumns['gap_snapshot_url']" field="gap_snapshot_url" header="GAP Sanpshot">
-        <template #body="{ data, field, index }">
-          <a @click.prevent="onGapViewShow(data.id, data[field], index)" class="text-primary hover:underline">{{
-            data[field] ? "Show" : "Add" }}</a>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['doc_link']" field="doc_link" header="Doc Link">
-        <template #body="{ data, field }">
-          <a v-if="data[field]" class="text-primary hover:underline" :href="data[field]" target="_blank">Follow</a>
-        </template>
-        <template #editor="{ data, field }">
-          <InputText :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </InputText>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['estimated_cost']" field="estimated_cost" header="Estimated Cost">
-        <template #body="{ data, field }">
-          {{ data[field] ? `&yen; ${data[field]}` : null }}
-        </template>
-        <template #editor="{ data, field }">
-          <InputNumber :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </InputNumber>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['actual_cost']" field="actual_cost" header="Actual Cost">
-        <template #body="{ data, field }">
-          {{ data[field] ? `￥${data[field]}` : null }}
-        </template>
-        <template #editor="{ data, field }">
-          <InputNumber :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </InputNumber>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['po_placed']" field="po_placed" header="PO Placed">
-        <template #body="{ data, field }">
-          <Tag :severity="data[field] ? 'success' : 'warn'" :value="data[field] ? 'YES' : 'NO'"></Tag>
-        </template>
-        <template #editor="{ data, field }">
-          <Checkbox binary :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          "></Checkbox>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['contract_signed']" field="contract_signed" header="Contract Signed">
-        <template #body="{ data, field }">
-          <Tag :severity="data[field] ? 'success' : 'warn'" :value="data[field] ? 'YES' : 'NO'"></Tag>
-        </template>
-        <template #editor="{ data, field }">
-          <Checkbox binary :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          "></Checkbox>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['payment_method']" field="payment_method" header="Payment Method">
-        <template #editor="{ data, field }">
-          <Select :options="enums.PaymentMethodEnum" class="w-full" :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </Select>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['payment_status']" field="payment_status" header="Payment Status">
-        <template #editor="{ data, field }">
-          <Select :options="enums.PaymentStatusEnum" class="w-full" :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </Select>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['vv_doc_uploaded']" field="vv_doc_uploaded" header="Veeva Uploaded">
-        <template #body="{ data, field }">
-          <Tag :severity="data[field] ? 'success' : 'warn'" :value="data[field] ? 'YES' : 'NO'"></Tag>
-        </template>
-        <template #editor="{ data, field }">
-          <Checkbox binary :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          "></Checkbox>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['vv_doc_number']" field="vv_doc_number" header="Veeva Doc Number">
-        <template #editor="{ data, field }">
-          <InputText :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </InputText>
-        </template>
-      </Column>
-
-      <Column v-if="visibleTaskColumns['task_progress']" field="task_progress" header="Task Progress">
-        <template #editor="{ data, field }">
-          <Select :options="enums.TaskProgressEnum" class="w-full" :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </Select>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['planned_start']" field="planned_start" header="Planned Start">
-        <template #editor="{ data, field }">
-          <DatePicker showIcon iconDisplay="input" showButtonBar date-format="yy-mm-dd" :min-date="new Date()"
-            :model-value="data[field] ? new Date(data[field]) : null" @update:model-value="
-              (value) => onCellChange(data.id, field, dateToStr(value))
-            " />
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['expected_finish']" field="expected_finish" header="Expected Finish">
-        <template #editor="{ data, field }">
-          <DatePicker showIcon iconDisplay="input" showButtonBar date-format="yy-mm-dd" :min-date="new Date()"
-            :model-value="data[field] ? new Date(data[field]) : null" @update:model-value="
-              (value) => onCellChange(data.id, field, dateToStr(value))
-            " />
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['actual_start']" field="actual_start" header="Actual Start">
-        <template #editor="{ data, field }">
-          <DatePicker showIcon iconDisplay="input" showButtonBar date-format="yy-mm-dd" :min-date="new Date()"
-            :model-value="data[field] ? new Date(data[field]) : null" @update:model-value="
-              (value) => onCellChange(data.id, field, dateToStr(value))
-            " />
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['actual_finish']" field="actual_finish" header="Actual Finish">
-        <template #editor="{ data, field }">
-          <DatePicker showIcon iconDisplay="input" showButtonBar date-format="yy-mm-dd" :min-date="new Date()"
-            :model-value="data[field] ? new Date(data[field]) : null" @update:model-value="
-              (value) => onCellChange(data.id, field, dateToStr(value))
-            " />
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['delivery_date']" field="delivery_date" header="Delivery Date">
-        <template #editor="{ data, field }">
-          <DatePicker showIcon iconDisplay="input" showButtonBar date-format="yy-mm-dd" :min-date="new Date()"
-            :model-value="data[field] ? new Date(data[field]) : null" @update:model-value="
-              (value) => onCellChange(data.id, field, dateToStr(value))
-            " />
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['stuff_days']" field="stuff_days" header="Stuff Days">
-        <template #editor="{ data, field }">
-          <InputNumber :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </InputNumber>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['cro_id']" field="cro_id" header="CRO Name">
-        <template #body="{ data, field }">
-          {{
-            selectOptions?.croOptions?.find((cro) => cro.id === data[field])
-              ?.cro_name
-          }}
-        </template>
-        <template #editor="{ data, field }">
-          <Select :options="selectOptions?.croOptions" option-label="cro_name" :model-value="selectOptions?.croOptions?.find((cro) => cro.id === data[field])
-            " @update:model-value="
-              (value) => onCellChange(data.id, field, value.id)
-            "></Select>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['samples']" field="samples" header="Sample Status">
-        <template #body="{ data, field }">
-          <a @click.prevent="onSamplesViewShow(data.id)">
-            <template v-if="data[field].length > 0">
-              <Tag v-for="(sample, index) in data[field]" :value="sample.sample_status" :Key="index"
-                class="hover:underline" />
-            </template>
-            <span v-else class="text-primary hover:underline">Add</span>
-          </a>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['study_notified']" field="study_notified" header="Study Notified">
-        <template #body="{ data, field }">
-          <Tag :severity="data[field] ? 'success' : 'warn'" :value="data[field] ? 'YES' : 'NO'"></Tag>
-        </template>
-        <template #editor="{ data, field }">
-          <Checkbox binary :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          "></Checkbox>
-        </template>
-      </Column>
-
-      <Column v-if="visibleTaskColumns['analytes']" field="analytes" header="Analytes">
-        <template #editor="{ data, field }">
-          <InputText :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </InputText>
-        </template>
-      </Column>
-
-      <Column v-if="visibleTaskColumns['key_results']" field="key_results" header="Key Results">
-        <template #body="{ data, field, index }">
-          <a @click.prevent="onKeyResultsViewShow(data.id, data[field], index)"
-            class="text-primary hover:underline">Show</a>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['guidelines']" field="guidelines" header="Guidelines">
-        <template #editor="{ data, field }">
-          <InputText :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </InputText>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['test_item_info_sent']" field="test_item_info_sent" header="Test Item Info Sent">
-        <template #body="{ data, field }">
-          <Tag :severity="data[field] ? 'success' : 'warn'" :value="data[field] ? 'YES' : 'NO'"></Tag>
-        </template>
-
-        <template #editor="{ data, field }">
-          <Checkbox binary :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          "></Checkbox>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['ssd_finished']" field="ssd_finished" header="SSD Finished">
-        <template #body="{ data, field }">
-          <Tag :severity="data[field] ? 'success' : 'warn'" :value="data[field] ? 'YES' : 'NO'"></Tag>
-        </template>
-
-        <template #editor="{ data, field }">
-          <Checkbox binary :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          "></Checkbox>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['sed_uploaded']" field="sed_uploaded" header="SED Uploaded">
-        <template #body="{ data, field }">
-          <Tag :severity="data[field] ? 'success' : 'warn'" :value="data[field] ? 'YES' : 'NO'"></Tag>
-        </template>
-
-        <template #editor="{ data, field }">
-          <Checkbox binary :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          "></Checkbox>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['global_study_manager']" field="global_study_manager"
-        header="Global Study Manager">
-        <template #editor="{ data, field }">
-          <InputText :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </InputText>
-        </template>
-      </Column>
-      <Column v-if="visibleTaskColumns['cro_study_director']" field="cro_study_director" header="CRO Study Director">
-        <template #editor="{ data, field }">
-          <InputText :model-value="data[field]" @update:model-value="
-            (value) => onCellChange(data.id, field, value)
-          ">
-          </InputText>
-        </template>
-      </Column>
-
-      <Column rowEditor class="border-l border-l-gray-300 text-center p-2" frozen align-frozen="right" :pt="{
-        columnHeaderContent: 'justify-center',
-        pcRowEditorInit: { root: 'size-7' },
-        pcRowEditorSave: { root: 'size-7' },
-        pcRowEditorCancel: { root: 'size-7' },
-        headerCell: ({ parent }) => ({
-          class: parent.state['d_editing'] ? 'min-w-16' : 'min-w-8',
-        }),
-      }">
-        <template #header>
-          <Button icon="pi pi-pencil" v-show="!editingRows.length" rounded class="size-7" size="small"
-            severity="secondary" @click="onToggleRowEditAll" />
-          <Button icon="pi pi-times" v-show="editingRows.length" rounded class="size-7" size="small"
-            severity="secondary" @click="onRowEditCancelAll" />
-          <Button icon="pi pi-check" v-show="editingRows.length" rounded class="size-7" size="small"
-            severity="secondary" @click="onRowEditSaveAll" />
-        </template>
-      </Column>
-      <Column frozen align-frozen="right" header=" " class="text-center p-2" header-class="w-8">
+      <Column expander class="w-4" />
+      <Column rowEditor></Column>
+      <Column>
         <template #body="{ data }">
-          <Button severity="secondary" rounded class="size-7" size="small" icon="pi pi-comments"
-            @click="showComments(data)"></Button>
+          <Button
+            severity="secondary"
+            rounded
+            size="small"
+            icon="pi pi-comments"
+            @click="showComments(data)"></Button> </template
+      ></Column>
+
+      <!-- MARK: Task Name -->
+      <Column
+        v-if="visibleTaskColumns['task_name']"
+        field="task_name"
+        :header="visibleTaskColumns['task_name']"
+        sortable>
+        <template #body="{ data, field }">
+          <Button
+            :label="data[field]"
+            variant="link"
+            @click="handleShowTaskForm('edit', data)"
+            class="text-nowrap px-0"></Button>
+        </template>
+        <template #editor="{ data, field }">
+          <InputText v-model="data[field]"></InputText>
+        </template>
+        <template #filter="{ filterModel }">
+          <InputText
+            v-model="filterModel.value"
+            type="text"
+            placeholder="Search" />
+        </template>
+      </Column>
+      <!-- MARK: Project Name -->
+      <Column
+        v-if="visibleTaskColumns['project_name']"
+        field="project_name"
+        :header="visibleTaskColumns['project_name']"
+        sortable>
+        <template #filter="{ filterModel }">
+          <InputText v-model="filterModel.value" type="text" />
+        </template>
+      </Column>
+      <!-- MARK: Task Category -->
+      <Column
+        v-if="visibleTaskColumns['task_category']"
+        field="task_category"
+        :header="visibleTaskColumns['task_category']"
+        sortable>
+      </Column>
+      <!-- MARK: Task Status -->
+      <Column
+        v-if="visibleTaskColumns['task_status']"
+        field="task_status"
+        :header="visibleTaskColumns['task_status']">
+        <template #body="{ data, field }">
+          <Tag
+            :severity="getTaskStatusSeverity(data[field])"
+            :value="data[field]"></Tag>
+        </template>
+      </Column>
+      <!-- MARK Start Year-->
+      <Column
+        v-if="visibleTaskColumns['start_year']"
+        field="start_year"
+        :header="visibleTaskColumns['start_year']"
+        sortable>
+      </Column>
+      <!-- MARK: Expected Delivery Date -->
+      <Column
+        v-if="visibleTaskColumns['expected_delivery_date']"
+        field="expected_delivery_date"
+        :header="visibleTaskColumns['expected_delivery_date']"
+        sortable>
+      </Column>
+      <!-- MARK: Task Owner Name -->
+      <Column
+        v-if="visibleTaskColumns['task_owner_name']"
+        field="task_owner_name"
+        :header="visibleTaskColumns['task_owner_name']">
+      </Column>
+      <!-- MARK: Crop -->
+      <Column
+        v-if="visibleTaskColumns['crop']"
+        field="crop"
+        :header="visibleTaskColumns['crop']">
+      </Column>
+      <!-- MARK: Target -->
+      <Column
+        v-if="visibleTaskColumns['target']"
+        field="target"
+        :header="visibleTaskColumns['target']">
+      </Column>
+      <!-- MARK: Task Confirmed -->
+      <Column
+        v-if="visibleTaskColumns['task_confirmed']"
+        field="task_confirmed"
+        :header="visibleTaskColumns['task_confirmed']">
+        <template #body="{ data, field }">
+          <Tag
+            :severity="data[field] ? 'success' : 'warn'"
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
+        </template>
+      </Column>
+
+      <!-- MARK: Budget Confirmed -->
+      <Column
+        v-if="visibleTaskColumns['budget_confirmed']"
+        field="budget_confirmed"
+        :header="visibleTaskColumns['budget_confirmed']">
+        <template #body="{ data, field }">
+          <Tag
+            :severity="data[field] ? 'success' : 'warn'"
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
+        </template>
+      </Column>
+
+      <!-- MARK: Cost Center -->
+      <Column
+        v-if="visibleTaskColumns['cost_center']"
+        field="cost_center"
+        :header="visibleTaskColumns['cost_center']">
+      </Column>
+      <!-- MARK: tox_gov_approved -->
+      <Column
+        v-if="visibleTaskColumns['tox_gov_approved']"
+        field="tox_gov_approved"
+        :header="visibleTaskColumns['tox_gov_approved']">
+        <template #body="{ data, field }">
+          <Tag
+            :severity="data[field] ? 'success' : 'warn'"
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
+        </template>
+      </Column>
+      <!-- MARK: ecotox_gov_approved -->
+      <Column
+        v-if="visibleTaskColumns['ecotox_gov_approved']"
+        field="ecotox_gov_approved"
+        :header="visibleTaskColumns['ecotox_gov_approved']">
+        <template #body="{ data, field }">
+          <Tag
+            :severity="data[field] ? 'success' : 'warn'"
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
+        </template>
+      </Column>
+      <!-- MARK: pi_number -->
+      <Column
+        v-if="visibleTaskColumns['pi_number']"
+        field="pi_number"
+        :header="visibleTaskColumns['pi_number']">
+      </Column>
+      <!-- MARK: tk_number -->
+      <Column
+        v-if="visibleTaskColumns['tk_number']"
+        field="tk_number"
+        :header="visibleTaskColumns['tk_number']">
+      </Column>
+
+      <!-- MARK: gap_snapshot_url -->
+      <Column
+        v-if="visibleTaskColumns['gap_snapshot_url']"
+        field="gap_snapshot_url"
+        :header="visibleTaskColumns['gap_snapshot_url']">
+      </Column>
+      <!-- MARK: doc_link -->
+      <Column
+        v-if="visibleTaskColumns['doc_link']"
+        field="doc_link"
+        :header="visibleTaskColumns['doc_link']">
+      </Column>
+      <!-- MARK: estimated_cost -->
+      <Column
+        v-if="visibleTaskColumns['estimated_cost']"
+        field="estimated_cost"
+        :header="visibleTaskColumns['estimated_cost']">
+      </Column>
+      <!-- MARK: actual_cost -->
+      <Column
+        v-if="visibleTaskColumns['actual_cost']"
+        field="actual_cost"
+        :header="visibleTaskColumns['actual_cost']">
+      </Column>
+      <!-- MARK: po_placed -->
+      <Column
+        v-if="visibleTaskColumns['po_placed']"
+        field="po_placed"
+        :header="visibleTaskColumns['po_placed']">
+        <template #body="{ data, field }">
+          <Tag
+            :severity="data[field] ? 'success' : 'warn'"
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
+        </template>
+      </Column>
+      <!-- MARK: contract_signed -->
+      <Column
+        v-if="visibleTaskColumns['contract_signed']"
+        field="contract_signed"
+        :header="visibleTaskColumns['contract_signed']">
+        <template #body="{ data, field }">
+          <Tag
+            :severity="data[field] ? 'success' : 'warn'"
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
+        </template>
+      </Column>
+      <!-- MARK: payment_method -->
+      <Column
+        v-if="visibleTaskColumns['payment_method']"
+        field="payment_method"
+        :header="visibleTaskColumns['payment_method']">
+      </Column>
+      <!-- MARK: payment_status -->
+      <Column
+        v-if="visibleTaskColumns['payment_status']"
+        field="payment_status"
+        :header="visibleTaskColumns['payment_status']">
+      </Column>
+      <!-- vv_doc_uploaded -->
+      <Column
+        v-if="visibleTaskColumns['vv_doc_uploaded']"
+        field="vv_doc_uploaded"
+        :header="visibleTaskColumns['vv_doc_uploaded']">
+        <template #body="{ data, field }">
+          <Tag
+            :severity="data[field] ? 'success' : 'warn'"
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
+        </template>
+      </Column>
+      <!-- MARK: vv_doc_number -->
+      <Column
+        v-if="visibleTaskColumns['vv_doc_number']"
+        field="vv_doc_number"
+        :header="visibleTaskColumns['vv_doc_number']">
+      </Column>
+      <!-- MARK: task_progress -->
+      <Column
+        v-if="visibleTaskColumns['task_progress']"
+        field="task_progress"
+        :header="visibleTaskColumns['task_progress']">
+      </Column>
+      <!-- MARK: planned_start -->
+      <Column
+        v-if="visibleTaskColumns['planned_start']"
+        field="planned_start"
+        :header="visibleTaskColumns['planned_start']">
+      </Column>
+      <!-- MARK: expected_finish -->
+      <Column
+        v-if="visibleTaskColumns['expected_finish']"
+        field="expected_finish"
+        :header="visibleTaskColumns['expected_finish']">
+      </Column>
+      <!-- MARK: actual_start -->
+      <Column
+        v-if="visibleTaskColumns['actual_start']"
+        field="actual_start"
+        :header="visibleTaskColumns['actual_start']">
+      </Column>
+      <!-- MARK: actual_finish -->
+      <Column
+        v-if="visibleTaskColumns['actual_finish']"
+        field="actual_finish"
+        :header="visibleTaskColumns['actual_finish']">
+      </Column>
+      <!-- MARK: delivery_date -->
+      <Column
+        v-if="visibleTaskColumns['delivery_date']"
+        field="delivery_date"
+        :header="visibleTaskColumns['delivery_date']">
+      </Column>
+      <!-- MARK: stuff_days -->
+      <Column
+        v-if="visibleTaskColumns['stuff_days']"
+        field="stuff_days"
+        :header="visibleTaskColumns['stuff_days']">
+      </Column>
+      <!-- MARK: cro_name-->
+      <Column
+        v-if="visibleTaskColumns['cro_name']"
+        field="cro_name"
+        :header="visibleTaskColumns['cro_name']">
+      </Column>
+      <!-- MARK: sample_status -->
+      <Column
+        v-if="visibleTaskColumns['sample_status']"
+        field="sample_status"
+        :header="visibleTaskColumns['sample_status']">
+      </Column>
+      <!-- MARK: study_notified -->
+      <Column
+        v-if="visibleTaskColumns['study_notified']"
+        field="study_notified"
+        :header="visibleTaskColumns['study_notified']">
+        <template #body="{ data, field }">
+          <Tag
+            :severity="data[field] ? 'success' : 'warn'"
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
+        </template>
+      </Column>
+      <!-- MARK: analytes -->
+      <Column
+        v-if="visibleTaskColumns['analytes']"
+        field="analytes"
+        :header="visibleTaskColumns['analytes']">
+      </Column>
+      <!-- MARK: key_results -->
+      <Column
+        v-if="visibleTaskColumns['key_results']"
+        field="key_results"
+        :header="visibleTaskColumns['key_results']">
+      </Column>
+      <!-- MARK: guidelines -->
+      <Column
+        v-if="visibleTaskColumns['guidelines']"
+        field="guidelines"
+        :header="visibleTaskColumns['guidelines']">
+      </Column>
+      <!-- MARK: test_item_data_sheet -->
+      <Column
+        v-if="visibleTaskColumns['test_item_data_sheet']"
+        field="test_item_data_sheet"
+        :header="visibleTaskColumns['test_item_data_sheet']">
+        <template #body="{ data, field }">
+          <Tag
+            :severity="data[field] ? 'success' : 'warn'"
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
+        </template>
+      </Column>
+      <!-- MARK: ssd_finished -->
+      <Column
+        v-if="visibleTaskColumns['ssd_finished']"
+        field="ssd_finished"
+        :header="visibleTaskColumns['ssd_finished']">
+        <template #body="{ data, field }">
+          <Tag
+            :severity="data[field] ? 'success' : 'warn'"
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
+        </template>
+      </Column>
+      <!-- MARK: sed_uploaded -->
+      <Column
+        v-if="visibleTaskColumns['sed_uploaded']"
+        field="sed_uploaded"
+        :header="visibleTaskColumns['sed_uploaded']">
+        <template #body="{ data, field }">
+          <Tag
+            :severity="data[field] ? 'success' : 'warn'"
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
+        </template>
+      </Column>
+      <!-- MARK: global_study_manager -->
+      <Column
+        v-if="visibleTaskColumns['global_study_manager']"
+        field="global_study_manager"
+        :header="visibleTaskColumns['global_study_manager']">
+        <template #body="{ data, field }">
+          <Tag
+            :severity="data[field] ? 'success' : 'warn'"
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
+        </template>
+      </Column>
+      <!-- MARK: cro_study_director -->
+      <Column
+        v-if="visibleTaskColumns['cro_study_director']"
+        field="cro_study_director"
+        :header="visibleTaskColumns['cro_study_director']">
+        <template #body="{ data, field }">
+          <Tag
+            :severity="data[field] ? 'success' : 'warn'"
+            :value="data[field] ? 'YES' : 'NO'"></Tag>
         </template>
       </Column>
       <template #empty>
         <p class="text-center text-primary">No tasks Found!</p>
       </template>
-
     </DataTable>
 
-
+    <ColumnSetting
+      v-if="showColumnSetting"
+      ref="columnSettingRef"
+      :visibleTaskColumns
+      :defaultTaskColumns
+      @apply="handleApplyColumnSelection"
+      @cancel="showColumnSetting = false">
+    </ColumnSetting>
     <TaskCardView v-else></TaskCardView>
 
-    <TaskForm v-if="showTaskForm" @close="handleCloseTaskForm" @refresh="handleRefreshTasks"></TaskForm>
-
-
-
+    <TaskForm
+      v-if="showTaskForm"
+      @close="handleCloseTaskForm"
+      @refresh="handleRefreshTasks"></TaskForm>
   </div>
 </template>
