@@ -55,8 +55,8 @@ def get_tasks(session: SessionDep, user_id: TokenDep):
         User, User.id == Task.task_owner_id,).outerjoin(
         Gap, Gap.id == Task.gap_id).outerjoin(
         Cro, Cro.id == Task.cro_id).outerjoin(
-        Sample, Sample.id == Task.sample_id).where(User.id == user_id)
-
+        Sample, Sample.id == Task.sample_id)
+# .where(User.id == user_id)
     db_tasks = session.exec(stmt).mappings().all()
 
     return db_tasks
@@ -82,9 +82,10 @@ def search_tasks(session: SessionDep, user_id: TokenDep, query: str = "", sample
             Product.internal_name.ilike(search_pattern),
             Task.task_name.ilike(search_pattern),  # 不区分大小写的模糊匹配
             Task.tags.ilike(search_pattern)),
-        User.id == user_id,
-        ~Task.samples.any(Sample.id == sample_id) if sample_id else True
+        Task.task_owner_id == user_id,
+        Task.sample_id != sample_id if sample_id else True
     )
+
     stmt = select(
         Task.id,
         Task.task_name,
@@ -92,7 +93,7 @@ def search_tasks(session: SessionDep, user_id: TokenDep, query: str = "", sample
         Product.internal_name.label("product_internal_name"),
         Product.trade_name.label("product_trade_name"),
 
-    ).join(Task.project).join(Project.product).join(Task.task_owner).where(conditions)
+    ).outerjoin(Task.project).outerjoin(Project.product).outerjoin(Task.task_owner).where(conditions)
 
     results = session.exec(stmt).mappings().all()
     # 转换为字典格式
@@ -107,28 +108,35 @@ def get_task(task_id: int, session: SessionDep, token: TokenDep):
     return db_task
 
 
-# one or more tasks to patch
-@router.patch('/', response_model=list[TaskPublic])
-def update_task(tasks_to_update: dict[int, dict], session: SessionDep, token: TokenDep):
+# update one task with modified fields
+@router.patch('/{task_id}')
+def update_task(task_id: int, fields_to_update: dict, session: SessionDep, user_id: TokenDep):
 
-    updated_tasks = []
-    for task_id, task_data in tasks_to_update.items():
-        db_task = session.get(Task, task_id)
-        if not db_task:
-            raise HTTPException(status_code=404, detail=f"Task with id {
-                                task_id} not found")
+    db_task = session.get(Task, task_id)
+    if not db_task:
+        raise HTTPException(status_code=404, detail=f"Task with id {
+                            task_id} not found")
 
-        # task_update = task_data.model_dump(exclude_unset=True)
-        db_task.sqlmodel_update(task_data)
-        session.add(db_task)
-        updated_tasks.append(db_task)
-
+    # task_update = task_data.model_dump(exclude_unset=True)
+    db_task.sqlmodel_update(fields_to_update)
+    session.add(db_task)
     session.commit()
-    # refresh all updated tasks
-    for task in updated_tasks:
-        session.refresh(task)
 
-    return updated_tasks
+    # return task and related fields
+    stmt = select(Task.__table__.columns,
+                  Project.project_name,
+                  User.name.label('task_owner_name'),
+                  Cro.cro_name,
+                  Gap.snapshot_url.label('gap_snapshot_url'),
+                  Sample.sample_status).outerjoin(
+        Project, Project.id == Task.project_id).outerjoin(
+        User, User.id == Task.task_owner_id,).outerjoin(
+        Gap, Gap.id == Task.gap_id).outerjoin(
+        Cro, Cro.id == Task.cro_id).outerjoin(
+        Sample, Sample.id == Task.sample_id).where(Task.id == task_id)
+
+    task = session.exec(stmt).mappings().first()
+    return task
 
 
 @router.delete("/", status_code=status.HTTP_200_OK)
@@ -204,7 +212,6 @@ async def upload_gap(
     db_task.gap_snapshot = db_task.gap_snapshot + "," + \
         saved_paths_str if db_task.gap_snapshot else saved_paths_str
 
-    print("\n\n\n\n", db_task.gap_snapshot)
     session.add(db_task)
     session.commit()
 
@@ -238,4 +245,4 @@ def get_task_samples(task_id: int, session: SessionDep, token: TokenDep):
     if not db_task:
         raise HTTPException(status_code=404, detail="Task not found")
 
-    return db_task.samples
+    return db_task.sample

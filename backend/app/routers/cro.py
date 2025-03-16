@@ -1,11 +1,10 @@
-from fastapi import APIRouter, status, HTTPException,Body
-from sqlmodel import select
+from fastapi import APIRouter, status, HTTPException, Body
+from sqlmodel import select, or_
 
 from ..schemas.cro import Cro, CroCreate, CroPublic, CroUpdate, CroContact, CroContactCreate, CroContactPublic, CroContactUpdate
 from ..utils.dependencies import SessionDep, TokenDep
 
-
-router = APIRouter(prefix='/cros', tags=["CRO"])
+router = APIRouter(prefix='/cross', tags=["CRO"])
 
 
 # region CRO
@@ -24,24 +23,30 @@ def create_cro(cro_create: CroCreate, session: SessionDep, user_id: TokenDep):
     return db_cro
 
 
-@router.get('/{cro_id}', response_model=CroPublic)
-async def get_cro(cro_id: int, session: SessionDep, token: TokenDep):
-    db_cro = session.get(Cro, cro_id)
-
-    if not db_cro:
-        raise HTTPException(status_code=404, detail="Cro not found")
-
-    return db_cro
-
-
 @router.get('/', response_model=list[CroPublic])
 def get_cros(session: SessionDep, token: TokenDep):
     db_cros = session.exec(select(Cro)).all()
     return db_cros
 
 
+@router.get('/search')
+def search_cros(session: SessionDep, user_id: TokenDep, query: str = ""):
+    search_pattern = f"%{query}%"
+    conditions = or_(
+        Cro.address.ilike(search_pattern),
+        Cro.certification_number.ilike(search_pattern),
+        Cro.cro_name.ilike(search_pattern),
+    )
+    stmt = select(
+        Cro.id,
+        Cro.cro_name,
+    ).where(conditions)
+    db_cros = session.exec(stmt).mappings().all()
+    return db_cros
+
+
 @router.patch('/{cro_id}', response_model=CroPublic)
-async def update_cro(cro_id: int, cro_update:CroUpdate, session: SessionDep, user_id: TokenDep):
+async def update_cro(cro_id: int, cro_update: CroUpdate, session: SessionDep, user_id: TokenDep):
     db_cro = session.get(Cro, cro_id)
     if not db_cro:
         raise HTTPException(status_code=404, detail="Cro not found")
@@ -63,6 +68,17 @@ async def delete_cro(cro_id: int, session: SessionDep, token: TokenDep):
     session.commit()
     return {"message": "CRO deleted successfully"}
 
+
+@router.get('/{cro_id}', response_model=CroPublic)
+async def get_cro(cro_id: int, session: SessionDep, token: TokenDep):
+    db_cro = session.get(Cro, cro_id)
+
+    if not db_cro:
+        raise HTTPException(status_code=404, detail="Cro not found")
+
+    return db_cro
+
+
 # endregion
 
 # region CRO contact
@@ -80,18 +96,6 @@ def create_cro_contact(contact_create: CroContactCreate, session: SessionDep, to
         session.rollback()
         raise HTTPException(status_code=400, detail=str(e))
     return db_contact
-
-
-@router.get('/{cro_id}/contacts', response_model=list[CroContactPublic])
-def get_cro_contact(cro_id: int, session: SessionDep, token: TokenDep):
-    # get all contacts related to a cro
-    db_contacts = session.exec(select(CroContact).where(
-        CroContact.cro_id == cro_id)).all()
-    # print(db_contacts)
-    # if not db_contacts:
-    #     raise HTTPException(status_code=404, detail="Cro contacts not found")
-
-    return db_contacts
 
 
 @router.get('/contacts/{contact_id}', response_model=CroContactPublic)
@@ -134,4 +138,15 @@ def delete_cro_contact(contact_id: int, session: SessionDep, token: TokenDep):
     session.commit()
     return {"message": "CRO contact deleted successfully"}
 
+
+@router.get('/{cro_id}/contacts', response_model=list[CroContactPublic])
+def get_cro_contact(cro_id: int, session: SessionDep, token: TokenDep):
+    # get all contacts related to a cro
+    db_contacts = session.exec(select(CroContact).where(
+        CroContact.cro_id == cro_id)).all()
+    # print(db_contacts)
+    # if not db_contacts:
+    #     raise HTTPException(status_code=404, detail="Cro contacts not found")
+
+    return db_contacts
 # endregion

@@ -2,12 +2,15 @@
   // #region view
   import { ref, inject, onMounted, useTemplateRef, nextTick } from "vue";
   import { FilterMatchMode } from "@primevue/core";
+  import { useToast } from "primevue/usetoast";
+
   import TaskCardView from "./TaskCardView.vue";
   import TaskForm from "./TaskForm.vue";
   import ColumnSetting from "./ColumnSetting.vue";
-  import { Portal, useToast } from "primevue";
+  import TaskExpansion from "./TaskExpansion.vue";
 
   const layout = ref("table");
+  const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};
   const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     task_name: { value: null, matchMode: FilterMatchMode.EQUALS },
@@ -71,6 +74,16 @@
 
   let initialTaskFormData;
 
+  const userSuggestion = ref();
+  async function filterUserSuggestion(event) {
+    userSuggestion.value = await Api.get(`/users/search?query=${event.query}`);
+  }
+  const croSuggestion=ref();
+  async function filterCroSuggestion(event) {
+    console.log("filterCroSuggestion", event);
+    croSuggestion.value = await Api.get(`/cros/search?query=${event.query}`);
+  }
+
   function handleShowTaskForm(mode, data) {
     if (mode === "new") {
       initialTaskFormData = {};
@@ -119,6 +132,20 @@
         return "danger";
       default:
         return "primary"; // 或者其他默认值
+    }
+  }
+
+  function onRowExpand(event) {
+    console.log("onRowExpand", event);
+  }
+
+  import { getChangedFields } from "../../composables/fieldTools";
+  async function onRowEditSave(event) {
+    const { data, newData, index } = event;
+    const updatedFields = getChangedFields(data, newData);
+    if (updatedFields.length !== 0) {
+      tasks.value[index] = await Api.patch(`/tasks/${data.id}`, updatedFields);
+      // tasks.value.splice(index, 1, response)
     }
   }
 
@@ -299,6 +326,12 @@
             :severity="getTaskStatusSeverity(data[field])"
             :value="data[field]"></Tag>
         </template>
+        <template #editor="{ data, field }">
+          <Select
+            :options="enums.TaskStatusEnum"
+            v-model="data[field]"
+            class="w-full" />
+        </template>
       </Column>
       <!-- MARK Start Year-->
       <Column
@@ -319,6 +352,16 @@
         v-if="visibleTaskColumns['task_owner_name']"
         field="task_owner_name"
         :header="visibleTaskColumns['task_owner_name']">
+        <template #editor="{ data, field }">
+          <AutoComplete
+            optionLabel="name"
+            v-model="data[field]"
+            :suggestions="userSuggestion"
+            @complete="filterUserSuggestion"
+            @update:modelValue="(value) => (data['task_owner_id'] = value.id)"
+            forceSelection
+            dropdown />
+        </template>
       </Column>
       <!-- MARK: Crop -->
       <Column
@@ -519,6 +562,16 @@
         v-if="visibleTaskColumns['cro_name']"
         field="cro_name"
         :header="visibleTaskColumns['cro_name']">
+        <template #editor="{ data, field }">
+          <AutoComplete
+            optionLabel="cro_name"
+            v-model="data[field]"
+            :suggestions="croSuggestion"
+            @complete="filterCroSuggestion"
+            @update:modelValue="(value) => (data['cro_id'] = value.id)"
+            forceSelection
+            dropdown />
+        </template>
       </Column>
       <!-- MARK: sample_status -->
       <Column
@@ -610,10 +663,16 @@
             :value="data[field] ? 'YES' : 'NO'"></Tag>
         </template>
       </Column>
+
+      <template #expansion="{ data, index }">
+        <TaskExpansion :task="data" />
+      </template>
+
       <template #empty>
         <p class="text-center text-primary">No tasks Found!</p>
       </template>
     </DataTable>
+    <TaskCardView v-else></TaskCardView>
 
     <ColumnSetting
       v-if="showColumnSetting"
@@ -623,7 +682,6 @@
       @apply="handleApplyColumnSelection"
       @cancel="showColumnSetting = false">
     </ColumnSetting>
-    <TaskCardView v-else></TaskCardView>
 
     <TaskForm
       v-if="showTaskForm"
