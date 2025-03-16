@@ -4,7 +4,7 @@ from sqlmodel import select, or_
 from ..schemas.cro import Cro, CroCreate, CroPublic, CroUpdate, CroContact, CroContactCreate, CroContactPublic, CroContactUpdate
 from ..utils.dependencies import SessionDep, TokenDep
 
-router = APIRouter(prefix='/cross', tags=["CRO"])
+router = APIRouter(prefix='/cros', tags=["CRO"])
 
 
 # region CRO

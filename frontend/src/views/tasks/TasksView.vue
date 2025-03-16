@@ -78,7 +78,7 @@
   async function filterUserSuggestion(event) {
     userSuggestion.value = await Api.get(`/users/search?query=${event.query}`);
   }
-  const croSuggestion=ref();
+  const croSuggestion = ref();
   async function filterCroSuggestion(event) {
     console.log("filterCroSuggestion", event);
     croSuggestion.value = await Api.get(`/cros/search?query=${event.query}`);
@@ -140,6 +140,7 @@
   }
 
   import { getChangedFields } from "../../composables/fieldTools";
+  import { ColumnGroup } from "primevue";
   async function onRowEditSave(event) {
     const { data, newData, index } = event;
     const updatedFields = getChangedFields(data, newData);
@@ -264,24 +265,29 @@
         </Toolbar>
       </template>
 
-      <Column expander class="w-4" />
-      <Column rowEditor></Column>
-      <Column>
+      <Column expander class="w-4 p-0" frozen />
+      
+      <Column class="w-4 p-0 mx-auto" frozen>
         <template #body="{ data }">
           <Button
             severity="secondary"
+            variant="text"
             rounded
             size="small"
+            class="p-0"
             icon="pi pi-comments"
             @click="showComments(data)"></Button> </template
       ></Column>
+      <Column rowEditor   class="w-4 p-0" frozen />
 
       <!-- MARK: Task Name -->
+
       <Column
         v-if="visibleTaskColumns['task_name']"
         field="task_name"
         :header="visibleTaskColumns['task_name']"
-        sortable>
+        sortable
+        frozen>
         <template #body="{ data, field }">
           <Button
             :label="data[field]"
@@ -689,3 +695,14 @@
       @refresh="handleRefreshTasks"></TaskForm>
   </div>
 </template>
+
+<style>
+  /* resolve inline edit control display over frozen column when scroll */
+  .p-datatable-thead {
+    z-index: 2;
+  }
+
+  .p-datatable-frozen-column {
+    z-index: 1;
+  }
+</style>
