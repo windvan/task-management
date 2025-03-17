@@ -32,9 +32,10 @@
 
 
       <Column expander style="width: 3rem"></Column>
-      <Column field="internal_name" header="Internal Name" frozen>
+      <Column field="internal_name" header="Internal Name" class="text-nowrap px-0" frozen>
         <template #body="{ data }">
-          <Button :label="data.internal_name" variant="link" @click="handleOpenProductForm('edit', data)"></Button>
+          <Button :label="data.internal_name" variant="link" class="px-0"
+            @click="handleOpenProductForm('edit', data)"></Button>
         </template>
       </Column>
       <Column field="lead_ai" header="Lead AI"></Column>
@@ -91,9 +92,7 @@
               <p class="text-center text-primary">No Related Ai Found!</p>
             </template>
           </DataTable>
-          <AiForm v-if="showAiForm" :initialFormData="initialAiFormData" @close="handleCloseAiForm"
-            @refresh="handleRefreshAi">
-          </AiForm>
+
 
         </div>
 
@@ -108,12 +107,16 @@
 
     <ConfirmDialog></ConfirmDialog>
 
-    <!-- #Region Product Form -->
-
+    <!-- #region Product Form -->
     <ProductForm v-if="showProductForm" :initialFormData="initialProductFormData" @close="handleCloseProductForm"
       @refresh="handleRefreshProduct" />
+    <!-- #endregion Product Form -->
 
-    <!-- #endregion -->
+    <!-- #region AI Form -->
+    <AiForm v-if="showAiForm" :initialFormData="initialAiFormData" @close="handleCloseAiForm"
+      @refresh="handleRefreshAi">
+    </AiForm>
+    <!-- #endregion AI Form -->
 
 
   </div>
@@ -223,7 +226,7 @@
     });
   }
 
-  async function handleRefreshProduct(product_id,newData) {
+  async function handleRefreshProduct(product_id, newData) {
     const index = products.value.findIndex((product) => product.id === product_id);
     if (index === -1) {
       products.value.push(await Api.get(`/products/${product_id}`));

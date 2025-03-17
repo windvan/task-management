@@ -47,11 +47,14 @@ def get_tasks(session: SessionDep, user_id: TokenDep):
 
     stmt = select(Task.__table__.columns,
                   Project.project_name,
+                  Project.project_status,
+                  Product.stage.label('product_stage'),
                   User.name.label('task_owner_name'),
                   Cro.cro_name,
                   Gap.snapshot_url.label('gap_snapshot_url'),
                   Sample.sample_status).outerjoin(
         Project, Project.id == Task.project_id).outerjoin(
+        Product, Product.id == Project.product_id).outerjoin(
         User, User.id == Task.task_owner_id,).outerjoin(
         Gap, Gap.id == Task.gap_id).outerjoin(
         Cro, Cro.id == Task.cro_id).outerjoin(
