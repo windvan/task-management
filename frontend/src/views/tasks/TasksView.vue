@@ -9,7 +9,7 @@ import ColumnSetting from "./ColumnSetting.vue";
 import TaskExpansion from "./TaskExpansion.vue";
 import TaskCard from "./TaskCard.vue";
 
-const layout = ref("table");
+const layout = ref("table"); // table, grid
 const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -139,7 +139,7 @@ function onRowExpand(event) {
   console.log("onRowExpand", event);
 }
 
-import { getChangedFields } from "../../composables/fieldTools";
+import { getChangedFields } from "../../composables/fieldTools.js";
 
 async function onRowEditSave(event) {
   const { data, newData, index } = event;
@@ -189,6 +189,30 @@ function handleCloseComments() {
 }
 
 // #endregion Comment Drawer
+
+  // #region Task GAP
+import TaskGap from "./TaskGap.vue";
+const showTaskGap = ref(true);
+const taskGapProps = {};
+
+function handleShowGap(task) {
+  taskGapProps.task_id = task.id;
+  taskGapProps.gap_id = task.gap_id;
+  taskGapProps.gap_snapshot_url = task.gap_snapshot_url;
+  showTaskGap.value = true;
+}
+function handleCloseGap() {
+  showTaskGap.value = false;
+}
+function handleRefreshGap() {
+  toast.add({
+    severity: "warn",
+    summary: "Warn Message",
+    detail: "To be implemented",
+    life: 3000,
+  });
+}
+// #endregion Task GAP
 </script>
 
 <template>
@@ -255,7 +279,7 @@ function handleCloseComments() {
         </SplitButton>
       </template>
     </Toolbar>
-    
+
     <DataTable
       v-if="layout === 'table'"
       ref="taskTableRef"
@@ -493,6 +517,13 @@ function handleCloseComments() {
         field="gap_snapshot_url"
         :header="visibleTaskColumns['gap_snapshot_url']"
       >
+        <template #body="{ data }">
+          <i
+            class="pi pi-image"
+            style="font-size: 1.5rem"
+            @click="handleShowGap(data)"
+          ></i>
+        </template>
       </Column>
       <!-- MARK: doc_link -->
       <Column
@@ -760,11 +791,15 @@ function handleCloseComments() {
 
     <DataView v-else :value="tasks">
       <template #list="{ items }">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="flex flex-col gap-4">
           <TaskCard
             v-for="(task, index) in items"
             :key="index"
             :taskData="task"
+            :class="{
+              'border-t border-surface-200 dark:border-surface-700':
+                index !== 0,
+            }"
           ></TaskCard>
         </div>
       </template>
@@ -786,6 +821,14 @@ function handleCloseComments() {
       @close="handleCloseComments"
     >
     </CommentDrawer>
+
+    <TaskGap
+      v-if="showTaskGap"
+      v-bind="taskGapProps"
+      @close="handleCloseGap"
+      @refresh="handleRefreshGap"
+    >
+    </TaskGap>
 
     <TaskForm
       v-if="showTaskForm"

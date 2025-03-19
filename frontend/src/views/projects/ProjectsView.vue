@@ -45,8 +45,8 @@
       </Column>
 
       <Column field="project_status" header="Project Status">
-        <template #body="{ data }">
-          <Tag :severity="getStatusSeverity(data.project_status)" :value="data.project_status"></Tag>
+        <template #body="{ data,field }">
+          <Tag :severity="getStatusSeverity(field,data.project_status)" :value="data.project_status"></Tag>
         </template>
       </Column>
       <Column field="indication" header="Indication">
@@ -135,7 +135,7 @@
 
 <script setup>
   import { onMounted, inject, ref, useTemplateRef } from "vue";
-
+  import {getStatusSeverity} from '../../composables/fieldTools'
   import { useToast } from "primevue/usetoast";
   import { useConfirm } from "primevue/useconfirm";
   import { FilterMatchMode } from "@primevue/core";
@@ -183,21 +183,6 @@
   });
   const globalTableFilterFields = ["project_name", "product_id"];
 
-
-  function getStatusSeverity(status) {
-    switch (status) {
-      case "Idea_Stage":
-        return "secondary";
-      case "Active":
-        return "info";
-      case "Finished":
-        return "success";
-      case "Terminated":
-        return "warn";
-      default:
-        return "primary"; // 或者其他默认值
-    }
-  }
 
   async function onRowExpand(event) {
     // get tasks of current project

@@ -1,10 +1,10 @@
-export function dateToStr(date) {
+function dateToStr(date) {
   if (date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
   } else return null
 }
 
-export function strToDate(dateStr, format) {
+function strToDate(dateStr, format) {
   let date
   switch (format) {
     case 'yyyy-mm-dd':
@@ -26,3 +26,5 @@ export function strToDate(dateStr, format) {
 
   return date
 }
+
+export {dateToStr,strToDate}
