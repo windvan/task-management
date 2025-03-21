@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, status, HTTPException, UploadFile, Body
+from fastapi import APIRouter, Form, Query, status, HTTPException, UploadFile, Body
 from sqlalchemy import or_, and_
 from sqlmodel import select, delete, SQLModel
 from sqlalchemy.orm import joinedload, selectinload, load_only
@@ -11,10 +11,11 @@ from ..schemas.task import Task, TaskCreate, TaskPublic, TaskUpdate, TaskLibrary
 from ..schemas.project import Project
 from ..schemas.user import User
 from ..schemas.cro import Cro
-from ..schemas.gap import Gap
+from ..schemas.gap import Gap, GapCreate
 from ..schemas.sample import Sample, SamplePublic
 from ..utils.dependencies import SessionDep, TokenDep
 from ..schemas.enums import SampleStatusEnum
+from ..config import settings
 
 
 router = APIRouter(prefix='/tasks', tags=["Task"])
@@ -51,12 +52,11 @@ def get_tasks(session: SessionDep, user_id: TokenDep):
                   Product.stage.label('product_stage'),
                   User.name.label('task_owner_name'),
                   Cro.cro_name,
-                  Gap.snapshot_url.label('gap_snapshot_url'),
+                  
                   Sample.sample_status).outerjoin(
         Project, Project.id == Task.project_id).outerjoin(
         Product, Product.id == Project.product_id).outerjoin(
         User, User.id == Task.task_owner_id,).outerjoin(
-        Gap, Gap.id == Task.gap_id).outerjoin(
         Cro, Cro.id == Task.cro_id).outerjoin(
         Sample, Sample.id == Task.sample_id)
 # .where(User.id == user_id)
@@ -71,13 +71,14 @@ def get_task_columns(user_id: SessionDep):
                   Project.project_name,
                   User.name.label('task_owner_name'),
                   Cro.cro_name,
-                  Gap.snapshot_url.label('gap_snapshot_url'),
+                 
                   Sample.sample_status)
     return [col.name for col in stmt.selected_columns]
 
 
 @router.get('/search')
-def search_tasks(session: SessionDep, user_id: TokenDep, query: str = "", sample_id=None):
+def search_tasks(session: SessionDep, user_id: TokenDep, query: str = "", sample_id :int=None):
+    print("\n\n\nsample_id",sample_id)
     search_pattern = f"%{query}%"
     conditions = and_(
         or_(
@@ -86,7 +87,7 @@ def search_tasks(session: SessionDep, user_id: TokenDep, query: str = "", sample
             Task.task_name.ilike(search_pattern),  # 不区分大小写的模糊匹配
             Task.tags.ilike(search_pattern)),
         Task.task_owner_id == user_id,
-        Task.sample_id != sample_id if sample_id else True
+        or_(Task.sample_id.is_(None), Task.sample_id == sample_id) if sample_id else True
     )
 
     stmt = select(
@@ -130,11 +131,11 @@ def update_task(task_id: int, fields_to_update: dict, session: SessionDep, user_
                   Project.project_name,
                   User.name.label('task_owner_name'),
                   Cro.cro_name,
-                  Gap.snapshot_url.label('gap_snapshot_url'),
+                  
                   Sample.sample_status).outerjoin(
         Project, Project.id == Task.project_id).outerjoin(
         User, User.id == Task.task_owner_id,).outerjoin(
-        Gap, Gap.id == Task.gap_id).outerjoin(
+        
         Cro, Cro.id == Task.cro_id).outerjoin(
         Sample, Sample.id == Task.sample_id).where(Task.id == task_id)
 
@@ -176,76 +177,5 @@ def create_task_library_item(item_create: TaskLibraryCreate, session: SessionDep
     return db_library_item
 
 
-@router.post("/gaps/{task_id}", status_code=status.HTTP_201_CREATED)
-async def upload_gap(
-    task_id: int,
-    files: list[UploadFile],
-    session: SessionDep, token: TokenDep
-):
-    # 获取保存图片的目录
-    gap_dir = Path(__file__).parent.parent / "statics" / "images" / "gaps"
-
-    # 确保目录存在
-    gap_dir.mkdir(parents=True, exist_ok=True)
-
-    # 查找对应的 task
-    db_task = session.get(Task, task_id)
-    if not db_task:
-        raise HTTPException(status_code=404, detail="Task not found")
-
-    # 保存图片并收集文件路径
-    saved_paths = []
-    for file in files:
-        # 生成唯一文件名
-        unique_filename = f"{uuid4()}{Path(file.filename).suffix}"
-        file_path = gap_dir / unique_filename
-
-        # 保存文件
-        with file_path.open("wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
-
-        # 收集相对路径
-        relative_path = f"images/gaps/{unique_filename}"
-        saved_paths.append(relative_path)
-
-    # 更新数据库中的 gap_snapshot 字段
-    saved_paths_str = ",".join(saved_paths)
-
-    db_task.gap_snapshot = db_task.gap_snapshot + "," + \
-        saved_paths_str if db_task.gap_snapshot else saved_paths_str
-
-    session.add(db_task)
-    session.commit()
-
-    return {"message": "Images uploaded successfully", "gap_snapshot": db_task.gap_snapshot}
 
 
-@router.delete("/gaps/{task_id}", status_code=status.HTTP_200_OK)
-async def delete_gap(task_id: int, session: SessionDep, token: TokenDep, gap_path: str):
-    # 查找对应的 task
-    db_task = session.get(Task, task_id)
-    if not db_task:
-        raise HTTPException(status_code=404, detail="Task not found")
-
-    exits_path = db_task.gap_snapshot.split(",")
-    exits_path.remove(gap_path)
-    db_task.gap_snapshot = ",".join(exits_path) if exits_path else None
-
-    file_path = Path(__file__).parent.parent / "statics" / gap_path
-    if file_path.exists():
-        file_path.unlink()
-
-    session.add(db_task)
-    session.commit()
-
-    return {"message": "Images deleted successfully", "gap_snapshot": db_task.gap_snapshot}
-
-
-@router.get("/{task_id}/samples")
-def get_task_samples(task_id: int, session: SessionDep, token: TokenDep):
-    db_task = get_task(task_id, session, token)
-    if not db_task:
-        raise HTTPException(status_code=404, detail="Task not found")
-
-    return db_task.sample

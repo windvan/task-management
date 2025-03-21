@@ -118,22 +118,23 @@ function handleShowCreateTasks() {
   });
 }
 
-function getTaskStatusSeverity(status) {
-  switch (status) {
-    case "Idle":
-      return "secondary";
-    case "Go":
-      return "info";
-    case "Finished":
-      return "success";
-    case "Pending":
-      return "danger";
-    case "Terminated":
-      return "danger";
-    default:
-      return "primary"; // 或者其他默认值
-  }
-}
+import { getStatusSeverity } from "../../composables/fieldTools.js";
+// function getStatusSeverity(status) {
+//   switch (status) {
+//     case "Idle":
+//       return "secondary";
+//     case "Go":
+//       return "info";
+//     case "Finished":
+//       return "success";
+//     case "Pending":
+//       return "danger";
+//     case "Terminated":
+//       return "danger";
+//     default:
+//       return "primary"; // 或者其他默认值
+//   }
+// }
 
 function onRowExpand(event) {
   console.log("onRowExpand", event);
@@ -190,15 +191,15 @@ function handleCloseComments() {
 
 // #endregion Comment Drawer
 
-  // #region Task GAP
+// #region Task GAP
 import TaskGap from "./TaskGap.vue";
-const showTaskGap = ref(true);
+const showTaskGap = ref(false);
 const taskGapProps = {};
 
 function handleShowGap(task) {
   taskGapProps.task_id = task.id;
   taskGapProps.gap_id = task.gap_id;
-  taskGapProps.gap_snapshot_url = task.gap_snapshot_url;
+
   showTaskGap.value = true;
 }
 function handleCloseGap() {
@@ -359,6 +360,19 @@ function handleRefreshGap() {
           <InputText v-model="filterModel.value" type="text" />
         </template>
       </Column>
+      <!-- MARK: Product Stage -->
+      <Column
+        v-if="visibleTaskColumns['product_stage']"
+        field="product_stage"
+        :header="visibleTaskColumns['product_stage']"
+      >
+        <template #body="{ data, field }">
+          <Tag
+            :severity="getStatusSeverity('product_stage', data[field])"
+            :value="data[field]"
+          ></Tag>
+        </template>
+      </Column>
       <!-- MARK: Task Category -->
       <Column
         v-if="visibleTaskColumns['task_category']"
@@ -375,7 +389,7 @@ function handleRefreshGap() {
       >
         <template #body="{ data, field }">
           <Tag
-            :severity="getTaskStatusSeverity(data[field])"
+            :severity="getStatusSeverity('task_status', data[field])"
             :value="data[field]"
           ></Tag>
         </template>
@@ -511,16 +525,16 @@ function handleRefreshGap() {
       >
       </Column>
 
-      <!-- MARK: gap_snapshot_url -->
+      <!-- MARK: gap -->
       <Column
-        v-if="visibleTaskColumns['gap_snapshot_url']"
-        field="gap_snapshot_url"
-        :header="visibleTaskColumns['gap_snapshot_url']"
+        v-if="visibleTaskColumns['gap_id']"
+        field="gap_id"
+        :header="visibleTaskColumns['gap_id']"
       >
         <template #body="{ data }">
           <i
-            class="pi pi-image"
-            style="font-size: 1.5rem"
+            :class="data.gap_id ? 'pi pi-image' : 'pi pi-cloud-upload'"
+            style="font-size: 1.5rem;color: var(--p-primary-color);"
             @click="handleShowGap(data)"
           ></i>
         </template>
@@ -531,6 +545,11 @@ function handleRefreshGap() {
         field="doc_link"
         :header="visibleTaskColumns['doc_link']"
       >
+        <template #body="{ data, field }">
+          <a :href="data[field]" v-if="data[field]" target="_blank" class="text-primary font-bold hover:underline"
+            ><i class="pi pi-link"></i
+          ></a>
+        </template>
       </Column>
       <!-- MARK: estimated_cost -->
       <Column
@@ -679,6 +698,9 @@ function handleRefreshGap() {
         field="sample_status"
         :header="visibleTaskColumns['sample_status']"
       >
+      <template #body="{ data,field}">
+        <router-link v-if="data['sample_id']" :to="{ path: '/samples', query: {id:data['sample_id']} }" class="text-primary font-bold hover:underline">{{data[field]}}</router-link>
+      </template>
       </Column>
       <!-- MARK: study_notified -->
       <Column

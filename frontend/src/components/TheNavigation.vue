@@ -63,6 +63,11 @@
       separator: true
     },
     {
+      label: 'Setting',
+      icon: 'pi pi-cog',
+      route: '/setting'
+    },
+    {
       label: 'Icons',
       icon: 'pi pi-palette',
       route: '/icons'

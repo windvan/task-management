@@ -21,7 +21,7 @@ def create_product(product_create: ProductCreate, session: SessionDep, token: To
 
 
 @router.get('/search')
-def search_products(session: SessionDep, user_id: TokenDep, query:str = ""):
+def search_products(session: SessionDep, user_id: TokenDep, query: str = ""):
     search_pattern = f"%{query}%"
     conditions = or_(
         Product.trade_name.ilike(search_pattern),
@@ -31,13 +31,12 @@ def search_products(session: SessionDep, user_id: TokenDep, query:str = ""):
     )
     stmt = select(
         Product.id,
-        Product.internal_name,        
+        Product.internal_name,
     ).where(conditions)
 
     results = session.exec(stmt).mappings().all()
     # 转换为字典格式
     return results
-
 
 
 @router.get("/{product_id}", response_model=ProductPublic)

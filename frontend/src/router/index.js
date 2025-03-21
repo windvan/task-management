@@ -59,6 +59,11 @@ const router = createRouter({
           meta: { requiresAuth: true }
         },
         {
+          path: '/setting',
+          meta: { requiresAuth: true },
+          component: () => import('@/views/others/SysSetting.vue')
+        },
+        {
           path: 'icons',
           component: IconsView,
           meta: { requiresAuth: true }
@@ -85,6 +90,7 @@ const router = createRouter({
       name: 'login',
       component: () => import('@/views/auth/LoginView.vue')
     },
+
     {
       path: '/:pathMatch(.*)*',
       component: () => import('@/views/auth/404NotFound.vue')

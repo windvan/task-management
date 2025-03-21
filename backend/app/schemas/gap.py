@@ -1,8 +1,7 @@
-from sqlmodel import Field,Relationship
+from sqlmodel import Field, Relationship
 from decimal import Decimal
 
 from ..database.database import SQLModel
-
 
 
 class Image(SQLModel):
@@ -31,7 +30,7 @@ class GapBase(SQLModel):
 class GapCreate(GapBase):
     app_rate_unit: str = "g a.i./ha"
     water_volumn_unit: str = "L/ha"
-    snapshot: Image 
+    snapshot: Image
 
 
 class GapPublic(GapBase):
@@ -51,8 +50,8 @@ class Gap(GapBase, table=True):
     water_volumn_unit: str = "L/ha"
     snapshot_url: str | None = None
 
-    tasks: list["Task"] = Relationship(back_populates='gap', # type: ignore
-                                      sa_relationship_kwargs={"foreign_keys": "Task.gap_id"})
+    tasks: list["Task"] = Relationship(back_populates='gap',  # type: ignore
+                                       sa_relationship_kwargs={"foreign_keys": "Task.gap_id"})
 
 
 # class GapTaskRelationship(SQLModel, table=True):

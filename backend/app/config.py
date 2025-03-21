@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     DB_PASSWORD: str | None = None
     DB_NAME:  str | None = 'database'
 
+    # 静态文件设置
+    STATIC_ROOT:str
+    STATIC_GAP_FOLDER:str
+
+
     # JWT 设置
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"

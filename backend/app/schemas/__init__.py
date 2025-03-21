@@ -5,7 +5,7 @@ from .task import Task, TaskLibrary
 from .note import Note, ProjectNoteRelationship, TaskNoteRelationship
 from .sample import Sample
 from .cro import Cro, CroContact
-from .crop import Crop
+# from .crop import Crop
 from .message import Message
 from .gap import Gap
 
@@ -17,7 +17,7 @@ __all__ = ['User',
            'Note', 'ProjectNoteRelationship', 'TaskNoteRelationship',
            'Sample',
            'Cro', 'CroContact',
-           'Crop',
+           'Gap',
            'Message',
-           'Gap'
+
            ]
