@@ -205,13 +205,9 @@ function handleShowGap(task) {
 function handleCloseGap() {
   showTaskGap.value = false;
 }
-function handleRefreshGap() {
-  toast.add({
-    severity: "warn",
-    summary: "Warn Message",
-    detail: "To be implemented",
-    life: 3000,
-  });
+function handleRefreshGap(task_id, gap_id) {
+  const index = tasks.value.findIndex((task) => task.id === task_id);
+  tasks.value[index].gap_id = gap_id;
 }
 // #endregion Task GAP
 </script>
@@ -534,7 +530,7 @@ function handleRefreshGap() {
         <template #body="{ data }">
           <i
             :class="data.gap_id ? 'pi pi-image' : 'pi pi-cloud-upload'"
-            style="font-size: 1.5rem;color: var(--p-primary-color);"
+            style="font-size: 1.5rem; color: var(--p-primary-color)"
             @click="handleShowGap(data)"
           ></i>
         </template>
@@ -546,7 +542,11 @@ function handleRefreshGap() {
         :header="visibleTaskColumns['doc_link']"
       >
         <template #body="{ data, field }">
-          <a :href="data[field]" v-if="data[field]" target="_blank" class="text-primary font-bold hover:underline"
+          <a
+            :href="data[field]"
+            v-if="data[field]"
+            target="_blank"
+            class="text-primary font-bold hover:underline"
             ><i class="pi pi-link"></i
           ></a>
         </template>
@@ -698,9 +698,14 @@ function handleRefreshGap() {
         field="sample_status"
         :header="visibleTaskColumns['sample_status']"
       >
-      <template #body="{ data,field}">
-        <router-link v-if="data['sample_id']" :to="{ path: '/samples', query: {id:data['sample_id']} }" class="text-primary font-bold hover:underline">{{data[field]}}</router-link>
-      </template>
+        <template #body="{ data, field }">
+          <router-link
+            v-if="data['sample_id']"
+            :to="{ path: '/samples', query: { id: data['sample_id'] } }"
+            class="text-primary font-bold hover:underline"
+            >{{ data[field] }}</router-link
+          >
+        </template>
       </Column>
       <!-- MARK: study_notified -->
       <Column

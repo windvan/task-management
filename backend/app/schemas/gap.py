@@ -21,6 +21,7 @@ class GapBase(SQLModel):
     app_method: str | None = None
     app_number: int | None = None
     app_interval_min: int | None = None
+    # app_interval_max: int | None = None
     app_time: str | None = None
     app_time_bbch: str | None = None
     phi: int | None = None
