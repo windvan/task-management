@@ -1,11 +1,12 @@
-from sqlmodel import Field, Enum as dbEnum, Relationship
-from datetime import date
+from sqlmodel import Field, Enum as dbEnum, Relationship,Column,DateTime
+from datetime import datetime
+from pydantic import field_validator
 
-from ..database.database import SQLModel
+from ..database.database import AutoFieldMixin, SQLModel
 from .enums import (IndicationEnum, ProjectManagerEnum, ProjectStatusEnum, StageEnum,
                     RegManagerEnum, RegEntityEnum, RegistrationTypeEnum, SubmissionStatusEnum)
 from .note import ProjectNoteRelationship
-
+from ..utils.functions import date_to_utc
 
 class ProjectBase(SQLModel):
     project_name: str
@@ -24,7 +25,7 @@ class ProjectBase(SQLModel):
     notification_entrance: str | None = None
     submission_status: SubmissionStatusEnum = Field(default=SubmissionStatusEnum.Preparation,
                                                     sa_column=dbEnum(SubmissionStatusEnum))
-    approved_date: date | None = None
+    approved_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     is_three_new: bool = False
 
 
@@ -48,11 +49,11 @@ class ProjectUpdate(SQLModel):
     registration_type: RegistrationTypeEnum | None = None
     notification_entrance: str | None = None
     submission_status: SubmissionStatusEnum | None = None
-    approved_date: date | None = None
+    approved_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     is_three_new: bool | None = None
 
 
-class Project(ProjectBase, table=True):
+class Project(ProjectBase, AutoFieldMixin, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     product: "Product" = Relationship(back_populates="projects")  # type: ignore
@@ -62,3 +63,8 @@ class Project(ProjectBase, table=True):
 
     # product: Product = Relationship(back_populates="projects")
     # portfolio_contact:User = Relationship(back_populates="projects")
+
+    @field_validator('approved_date')
+    @classmethod
+    def date_field_validator(cls, v):
+        return date_to_utc(v)

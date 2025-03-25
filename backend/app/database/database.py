@@ -1,16 +1,19 @@
-from sqlmodel import SQLModel as BaseSQLModel, create_engine, Field, Session
+from sqlmodel import SQLModel, create_engine, Field, Column, DateTime
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 from ..config import settings
 from ..schemas import *
 
 
-class SQLModel(BaseSQLModel):
+class AutoFieldMixin:
     # shared fields by all tables
-    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
-    created_by: int | None = Field(default=None,foreign_key='user.id')
+    created_at: datetime | None = Field(default=None,sa)
+    updated_at: datetime | None = Field(default=None, sa_column_kwargs={'onupdate': datetime.now(tz=timezone.utc)}),
+
+    created_by: int | None = Field(default=None, foreign_key='user.id')
+    updated_by: int | None = Field(default=None, foreign_key='user.id')
 
 
 engine = create_engine(settings.DATABASE_URL, echo=True)

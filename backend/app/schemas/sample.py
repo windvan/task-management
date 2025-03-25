@@ -1,8 +1,9 @@
-from sqlmodel import Field, Enum as dbEnum, Relationship
-from datetime import date
+from sqlmodel import Field, Enum as dbEnum, Relationship, Column, DateTime
+from datetime import datetime
+from pydantic import field_validator
 
-
-from ..database.database import SQLModel
+from ..utils.functions import date_to_utc
+from ..database.database import AutoFieldMixin, SQLModel
 from .enums import SampleStatusEnum
 
 
@@ -14,8 +15,8 @@ class SampleBase(SQLModel):
     sample_quantity: str | None = None
     batch_number: str | None = None
     sealing_number: str | None = None
-    production_date: date | None = None
-    expiration_date: date | None = None
+    production_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    expiration_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     shipped_quantity: int | None = None
     receiver_information: str | None = None
 
@@ -34,14 +35,19 @@ class SampleUpdate(SQLModel):
     sample_quantity: str | None = None
     batch_number: str | None = None
     sealing_number: str | None = None
-    production_date: date | None = None
-    expiration_date: date | None = None
+    production_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    expiration_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     shipped_quantity: int | None = None
     receiver_information: str | None = None
 
 
-class Sample(SampleBase, table=True):
+class Sample(SampleBase, AutoFieldMixin, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     product: "Product" = Relationship(back_populates="samples")  # type: ignore
     tasks: list["Task"] = Relationship(back_populates="sample")  # type: ignore
+
+    @field_validator('production_date', 'expiration_date')
+    @classmethod
+    def date_field_validator(cls, v):
+        return date_to_utc(v)

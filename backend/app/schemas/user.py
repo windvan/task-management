@@ -1,7 +1,7 @@
 from pydantic import EmailStr, field_validator
 from sqlmodel import Field, SQLModel, Enum as dbEnum, Relationship
 
-from ..database.database import SQLModel  # 保持这种导入方法以确保数据库表的一致性
+from ..database.database import AutoFieldMixin, SQLModel  # 保持这种导入方法以确保数据库表的一致性
 from ..schemas.enums import RoleEnum
 from ..schemas.message import MessageRecipient
 
@@ -26,7 +26,7 @@ class UserCreate(UserBase):
     password: str
 
 
-class User(UserBase, table=True):
+class User(UserBase, AutoFieldMixin, table=True):
     id: int | None = Field(default=None, primary_key=True)
     password_hash: str
     external_id: str | None = None

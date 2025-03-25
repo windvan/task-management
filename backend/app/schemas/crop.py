@@ -1,5 +1,5 @@
 from sqlmodel import Field
-from ..database.database import SQLModel
+from ..database.database import AutoFieldMixin, SQLModel
 
 
 class CropBase(SQLModel):
@@ -24,5 +24,5 @@ class CropUpdate(SQLModel):
     comments: str | None = None
 
 
-class Crop(CropBase, table=True):
+class Crop(CropBase, AutoFieldMixin, table=True):
     id: int | None = Field(default=None, primary_key=True)

@@ -1,7 +1,7 @@
 from sqlmodel import Field, Relationship
 from decimal import Decimal
 
-from ..database.database import SQLModel
+from ..database.database import AutoFieldMixin, SQLModel
 
 
 class Image(SQLModel):
@@ -45,7 +45,7 @@ class GapUpdate(GapBase):
     snapshot: Image | None = None
 
 
-class Gap(GapBase, table=True):
+class Gap(GapBase, AutoFieldMixin, table=True):
     id: int | None = Field(default=None, primary_key=True)
     app_rate_unit: str = "g a.i./ha"
     water_volumn_unit: str = "L/ha"

@@ -52,7 +52,7 @@ def get_tasks(session: SessionDep, user_id: TokenDep):
                   Product.stage.label('product_stage'),
                   User.name.label('task_owner_name'),
                   Cro.cro_name,
-                  
+
                   Sample.sample_status).outerjoin(
         Project, Project.id == Task.project_id).outerjoin(
         Product, Product.id == Project.product_id).outerjoin(
@@ -71,14 +71,14 @@ def get_task_columns(user_id: SessionDep):
                   Project.project_name,
                   User.name.label('task_owner_name'),
                   Cro.cro_name,
-                 
+
                   Sample.sample_status)
     return [col.name for col in stmt.selected_columns]
 
 
 @router.get('/search')
-def search_tasks(session: SessionDep, user_id: TokenDep, query: str = "", sample_id :int=None):
-    print("\n\n\nsample_id",sample_id)
+def search_tasks(session: SessionDep, user_id: TokenDep, query: str = "", sample_id: int = None):
+
     search_pattern = f"%{query}%"
     conditions = and_(
         or_(
@@ -131,11 +131,11 @@ def update_task(task_id: int, fields_to_update: dict, session: SessionDep, user_
                   Project.project_name,
                   User.name.label('task_owner_name'),
                   Cro.cro_name,
-                  
+
                   Sample.sample_status).outerjoin(
         Project, Project.id == Task.project_id).outerjoin(
         User, User.id == Task.task_owner_id,).outerjoin(
-        
+
         Cro, Cro.id == Task.cro_id).outerjoin(
         Sample, Sample.id == Task.sample_id).where(Task.id == task_id)
 
@@ -177,5 +177,19 @@ def create_task_library_item(item_create: TaskLibraryCreate, session: SessionDep
     return db_library_item
 
 
+@router.get('/task-name/search')
+def search_tasks(session: SessionDep, user_id: TokenDep, query: str = ""):
 
+    search_pattern = f"%{query}%"
+    conditions = or_(
+        TaskLibrary.task_category.ilike(search_pattern),
+        TaskLibrary.task_name_prefix.ilike(search_pattern),
+    )
 
+    stmt = select(
+        TaskLibrary.id,
+        TaskLibrary.task_name_prefix).label('task_name').where(conditions)
+
+    results = session.exec(stmt).mappings().all()
+    # 转换为字典格式
+    return results

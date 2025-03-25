@@ -116,7 +116,7 @@
             if (state.dirty) {
                 if (state.value instanceof Date) {
                     // for date fields
-                    updatedFields[field] = dateToStr(state.value)
+                    updatedFields[field] =state.value
 
                 } else if (state.value && typeof state.value === 'object') {
                     // for relational fields

@@ -3,23 +3,23 @@ from pydantic import model_validator
 from sqlalchemy import CheckConstraint
 
 
-from ..database.database import SQLModel
+from ..database.database import AutoFieldMixin, SQLModel
 from .enums import NoteSeverityEnum
 
 
-class TaskNoteRelationship(SQLModel, table=True):
+class TaskNoteRelationship(SQLModel, AutoFieldMixin, table=True):
     __tablename__ = "task_note_rel"
     task_id: int = Field(foreign_key="task.id", primary_key=True)
     note_id: int = Field(foreign_key="note.id", primary_key=True)
 
 
-class ProjectNoteRelationship(SQLModel, table=True):
+class ProjectNoteRelationship(SQLModel, AutoFieldMixin, table=True):
     __tablename__ = "project_note_rel"
     project_id: int = Field(foreign_key="project.id", primary_key=True)
     note_id: int = Field(foreign_key="note.id", primary_key=True)
 
 
-class Note(SQLModel, table=True):
+class Note(SQLModel, AutoFieldMixin, table=True):
     id: int = Field(default=None, primary_key=True)
     project_id: int | None = Field(default=None, foreign_key='project.id')
     task_id: int | None = Field(default=None, foreign_key='task.id')

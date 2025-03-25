@@ -35,39 +35,9 @@ onMounted(async () => {
   tasks.value = await Api.get("/tasks/");
 });
 
-function handleImportTasks() {
-  toast.add({
-    severity: "warn",
-    summary: "Warn Message",
-    detail: "To be implemented",
-    life: 3000,
-  });
-}
-
-function handleExportTasks() {
-  taskTableRef.value.exportCSV();
-}
-
-//#region Task Table
+// #region Task Table
 const taskTableRef = useTemplateRef("taskTableRef");
-const showTaskForm = ref(false);
-const defaultTaskColumns = {
-  project_name: "Project Name",
-  task_name: "Task Name",
-  tags: "Tags",
-  task_owner_name: "Task Owner Name",
-  task_confirmed: "Task Confirmed",
-  task_status: "Task Status",
-  start_year: "Start Year",
-  expected_delivery_date: "Expected Delivery Date",
-  pi_number: "PI Number",
-  tk_number: "TK Number",
-  tox_gov_approved: "Tox Gov Approved",
-  ecotox_gov_approved: "EcoTox Gov Approved",
-};
-const visibleTaskColumns = ref(
-  JSON.parse(localStorage.getItem("visibleTaskColumns")) ?? defaultTaskColumns
-);
+
 const selectedTasks = ref([]);
 const expandedRows = ref([]);
 const editingRows = ref([]);
@@ -80,9 +50,41 @@ async function filterUserSuggestion(event) {
 }
 const croSuggestion = ref();
 async function filterCroSuggestion(event) {
-  console.log("filterCroSuggestion", event);
   croSuggestion.value = await Api.get(`/cros/search?query=${event.query}`);
 }
+function handleImportTasks() {
+  toast.add({
+    severity: "warn",
+    summary: "Warn Message",
+    detail: "To be implemented",
+    life: 3000,
+  });
+}
+
+function handleExportTasks() {
+  taskTableRef.value.exportCSV();
+}
+import { getStatusSeverity } from "../../composables/fieldTools.js";
+
+function onRowExpand(event) {
+  console.log("onRowExpand", event);
+}
+
+import { getChangedFields } from "../../composables/fieldTools.js";
+
+async function onRowEditSave(event) {
+  const { data, newData, index } = event;
+  const updatedFields = getChangedFields(data, newData);
+  if (updatedFields.length !== 0) {
+    tasks.value[index] = await Api.patch(`/tasks/${data.id}`, updatedFields);
+    // tasks.value.splice(index, 1, response)
+  }
+}
+
+// #endregion Task Table
+
+// #regiom Task Form
+const showTaskForm = ref(false);
 
 function handleShowTaskForm(mode, data) {
   if (mode === "new") {
@@ -108,6 +110,9 @@ function handleRefreshTasks(task_id, newData) {
     tasks.value.push(newData);
   }
 }
+//# endregion Task Form
+
+// #region Batch Create
 
 function handleShowCreateTasks() {
   toast.add({
@@ -118,45 +123,28 @@ function handleShowCreateTasks() {
   });
 }
 
-import { getStatusSeverity } from "../../composables/fieldTools.js";
-// function getStatusSeverity(status) {
-//   switch (status) {
-//     case "Idle":
-//       return "secondary";
-//     case "Go":
-//       return "info";
-//     case "Finished":
-//       return "success";
-//     case "Pending":
-//       return "danger";
-//     case "Terminated":
-//       return "danger";
-//     default:
-//       return "primary"; // 或者其他默认值
-//   }
-// }
-
-function onRowExpand(event) {
-  console.log("onRowExpand", event);
-}
-
-import { getChangedFields } from "../../composables/fieldTools.js";
-
-async function onRowEditSave(event) {
-  const { data, newData, index } = event;
-  const updatedFields = getChangedFields(data, newData);
-  if (updatedFields.length !== 0) {
-    tasks.value[index] = await Api.patch(`/tasks/${data.id}`, updatedFields);
-    // tasks.value.splice(index, 1, response)
-  }
-}
-
-// #endregion
+// #endregion Batch Create
 
 // #region Column Setting
 const showColumnSetting = ref(false);
 const columnSettingRef = useTemplateRef("columnSettingRef");
-
+const defaultTaskColumns = {
+  project_name: "Project Name",
+  task_name: "Task Name",
+  tags: "Tags",
+  task_owner_name: "Task Owner Name",
+  task_confirmed: "Task Confirmed",
+  task_status: "Task Status",
+  start_year: "Start Year",
+  expected_delivery_date: "Expected Delivery Date",
+  pi_number: "PI Number",
+  tk_number: "TK Number",
+  tox_gov_approved: "Tox Gov Approved",
+  ecotox_gov_approved: "EcoTox Gov Approved",
+};
+const visibleTaskColumns = ref(
+  JSON.parse(localStorage.getItem("visibleTaskColumns")) ?? defaultTaskColumns
+);
 async function handleToggleColumnSetting(event) {
   if (showColumnSetting.value) {
     showColumnSetting.value = false;

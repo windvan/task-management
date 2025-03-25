@@ -16,7 +16,7 @@
             <FormField v-slot="$field" name="product" class="form-field">
                 <label for="product" class="required-mark">Product</label>
                 <AutoComplete inputId="product" optionLabel="internal_name" :suggestions="productSuggestion"
-                    @complete="filterproductSuggestion" forceSelection placeholder="Search" dropdown fluid
+                    @complete="filterProductSuggestion" forceSelection placeholder="Search" dropdown fluid
                     :disabled="Boolean(initialFormData?.id)" />
                 <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{ $field.error?.message
                 }}</Message>
@@ -126,7 +126,7 @@
 
     // form select options
     const productSuggestion = ref();
-    async function filterproductSuggestion(event) {
+    async function filterProductSuggestion(event) {
         if (event.query.trim()) {
             productSuggestion.value = await Api.get(`/products/search?query=${event.query}`);
         } else {
@@ -186,7 +186,7 @@
             if (state.dirty) {
                 if (state.value instanceof Date) {
                     // for date fields
-                    updatedFields[field] = dateToStr(state.value)
+                    updatedFields[field] = state.value
 
                 } else if (state.value && typeof state.value === 'object') {
                     // for relational fields

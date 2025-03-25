@@ -1,6 +1,6 @@
 from sqlmodel import Field, Enum as dbEnum, Relationship
 
-from ..database.database import SQLModel
+from ..database.database import AutoFieldMixin, SQLModel
 from .enums import StageEnum
 
 
@@ -24,7 +24,7 @@ class ProductPublic(ProductBase):
     id: int
 
 
-class Product(ProductBase, table=True):
+class Product(ProductBase, AutoFieldMixin, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     ais: list['ProductAi'] = Relationship(back_populates='product')
@@ -68,7 +68,7 @@ class ProductAiUpdate(SQLModel):
     design_code: str | None = None
 
 
-class ProductAi(ProductAiBase, table=True):
+class ProductAi(ProductAiBase, AutoFieldMixin, table=True):
     __tablename__ = 'product_ai'
     id: int | None = Field(default=None, primary_key=True)
 

@@ -1,14 +1,12 @@
-from sqlmodel import Field, Enum as dbEnum, Column, Relationship
-from pydantic import EmailStr
-from decimal import Decimal
-from datetime import date
-
-
-from .note import TaskNoteRelationship
-
-from ..database.database import SQLModel
 from .enums import (TaskCategoryEnum, TaskProgressEnum, TaskStatusEnum,
                     CostCenterEnum, PaymentMethodEnum, PaymentStatusEnum)
+from ..database.database import AutoFieldMixin, SQLModel
+from .note import TaskNoteRelationship
+from sqlmodel import Field, Enum as dbEnum, Column, Relationship, DateTime
+from pydantic import EmailStr, field_validator
+from decimal import Decimal
+from datetime import datetime
+from ..utils.functions import date_to_utc
 
 
 class TaskBase(SQLModel):
@@ -21,7 +19,7 @@ class TaskBase(SQLModel):
     task_status: TaskStatusEnum = Field(
         default=TaskStatusEnum.Idle, sa_column=dbEnum(TaskStatusEnum))
 
-    expected_delivery_date: date | None = None
+    expected_delivery_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     start_year: int
     pi_number: str | None = None
     tk_number: str | None = None
@@ -45,11 +43,11 @@ class TaskBase(SQLModel):
     vv_doc_number: str | None = None
 
     task_confirmed: bool | None = False
-    planned_start: date | None = None
-    expected_finish: date | None = None
-    actual_start: date | None = None
-    actual_finish: date | None = None
-    delivery_date: date | None = None
+    planned_start: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    expected_finish: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    actual_start: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    actual_finish: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    delivery_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     stuff_days: float | None = None
     task_progress: TaskProgressEnum = Field(
         default=TaskProgressEnum.Not_Start, sa_column=dbEnum(TaskProgressEnum))
@@ -88,7 +86,7 @@ class TaskUpdate(SQLModel):
     task_status: TaskStatusEnum | None = None
 
     start_year: int | None = None
-    expected_delivery_date: date | None = None
+    expected_delivery_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     task_owner_id: int | None = None
 
     budget_confirmed: bool | None = None
@@ -113,11 +111,11 @@ class TaskUpdate(SQLModel):
     vv_doc_number: str | None = None
 
     task_progress: TaskProgressEnum | None = None
-    planned_start: date | None = None
-    expected_finish: date | None = None
-    actual_start: date | None = None
-    actual_finish: date | None = None
-    delivery_date: date | None = None
+    planned_start: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    expected_finish: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    actual_start: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    actual_finish: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    delivery_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     stuff_days: float | None = None
 
     cro_id: int | None = None
@@ -136,7 +134,7 @@ class TaskUpdate(SQLModel):
     cro_study_director: str | None = None
 
 
-class Task(TaskBase, table=True):
+class Task(TaskBase, AutoFieldMixin, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     project: "Project" = Relationship(back_populates="tasks", sa_relationship_kwargs={  # type: ignore
@@ -152,8 +150,13 @@ class Task(TaskBase, table=True):
     notes: list["Note"] = Relationship(  # type: ignore
         back_populates="task", link_model=TaskNoteRelationship)
 
+    @field_validator('expected_delivery_date', 'planned_start', 'expected_finish', 'actual_start', 'actual_finish', 'delivery_date')
+    @classmethod
+    def date_field_validator(cls, v):
+        return date_to_utc(v)
 
-class TaskLibrary(SQLModel, table=True):
+
+class TaskLibrary(SQLModel, AutoFieldMixin, table=True):
     __tablename__ = "task_library"
     id: int = Field(primary_key=True)
     task_category: TaskCategoryEnum = Field(sa_column=dbEnum(TaskCategoryEnum))
