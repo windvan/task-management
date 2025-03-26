@@ -12,7 +12,7 @@ router = APIRouter(prefix='/products', tags=["Product"])
 
 # region Product
 @router.post("/", response_model=ProductPublic, status_code=status.HTTP_201_CREATED)
-def create_product(product_create: ProductCreate, session: SessionDep, token: TokenDep):
+def create_product(product_create: ProductCreate, session: SessionDep):
     db_product = Product.model_validate(product_create)
     session.add(db_product)
     session.commit()
@@ -21,7 +21,7 @@ def create_product(product_create: ProductCreate, session: SessionDep, token: To
 
 
 @router.get('/search')
-def search_products(session: SessionDep, user_id: TokenDep, query: str = ""):
+def search_products(session: SessionDep, query: str = ""):
     search_pattern = f"%{query}%"
     conditions = or_(
         Product.trade_name.ilike(search_pattern),
@@ -40,7 +40,7 @@ def search_products(session: SessionDep, user_id: TokenDep, query: str = ""):
 
 
 @router.get("/{product_id}", response_model=ProductPublic)
-def get_product(product_id: int, session: SessionDep, token: TokenDep):
+def get_product(product_id: int, session: SessionDep):
     db_product = session.get(Product, product_id)
     if not db_product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -48,13 +48,13 @@ def get_product(product_id: int, session: SessionDep, token: TokenDep):
 
 
 @router.get("/", response_model=list[ProductPublic])
-def get_products(session: SessionDep, token: TokenDep):
+def get_products(session: SessionDep):
     db_products = session.exec(select(Product)).all()
     return db_products
 
 
 @router.patch('/{product_id}', response_model=ProductPublic)
-def update_product(product_id: int, product_update: dict, session: SessionDep, token: TokenDep):
+def update_product(product_id: int, product_update: dict, session: SessionDep):
     db_product = session.get(Product, product_id)
     if not db_product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -67,7 +67,7 @@ def update_product(product_id: int, product_update: dict, session: SessionDep, t
 
 
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_product(product_id: int, session: SessionDep, token: TokenDep):
+def delete_product(product_id: int, session: SessionDep):
     db_product = session.get(Product, product_id)
     if not db_product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -77,7 +77,7 @@ def delete_product(product_id: int, session: SessionDep, token: TokenDep):
 
 
 @router.delete("/", status_code=status.HTTP_204_NO_CONTENT, summary='delete a list of products through list[id]')
-def delete_products(product_ids: Annotated[list[int], Body()], session: SessionDep, token: TokenDep):
+def delete_products(product_ids: Annotated[list[int], Body()], session: SessionDep):
     stmt = delete(Product).where(Product.id.in_(product_ids))
     session.exec(stmt)
     session.commit()
@@ -89,7 +89,7 @@ def delete_products(product_ids: Annotated[list[int], Body()], session: SessionD
 
 
 @router.post('/{product_id}/ais', response_model=ProductAiPublic, status_code=status.HTTP_201_CREATED)
-def create_product_ai(ai_create: ProductAiCreate, session: SessionDep, user_id: TokenDep):
+def create_product_ai(ai_create: ProductAiCreate, session: SessionDep):
     db_product_ai = ProductAi.model_validate(ai_create)
     session.add(db_product_ai)
 
@@ -104,7 +104,7 @@ def create_product_ai(ai_create: ProductAiCreate, session: SessionDep, user_id: 
 
 
 @router.get('/{product_id}/ais')
-def get_product_ais(product_id: int, session: SessionDep, user_id: TokenDep):
+def get_product_ais(product_id: int, session: SessionDep):
     db_product = session.get(Product, product_id)
     if not db_product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -112,7 +112,7 @@ def get_product_ais(product_id: int, session: SessionDep, user_id: TokenDep):
 
 
 @router.get('/ais/{ai_id}', response_model=ProductAiPublic)
-def get_product_ai(ai_id: int, session: SessionDep, token: TokenDep):
+def get_product_ai(ai_id: int, session: SessionDep):
     db_ai = session.get(ProductAi, ai_id)
 
     if not db_ai:
@@ -121,13 +121,13 @@ def get_product_ai(ai_id: int, session: SessionDep, token: TokenDep):
 
 
 @router.get('/ais', response_model=list[ProductAiPublic])
-def get_product_ais(session: SessionDep, token: TokenDep):
+def get_product_ais(session: SessionDep):
     db_ais = session.exec(select(ProductAi)).all()
     return db_ais
 
 
 @router.patch('/{product_id}/ais/{ai_id}', response_model=ProductAiPublic)
-def update_product_ai(ai_id: int, ai_update: dict, session: SessionDep, token: TokenDep):
+def update_product_ai(ai_id: int, ai_update: dict, session: SessionDep):
     db_ai = session.get(ProductAi, ai_id)
     if not db_ai:
         raise HTTPException(status_code=404, detail="Ai not found")
@@ -140,7 +140,7 @@ def update_product_ai(ai_id: int, ai_update: dict, session: SessionDep, token: T
 
 
 @router.delete("/{product_id}/ais/{ai_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_product_ai(ai_id: int, session: SessionDep, token: TokenDep):
+async def delete_product_ai(ai_id: int, session: SessionDep):
     db_ai = session.get(ProductAi, ai_id)
     if not db_ai:
         raise HTTPException(status_code=404, detail="Ai not found")

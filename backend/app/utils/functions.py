@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone,date
 from passlib.context import CryptContext
 from datetime import datetime, timezone, timedelta
 from dateutil.parser import parse
@@ -33,9 +33,16 @@ def get_model_schema(model_name: str):
 
 # convert javascript date string to utc datetime with timezone
 # Tue Mar 25 2025 14:00:37 GMT+0800===2025-03-25 22:00:37+00:00
-def date_to_utc(date_string):
-    # 解析 JavaScript 日期字符串
-    parsed_date = parse(date_string)
+def date_to_utc(obj):
+    # 处理未明确指定的时间字段,可空字段
+    if obj is None:
+        return None
+
+    # 如果参数为字符串,解析 JavaScript 日期字符串
+    if isinstance(obj, (datetime, date)):
+        parsed_date= obj
+    else:
+        parsed_date = parse(obj)
 
     # 如果解析后的日期没有时区信息，假定它是本地时间，并添加时区信息
     if parsed_date.tzinfo is None:

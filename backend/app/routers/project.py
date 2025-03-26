@@ -12,7 +12,7 @@ router = APIRouter(prefix='/projects', tags=["Project"])
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_project(project_create: dict, session: SessionDep, token: TokenDep):
+def create_project(project_create: dict, session: SessionDep):
 
     db_project = Project.model_validate(project_create, from_attributes=True)
     session.add(db_project)
@@ -32,7 +32,7 @@ def create_project(project_create: dict, session: SessionDep, token: TokenDep):
 
 
 @router.get("/{project_id:int}", response_model=ProjectPublic)
-def get_project(project_id: int, session: SessionDep, token: TokenDep):
+def get_project(project_id: int, session: SessionDep):
 
     stmt = select(
         Project.__table__.columns,
@@ -50,7 +50,7 @@ def get_project(project_id: int, session: SessionDep, token: TokenDep):
 
 
 @router.get("/")
-def get_projects(session: SessionDep, user_id: TokenDep):
+def get_projects(session: SessionDep):
     query = select(
         Project.__table__.columns,
         Product.internal_name.label("product_internal_name"),
@@ -65,7 +65,7 @@ def get_projects(session: SessionDep, user_id: TokenDep):
 
 
 @router.get('/search')
-def search_projects(session: SessionDep, user_id: TokenDep, query: str = ""):
+def search_projects(session: SessionDep, query: str = ""):
     search_pattern = f"%{query}%"
     conditions = or_(
         Project.project_name.ilike(search_pattern),
@@ -82,7 +82,7 @@ def search_projects(session: SessionDep, user_id: TokenDep, query: str = ""):
 
 
 @router.get('/{project_id}/tasks')
-def get_related_tasks(project_id: int,  session: SessionDep, token: TokenDep):
+def get_related_tasks(project_id: int,  session: SessionDep):
     query = select(
         Task.__table__.columns,
         User.name.label("task_owner_name")
@@ -96,7 +96,7 @@ def get_related_tasks(project_id: int,  session: SessionDep, token: TokenDep):
 
 
 @router.patch('/{project_id}')
-def update_project(project_id: int, project_update: ProjectUpdate, session: SessionDep, token: TokenDep):
+def update_project(project_id: int, project_update: ProjectUpdate, session: SessionDep):
     db_project = session.get(Project, project_id)
     if not db_project:
         raise HTTPException(status_code=404, detail="project not found")
@@ -119,7 +119,7 @@ def update_project(project_id: int, project_update: ProjectUpdate, session: Sess
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_project(project_id: int, session: SessionDep, token: TokenDep):
+def delete_project(project_id: int, session: SessionDep):
     db_project = session.get(Project, project_id)
     if not db_project:
         raise HTTPException(status_code=404, detail="project not found")

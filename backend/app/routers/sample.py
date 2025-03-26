@@ -14,12 +14,12 @@ router = APIRouter(prefix='/samples', tags=["Sample"])
 
 
 @router.post("/", response_model=SamplePublic | list[SamplePublic], status_code=status.HTTP_201_CREATED)
-def create_sample(sample_create: SampleCreate, session: SessionDep, user_id: TokenDep):
+def create_sample(sample_create: SampleCreate, session: SessionDep):
     if isinstance(sample_create, list):
         # 处理多条记录
         db_samples = []
         for sample in sample_create:
-            db_sample = Sample.model_validate(sample, update={"created_by": user_id})
+            db_sample = Sample.model_validate(sample)
             session.add(db_sample)
             db_samples.append(db_sample)
         session.commit()
@@ -28,7 +28,7 @@ def create_sample(sample_create: SampleCreate, session: SessionDep, user_id: Tok
         return db_samples
     else:
         # 处理单条记录
-        db_sample = Sample.model_validate(sample_create, update={"created_by": user_id})
+        db_sample = Sample.model_validate(sample_create)
         session.add(db_sample)
         session.commit()
         session.refresh(db_sample)
@@ -36,7 +36,7 @@ def create_sample(sample_create: SampleCreate, session: SessionDep, user_id: Tok
 
 
 @router.get('/')
-def get_samples(session: SessionDep, token: TokenDep):
+def get_samples(session: SessionDep):
     stmt = select(*(Sample.__table__.columns), Product.internal_name.label("product_internal_name")).join(Sample.product)
     db_samples = session.exec(stmt).mappings().all()
 
@@ -44,7 +44,7 @@ def get_samples(session: SessionDep, token: TokenDep):
 
 
 @router.delete('/{sample_id}')
-def delete_sample(sample_id: int, session: SessionDep, user_id: TokenDep):
+def delete_sample(sample_id: int, session: SessionDep):
     db_sample = session.get(Sample, sample_id)
     if not db_sample:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sample not found")
@@ -54,7 +54,7 @@ def delete_sample(sample_id: int, session: SessionDep, user_id: TokenDep):
 
 
 @router.get('/{sample_id}/tasks')
-def get_sample_tasks(sample_id: int, session: SessionDep, token: TokenDep):
+def get_sample_tasks(sample_id: int, session: SessionDep):
     stmt = (select(Sample.id.label('sample_id'),
                    Task.id,
                    Task.task_name,
@@ -68,7 +68,7 @@ def get_sample_tasks(sample_id: int, session: SessionDep, token: TokenDep):
 
 
 @router.post('/{sample_id}/tasks')
-def relate_sample_task(sample_id: int, task_id_list: list[int], session: SessionDep, user_id: TokenDep):
+def relate_sample_task(sample_id: int, task_id_list: list[int], session: SessionDep):
     db_sample = session.get(Sample, sample_id)
     if not db_sample:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sample not found")
@@ -83,7 +83,7 @@ def relate_sample_task(sample_id: int, task_id_list: list[int], session: Session
 
 
 @router.delete('/{sample_id}/tasks/{task_id}')
-def delete_sample_task(sample_id: int, task_id: int, session: SessionDep, user_id: TokenDep):
+def delete_sample_task(sample_id: int, task_id: int, session: SessionDep):
     db_sample = session.get(Sample, sample_id)
     if not db_sample:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sample not found")
@@ -96,7 +96,7 @@ def delete_sample_task(sample_id: int, task_id: int, session: SessionDep, user_i
 
 
 @router.patch('/{sample_id}', response_model=SamplePublic)
-def update_sample(sample_id: int, sample_update: SampleUpdate, session: SessionDep, user_id: TokenDep):
+def update_sample(sample_id: int, sample_update: SampleUpdate, session: SessionDep):
     db_sample = session.get(Sample, sample_id)
     if not db_sample:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sample not found")

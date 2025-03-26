@@ -226,17 +226,16 @@
     });
   }
 
-  async function handleRefreshProduct(product_id, newData) {
-    const index = products.value.findIndex((product) => product.id === product_id);
+  async function handleRefreshProduct( newData) {
+    const index = products.value.findIndex((product) => product.id === newData.id);
     if (index === -1) {
-      products.value.push(await Api.get(`/products/${product_id}`));
+      // products.value.push(await Api.get(`/products/${product_id}`));
+      products.value.push(newData);
     } else {
-      products.value[index] = await Api.get(`/products/${product_id}`);
+      // products.value[index] = await Api.get(`/products/${product_id}`);
+      products.value.splice(index, 1, newData);
     }
-    products.value[index] = await Api.get(`/products/${product_id}`);
-
-
-  }
+     }
 
   async function onRowExpand(event) {
     event.data.ais = await Api.get(`/products/${event.data.id}/ais`);

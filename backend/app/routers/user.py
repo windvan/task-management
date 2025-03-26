@@ -9,7 +9,7 @@ router = APIRouter(prefix='/users', tags=["User"])
 
 
 @router.post('/', response_model=UserPublic, status_code=status.HTTP_201_CREATED)
-def create_user(user_create: UserCreate, session: SessionDep, token: TokenDep):
+def create_user(user_create: UserCreate, session: SessionDep):
     hashed_pwd = get_password_hash(user_create.password)
     db_user = User.model_validate(user_create, update={'password_hash': hashed_pwd})
     session.add(db_user)
@@ -19,7 +19,7 @@ def create_user(user_create: UserCreate, session: SessionDep, token: TokenDep):
 
 
 @router.patch('/{user_id}', response_model=UserPublic)
-def update_user(user_id: int, user_update: UserUpdate, session: SessionDep, token: TokenDep):
+def update_user(user_id: int, user_update: UserUpdate, session: SessionDep):
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -38,7 +38,7 @@ def update_user(user_id: int, user_update: UserUpdate, session: SessionDep, toke
 
 
 @router.get('/search')
-def search_users(session: SessionDep, user_id: TokenDep, query: str = ""):
+def search_users(session: SessionDep, query: str = ""):
 
     search_pattern = f"%{query}%"
     conditions = or_(
@@ -54,7 +54,7 @@ def search_users(session: SessionDep, user_id: TokenDep, query: str = ""):
 
 
 @router.get('/{user_id}', response_model=UserPublic)
-def get_user(user_id: int, session: SessionDep, token: TokenDep):
+def get_user(user_id: int, session: SessionDep):
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -62,13 +62,13 @@ def get_user(user_id: int, session: SessionDep, token: TokenDep):
 
 
 @router.get('/', response_model=list[UserPublic])
-def get_users(session: SessionDep, token: TokenDep):
+def get_users(session: SessionDep):
     users = session.exec(select(User)).all()
     return users
 
 
 @router.delete('/{user_id}', status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: int, session: SessionDep, token: TokenDep):
+def delete_user(user_id: int, session: SessionDep):
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")

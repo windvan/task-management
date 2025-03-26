@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from sqlmodel import select
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -6,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import os
 import logging
+
 
 from .config import settings
 from .schemas.enums import get_all_enums
@@ -66,6 +68,15 @@ def get_model_schema(model_name: str):
 async def get_enums(token: TokenDep):
     logging.info("Handling request to the enums endpoint")
     return get_all_enums()
+
+
+@app.get("/task-library", tags=['root'])
+async def get_task_library(session: SessionDep):
+    logging.info("Handling request to the tasklibrary endpoint")
+    stmt = select(TaskLibrary.id, TaskLibrary.task_category, TaskLibrary.task_name_prefix.label(
+        'task_name'), TaskLibrary.default_task_owner_id, User.name.label('default_task_owner_name')).outerjoin(User, User.id == TaskLibrary.default_task_owner_id)
+    task_library = session.exec(stmt).mappings().all()
+    return task_library
 
 
 if __name__ == "__main__":

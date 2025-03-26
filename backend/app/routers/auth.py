@@ -73,7 +73,7 @@ def password_login(session: SessionDep, credential: Credential):
 @router.post('/refresh')
 # use current valid token to get a new token.
 # auto requst from frontend
-async def refresh_token(user_id: TokenDep):
+async def refresh_token(token: TokenDep):
     payload = jwt.decode(access_token, key=settings.JWT_SECRET_KEY,
                          algorithms=settings.JWT_ALGORITHM)
     payload['exp'] = datetime.now(tz=timezone(timedelta(hours=8))) + \
@@ -96,7 +96,7 @@ async def refresh_token(user_id: TokenDep):
 
 
 @router.get('/logout')
-def log_out(user_id: TokenDep):
+def log_out(token: TokenDep):
     response = JSONResponse(content={'detail': 'logged out successfully!'},
                             status_code=status.HTTP_204_NO_CONTENT)
     response.delete_cookie(key='access_token',

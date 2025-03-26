@@ -15,7 +15,7 @@ router = APIRouter(prefix='/gaps', tags=["Gap"])
 
 
 @router.get('/')
-def get_all_gaps(session: SessionDep, user_id: TokenDep):
+def get_all_gaps(session: SessionDep):
 
     db_gaps = session.exec(select(Gap)).all()
 
@@ -23,7 +23,7 @@ def get_all_gaps(session: SessionDep, user_id: TokenDep):
 
 
 @router.get('/{gap_id}')
-def get_all_gaps(gap_id: int, session: SessionDep, user_id: TokenDep):
+def get_all_gaps(gap_id: int, session: SessionDep):
     db_gap = session.get(Gap, gap_id)
     if not db_gap:
         raise HTTPException(status_code=404, detail="Gap not found")
@@ -31,7 +31,7 @@ def get_all_gaps(gap_id: int, session: SessionDep, user_id: TokenDep):
 
 
 @router.post("/", status_code=status.HTTP_200_OK)
-async def create_gap(session: SessionDep, user_id: TokenDep, task_id: int, file: UploadFile,  gap_detail: str = Form()):
+async def create_gap(session: SessionDep, task_id: int, file: UploadFile,  gap_detail: str = Form()):
     # create gap without associated task is not allowed
     # get gap img path
     gap_dir = Path(__file__).parent.parent / settings.STATIC_ROOT/settings.STATIC_GAP_FOLDER
@@ -65,7 +65,7 @@ async def create_gap(session: SessionDep, user_id: TokenDep, task_id: int, file:
 
 
 @router.delete("/{gap_id}", status_code=status.HTTP_200_OK)
-async def delete_gap(gap_id: int, session: SessionDep, token: TokenDep, task_id: int | None = None):
+async def delete_gap(gap_id: int, session: SessionDep, task_id: int | None = None):
 
     db_gap = session.get(Gap, gap_id)
     if not db_gap:

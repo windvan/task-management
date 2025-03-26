@@ -101,13 +101,16 @@ function handleCloseTaskForm() {
   initialTaskFormData = null;
 }
 
-function handleRefreshTasks(task_id, newData) {
-  const index = tasks.value.findIndex((task) => task.id === task_id);
+function handleRefreshTasks(newData) {
+  const index = tasks.value.findIndex((task) => task.id === newData.id);
   if (index !== -1) {
     // Object.assign(projects.value[index], newData);
-    tasks.value[index] = newData;
+    // tasks.value.push(newData);
+    tasks.value = Api.get("/tasks/");
   } else {
-    tasks.value.push(newData);
+    // tasks.value.splice(index, 1, newData);
+    // tasks.value[index] = newData;
+    tasks.value = Api.get("/tasks/");
   }
 }
 //# endregion Task Form
@@ -847,6 +850,7 @@ function handleRefreshGap(task_id, gap_id) {
 
     <TaskForm
       v-if="showTaskForm"
+      :initialFormData="initialTaskFormData"
       @close="handleCloseTaskForm"
       @refresh="handleRefreshTasks"
     ></TaskForm>

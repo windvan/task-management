@@ -12,7 +12,7 @@ def create_test_data(engin):
             email="admin@admin.com",
             name="Admin",
             role=RoleEnum.Admin,
-            password_hash=get_password_hash("admin888"), created_by=1),
+            password_hash=get_password_hash("admin888"), created_by=1,updated_by=1),
         User(
             email="xiaoyan.hu@syngenta.com",
             name="Xiaoyan Hu",

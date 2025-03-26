@@ -5,17 +5,11 @@ import jwt
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 from typing import Annotated
 
-from ..database.database import engine
+from ..database.database import engine, UserAwareSession
 from ..schemas import User
 from ..config import settings
 
-
-def get_session() -> Generator[Session, None, None]:
-    with Session(engine) as session:
-        yield session
-
-
-SessionDep = Annotated[Session, Depends(get_session)]
+# region Token Dependency
 
 
 async def validate_token(access_token: str = Cookie(default=None)):
@@ -40,10 +34,25 @@ async def validate_token(access_token: str = Cookie(default=None)):
 
 TokenDep = Annotated[int, Depends(validate_token)]
 
+# endregion Token Dependency
 
-async def get_current_user(session: SessionDep, user_id: TokenDep):
+# region Session dependency
 
-    user = session.get(User, user_id)
+
+def get_session_with_user(user_id: TokenDep) -> Generator[UserAwareSession, None, None]:
+    with UserAwareSession(engine) as session:
+        with session.user_context(user_id):
+            yield session
+
+
+SessionDep = Annotated[Session, Depends(get_session_with_user)]
+
+# endregion Session dependency
+
+
+async def get_current_user(session: SessionDep):
+
+    user = session.get(User, session._current_user_id)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

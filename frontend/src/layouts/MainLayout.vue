@@ -22,9 +22,11 @@
   
   // refresh enums once refresh the page
   onMounted(async () => {
-    const enums= await Api.get('/enums')  // error will be handled globally
+    const enums = await Api.get('/enums')  // error will be handled globally
+    const taskLibrary = await Api.get('/task-library')  // error will be handled globally
     try {
       localStorage.setItem('cachedEnums', JSON.stringify(enums))
+      localStorage.setItem('cachedTaskLibrary', JSON.stringify(taskLibrary))
     } catch (err) {
       console.log(err)
       toast.add({ severity: 'error', summary: 'Error Message', detail: err.customMessage })

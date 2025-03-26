@@ -31,7 +31,7 @@ def get_notes(session: SessionDep):
 
 
 # @router.patch('/{note_id}', response_model=NotePublic)
-# def update_note(note_id: int, note_update: NoteUpdate, session: SessionDep, token: TokenDep):
+# def update_note(note_id: int, note_update: NoteUpdate, session: SessionDep):
 #     db_note = session.get(Note, note_id)
 #     if not db_note:
 #         raise HTTPException(status_code=404, detail="note not found")
