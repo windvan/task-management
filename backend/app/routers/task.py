@@ -25,22 +25,48 @@ router = APIRouter(prefix='/tasks', tags=["Task"])
 def create_task(task_create: TaskCreate | list[TaskCreate], session: SessionDep):
     if isinstance(task_create, list):
         # 处理多条记录
-        db_tasks = []
-        for task in task_create:
-            db_task = Task.model_validate(task)
-            session.add(db_task)
-            db_tasks.append(db_task)
+        session.add_all(task_create)
         session.commit()
-        for db_task in db_tasks:
-            session.refresh(db_task)
+        db_tasks_id = [task.id for task in task_create]
+
+        stmt = select(Task.__table__.columns,
+                      Project.project_name,
+                      Project.project_status,
+                      Product.stage.label('product_stage'),
+                      User.name.label('task_owner_name'),
+                      Cro.cro_name,
+                      Sample.sample_status).outerjoin(
+            Project, Project.id == Task.project_id).outerjoin(
+            Product, Product.id == Project.product_id).outerjoin(
+            User, User.id == Task.task_owner_id).outerjoin(
+            Cro, Cro.id == Task.cro_id).outerjoin(
+            Sample, Sample.id == Task.sample_id).where(Task.id.in_(db_tasks_id))
+
+        db_tasks = session.exec(stmt).mappings().all()
         return db_tasks
+    
     else:
         # 处理单条记录
         db_task = Task.model_validate(task_create)
-   
+
         session.add(db_task)
         session.commit()
-        session.refresh(db_task)
+
+        stmt = select(Task.__table__.columns,
+                      Project.project_name,
+                      Project.project_status,
+                      Product.stage.label('product_stage'),
+                      User.name.label('task_owner_name'),
+                      Cro.cro_name,
+
+                      Sample.sample_status).outerjoin(
+            Project, Project.id == Task.project_id).outerjoin(
+            Product, Product.id == Project.product_id).outerjoin(
+            User, User.id == Task.task_owner_id,).outerjoin(
+            Cro, Cro.id == Task.cro_id).outerjoin(
+            Sample, Sample.id == Task.sample_id).where(Task.id == db_task.id)
+        
+        db_task = session.exec(stmt).mappings().first()
         return db_task
 
 
