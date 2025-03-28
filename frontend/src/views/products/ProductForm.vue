@@ -178,18 +178,11 @@ async function handleSave() {
 
   // modify current porduct
   let updatedFields = {};
-  Object.entries(formRef.value.states).forEach(([key, value]) => {
+  Object.entries(formRef.value.states).forEach(([field, state]) => {
     if (state.dirty) {
-      if (state.value instanceof Date) {
-        // for date fields
-        updatedFields[field] = dateToStr(state.value);
-      } else if (state.value && typeof state.value === "object") {
-        // for relational fields
-        updatedFields[field + "_id"] = state.value.id;
-      } else {
-        // for string and select field
+      
         updatedFields[field] = state.value;
-      }
+      
     }
   });
 

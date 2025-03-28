@@ -57,6 +57,7 @@
           fluid
         >
         </AutoComplete>
+        
         <Message
           v-if="$field?.invalid"
           size="small"
@@ -241,9 +242,6 @@ async function handleSave(e) {
     if (state.dirty) {
       if (field === "project") {
         updatedFields["project_id"] = state.value.id;
-      } else if (field === "task_name") {
-        updatedFields["task_name"] = state.value.task_name;
-        updatedFields["task_category"] = state.value.task_category;
       } else if (field === "start_year") {
         updatedFields["start_year"] = state.value.getFullYear();
       } else if (field === "task_owner") {
@@ -255,11 +253,14 @@ async function handleSave(e) {
     }
   });
 
-  // update task
+  console.log(e.states);
+
   let newData;
   if (initialFormData.id) {
+    // edit task
     newData = await Api.patch(`/tasks/${initialFormData.id}`, updatedFields);
   } else {
+    // new task
     newData = await Api.post("/tasks/", updatedFields);
   }
   

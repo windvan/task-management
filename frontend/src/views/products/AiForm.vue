@@ -59,7 +59,7 @@
     import { inject, ref } from 'vue'
     import { yupResolver } from '@primevue/forms/resolvers/yup'
     import * as yup from 'yup'
-    import { dateToStr } from '@/composables/dateTools'
+
     import { InputNumber, InputText, useToast } from 'primevue'
 
     const { initialFormData } = defineProps({ initialFormData: Object })
@@ -82,18 +82,8 @@
         if (!e.valid) return
         let updatedFields = { product_id: initialFormData.product_id }
         Object.entries(e.states).forEach(([field, state]) => {
-            if (state.dirty) {
-                if (state.value instanceof Date) {
-                    // for date fields
-                    updatedFields[field] = dateToStr(state.value)
-
-                } else if (state.value && typeof state.value === 'object') {
-                    // for relational fields
-                    updatedFields[field + '_id'] = state.value.id
-                } else {
-                    // for string and select field
-                    updatedFields[field] = state.value
-                }
+            if (state.dirty) {    
+                updatedFields[field] = state.value
             }
         })
         // do nothing if no field is updated

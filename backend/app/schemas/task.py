@@ -12,8 +12,7 @@ from ..utils.functions import date_to_utc
 class TaskBase(SQLModel):
     project_id: int = Field(foreign_key="project.id")
     tags: str | None = None  # "#tag1# #tag2#"
-    task_category: TaskCategoryEnum = Field(
-        sa_column=Column(dbEnum(TaskCategoryEnum, index=True)))
+   
     task_name: str
     task_owner_id: int = Field(foreign_key="user.id")
     task_status: TaskStatusEnum = Field(
@@ -81,7 +80,6 @@ class TaskPublic(TaskBase):
 class TaskUpdate(SQLModel):
     project_id: int | None = None
     tags: str | None = None
-    task_category: TaskCategoryEnum | None = None
     task_name: str | None = None
     task_status: TaskStatusEnum | None = None
 
@@ -161,12 +159,12 @@ class TaskLibrary(SQLModel, AutoFieldMixin, table=True):
     __tablename__ = "task_library"
     id: int = Field(primary_key=True)
     task_category: TaskCategoryEnum = Field(sa_column=dbEnum(TaskCategoryEnum))
-    task_name_prefix: str
+    task_name: str
     default_task_owner_id: int | None = Field(foreign_key='user.id')
 
 
 class TaskLibraryCreate(SQLModel):
     task_category: TaskCategoryEnum = Field(sa_column=dbEnum(TaskCategoryEnum))
-    task_name_prefix: str
+    task_name: str
     default_task_owner_id: int | None = None
 

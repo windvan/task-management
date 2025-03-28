@@ -51,5 +51,5 @@ def date_to_utc(obj):
 
     # 转换为 UTC
     utc_date = parsed_date.astimezone(timezone.utc)
-
+    
     return utc_date

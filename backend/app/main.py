@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from sqlmodel import select
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -65,16 +65,18 @@ def get_model_schema(model_name: str):
 
 
 @app.get("/enums", tags=['root'])
-async def get_enums(token: TokenDep):
+async def get_enums(token: TokenDep, response: Response):
+    response.headers["Cache-Control"] = 'max-age=3600'
     logging.info("Handling request to the enums endpoint")
     return get_all_enums()
 
 
 @app.get("/task-library", tags=['root'])
-async def get_task_library(session: SessionDep):
+async def get_task_library(session: SessionDep, response: Response):
+    response.headers["Cache-Control"] = 'max-age=3600'
     logging.info("Handling request to the tasklibrary endpoint")
-    stmt = select(TaskLibrary.id, TaskLibrary.task_category, TaskLibrary.task_name_prefix.label(
-        'task_name'), TaskLibrary.default_task_owner_id, User.name.label('default_task_owner_name')).outerjoin(User, User.id == TaskLibrary.default_task_owner_id)
+    stmt = select(TaskLibrary.id, TaskLibrary.task_category, TaskLibrary.task_name, TaskLibrary.default_task_owner_id,
+                  User.name.label('default_task_owner_name')).outerjoin(User, User.id == TaskLibrary.default_task_owner_id)
     task_library = session.exec(stmt).mappings().all()
     return task_library
 

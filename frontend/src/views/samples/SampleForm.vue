@@ -161,7 +161,7 @@
   import { inject, ref } from "vue";
   import { yupResolver } from "@primevue/forms/resolvers/yup";
   import * as yup from "yup";
-  import { dateToStr } from "@/composables/dateTools";
+
   import { AutoComplete, useToast } from "primevue";
 
   const props = defineProps({ header: String, initialFormData: Object });
@@ -201,13 +201,10 @@
     let updatedFields = {};
     Object.entries(e.states).forEach(([field, state]) => {
       if (state.dirty) {
-        if (state.value instanceof Date) {
+        if (field==='product') {
           // for date fields
-          updatedFields[field] = dateToStr(state.value);
-        } else if (state.value && typeof state.value === "object") {
-          // for relational fields
-          updatedFields[field + "_id"] = state.value.id;
-        } else {
+          updatedFields['product_id'] =state.value.id;
+        }  else {
           // for string and select field
           updatedFields[field] = state.value;
         }

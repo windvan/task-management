@@ -102,7 +102,7 @@
         <div>
           <span class="font-bold mr-2">Expected Delivery Date:</span>
           <Tag
-            :value="taskData.expected_delivery_date"
+            :value="toBeiJingTime(taskData.expected_delivery_date)"
             :severity="
               getDateSeverity(
                 taskData.delivery_date,
@@ -175,7 +175,9 @@
 <script setup>
 const { taskData } = defineProps({ taskData: Object });
 import { getStatusSeverity } from "../../composables/fieldTools";
-function getDateSeverity(precondition, targetDate) {
+import{toBeiJingTime} from "../../composables/dateTools";
+
+  function getDateSeverity(precondition, targetDate) {
   if (Boolean(precondition)) {
     return "success";
   } else {

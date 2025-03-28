@@ -4,6 +4,19 @@ function dateToStr(date) {
   } else return null
 }
 
+
+function toBeiJingTime(dateString) {
+  const date = new Date(dateString);
+  const options = {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    
+  };
+  return date.toLocaleString('zh-CN', options);
+
+}
 function strToDate(dateStr, format) {
   let date
   switch (format) {
@@ -27,4 +40,4 @@ function strToDate(dateStr, format) {
   return date
 }
 
-export {dateToStr,strToDate}
+export { dateToStr, strToDate, toBeiJingTime }

@@ -21,7 +21,7 @@ from ..config import settings
 router = APIRouter(prefix='/tasks', tags=["Task"])
 
 
-@router.post("/", response_model=TaskPublic | list[TaskPublic], status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 def create_task(task_create: TaskCreate | list[TaskCreate], session: SessionDep):
     if isinstance(task_create, list):
         # 处理多条记录
@@ -44,7 +44,7 @@ def create_task(task_create: TaskCreate | list[TaskCreate], session: SessionDep)
 
         db_tasks = session.exec(stmt).mappings().all()
         return db_tasks
-    
+
     else:
         # 处理单条记录
         db_task = Task.model_validate(task_create)
@@ -65,7 +65,7 @@ def create_task(task_create: TaskCreate | list[TaskCreate], session: SessionDep)
             User, User.id == Task.task_owner_id,).outerjoin(
             Cro, Cro.id == Task.cro_id).outerjoin(
             Sample, Sample.id == Task.sample_id).where(Task.id == db_task.id)
-        
+
         db_task = session.exec(stmt).mappings().first()
         return db_task
 
@@ -113,8 +113,8 @@ def search_tasks(session: SessionDep,  query: str = "", sample_id: int = None):
             Product.internal_name.ilike(search_pattern),
             Task.task_name.ilike(search_pattern),  # 不区分大小写的模糊匹配
             Task.tags.ilike(search_pattern)),
-        Task.task_owner_id == session._current_user.id,
-        or_(Task.sample_id.is_(None), Task.sample_id == sample_id) if sample_id else True
+        Task.task_owner_id == session._current_user_id,
+        or_(Task.sample_id.is_(None), Task.sample_id != sample_id) if sample_id else True
     )
 
     stmt = select(
@@ -171,7 +171,7 @@ def update_task(task_id: int, fields_to_update: dict, session: SessionDep):
 
 
 @router.delete("/", status_code=status.HTTP_200_OK)
-def delete_task(task_ids: int | list[int], session: SessionDep):
+def delete_task(session: SessionDep,task_ids: int | list[int] = Body() ):
     if isinstance(task_ids, list):
         # 批量删除多条记录
         stmt = delete(Task).where(Task.id.in_(task_ids))
@@ -210,13 +210,13 @@ def search_tasks(session: SessionDep, query: str = ""):
     search_pattern = f"%{query}%"
     conditions = or_(
         TaskLibrary.task_category.ilike(search_pattern),
-        TaskLibrary.task_name_prefix.ilike(search_pattern),
+        TaskLibrary.task_name.ilike(search_pattern),
     )
 
     stmt = select(
         TaskLibrary.id,
         TaskLibrary.task_category,
-        TaskLibrary.task_name_prefix.label('task_name')).where(conditions)
+        TaskLibrary.task_name.label('task_name')).where(conditions)
 
     results = session.exec(stmt).mappings().all()
     # 转换为字典格式

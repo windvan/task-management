@@ -156,7 +156,7 @@
   import { inject, onMounted, ref, computed } from 'vue'
   import { yupResolver } from '@primevue/forms/resolvers/yup'
   import * as yup from 'yup'
-  import { dateToStr } from '@/composables/dateTools'
+
 
   const visible = defineModel('visible')
   const emit = defineEmits(['refresh'])
@@ -265,7 +265,7 @@
           task_name: newTasks.value[i].task_name,
           task_owner_id: newTasks.value[i].task_owner.id,
           task_status: newTasks.value[i].task_status,
-          expected_delivery_date: dateToStr(_edd),
+          expected_delivery_date: _edd,
           start_year: newTasks.value[i].start_year.getFullYear(),
           crop: newTasks.value[i].crop,
           target: newTasks.value[i].target
