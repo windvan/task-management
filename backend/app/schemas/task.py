@@ -19,6 +19,7 @@ class TaskBase(SQLModel):
         default=TaskStatusEnum.Idle, sa_column=dbEnum(TaskStatusEnum))
 
     expected_delivery_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    
     start_year: int
     pi_number: str | None = None
     tk_number: str | None = None

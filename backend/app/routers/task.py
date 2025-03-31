@@ -22,7 +22,7 @@ router = APIRouter(prefix='/tasks', tags=["Task"])
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_task(task_create: TaskCreate | list[TaskCreate], session: SessionDep):
+def create_task(task_create: dict | list[dict], session: SessionDep):
     if isinstance(task_create, list):
         # 处理多条记录
         session.add_all(task_create)
@@ -156,13 +156,14 @@ def update_task(task_id: int, fields_to_update: dict, session: SessionDep):
     # return task and related fields
     stmt = select(Task.__table__.columns,
                   Project.project_name,
+                  Project.project_status,
+                  Product.stage.label('product_stage'),
                   User.name.label('task_owner_name'),
                   Cro.cro_name,
-
                   Sample.sample_status).outerjoin(
         Project, Project.id == Task.project_id).outerjoin(
-        User, User.id == Task.task_owner_id,).outerjoin(
-
+        Product, Product.id == Project.product_id).outerjoin(
+        User, User.id == Task.task_owner_id).outerjoin(
         Cro, Cro.id == Task.cro_id).outerjoin(
         Sample, Sample.id == Task.sample_id).where(Task.id == task_id)
 

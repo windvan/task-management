@@ -109,7 +109,9 @@
       initialTaskFormData = {};
     } else if (mode === "edit") {
       const project = { project_id: data.id, project_name: data.project_name };
-      initialTaskFormData = { ...data, project };
+      const task_owner = { id: data.task_owner_id, name: data.task_owner_name }
+      // const start_year = new Date(data.start_year, 0, 1);
+      initialTaskFormData = { ...data, project, task_owner };
     }
     showTaskForm.value = true;
   }
@@ -134,16 +136,18 @@
   //# endregion Task Form
 
   // #region Batch Create
-
-  function handleShowCreateTasks() {
-    toast.add({
-      severity: "warn",
-      summary: "Warn Message",
-      detail: "To be implemented",
-      life: 3000,
-    });
+  import BatchCreate from "./BatchCreate.vue";
+  const showBatchCreate = ref(true);
+  function handleShowBatchCreate() {
+    showBatchCreate.value = true;
+  }
+  function handleCloseBatchCreate() {
+    showBatchCreate.value = false;
   }
 
+  function handleBatchCreateRefresh(newDatas) {
+    tasks.value.push(newDatas);
+  }
   // #endregion Batch Create
 
   // #region Column Setting
@@ -231,7 +235,7 @@
             {
               label: 'Batch Create',
               icon: 'pi pi-cart-plus',
-              command: handleShowCreateTasks,
+              command: handleShowBatchCreate,
             },
           ]">
         </SplitButton>
@@ -247,6 +251,7 @@
       </template>
 
       <template #end>
+        <Button :icon="'pi pi-filter' + (true ? '-fill' : '')" rounded severity="secondary"></Button>
         <Button icon="pi pi-cog" rounded severity="secondary" v-tooltip.top="'Select columns'"
           @click="handleToggleColumnSetting"></Button>
 
@@ -575,6 +580,9 @@
 
     <TaskForm v-if="showTaskForm" :initialFormData="initialTaskFormData" @close="handleCloseTaskForm"
       @refresh="handleRefreshTasks"></TaskForm>
+
+    <BatchCreate v-if="showBatchCreate" @close="handleCloseBatchCreate" @refresh="handleBatchCreateRefresh">
+    </BatchCreate>
   </div>
 </template>
 

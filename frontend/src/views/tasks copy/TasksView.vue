@@ -120,11 +120,9 @@
         }),
       }">
         <template #editor="{ data, field }">
-          <DatePicker showIcon iconDisplay="input" showButtonBar view="year" date-format="yy" :min-date="new Date()"
-            :model-value="new Date(data[field], 0)" @update:model-value="
-              (value) => onCellChange(data.id, field, value?.getFullYear())
-            " />
+          <InputText type="number" :min="new Date()" v-model="data[field]" />
         </template>
+
       </Column>
       <Column v-if="visibleColumns.has('expected_delivery_date')" field="expected_delivery_date"
         header="Expected Delivery Date">

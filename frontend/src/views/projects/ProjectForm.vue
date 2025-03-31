@@ -74,7 +74,7 @@
         <InputGroup>
           <!-- <InputGroupAddon>{{ projectPrefix + "_" }} -->
           <!-- </InputGroupAddon> -->
-          <InputText id="project_name" />
+          <InputText id="project_name" placeHolder="prod_internal_name + reg_type + crop + target" />
         </InputGroup>
         <Message
           v-if="$field?.invalid"

@@ -32,19 +32,11 @@
         }}</Message>
       </FormField>
 
-      <FormField v-slot="$field" name="tags" class="form-field">
-        <label for="tags">Tags</label>
-        <InputText id="tags" />
-        <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
-          $field.error?.message
-        }}</Message>
-      </FormField>
-
       <!-- task selector:task_category, task_name, default_task_owner, -->
       <FormField v-slot="$field" name="tasks" class="form-field">
         <label for="task_category" class="required-mark">Tasks</label>
         <TreeSelect
-          v-model="selectedNodes"
+          v-model="selectedTasks"
           :options="selectOptions?.taskTree"
           filter
           filterMode="strict"
@@ -95,7 +87,12 @@
         </Column>
         <Column field="start_year" header="Start Year*" header-class="min-w-48">
           <template #body="{ index, field }">
-            <DatePicker
+            <InputNumber
+              v-model="newTasks[index][field]"
+              mode="decimal"
+              :min="new Date().getFullYear()"
+              :max="new Date().getFullYear() + 10"></InputNumber>
+            <!-- <DatePicker
               @hide="onDataPickerHide"
               showIcon
               iconDisplay="input"
@@ -104,7 +101,7 @@
               view="year"
               date-format="yy"
               :min-date="new Date()"
-            />
+            /> -->
           </template>
         </Column>
         <Column
@@ -156,10 +153,11 @@
   import { inject, onMounted, ref, computed } from 'vue'
   import { yupResolver } from '@primevue/forms/resolvers/yup'
   import * as yup from 'yup'
+import { InputNumber } from 'primevue'
 
 
-  const visible = defineModel('visible')
-  const emit = defineEmits(['refresh'])
+  const visible = ref(true)
+  const emit = defineEmits(['close','refresh'])
 
   let selectOptions //all select components options on this page
   const Api = inject('Api')
