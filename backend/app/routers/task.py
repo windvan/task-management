@@ -22,12 +22,17 @@ router = APIRouter(prefix='/tasks', tags=["Task"])
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_task(task_create: dict | list[dict], session: SessionDep):
+def create_task(task_create: TaskCreate | list[TaskCreate], session: SessionDep):
     if isinstance(task_create, list):
         # 处理多条记录
-        session.add_all(task_create)
+        db_tasks = []
+        for task in task_create:
+            db_tasks.append(Task.model_validate(task))
+
+        session.add_all(db_tasks)
         session.commit()
-        db_tasks_id = [task.id for task in task_create]
+
+        task_id_list = [task.id for task in db_tasks]
 
         stmt = select(Task.__table__.columns,
                       Project.project_name,
@@ -40,7 +45,7 @@ def create_task(task_create: dict | list[dict], session: SessionDep):
             Product, Product.id == Project.product_id).outerjoin(
             User, User.id == Task.task_owner_id).outerjoin(
             Cro, Cro.id == Task.cro_id).outerjoin(
-            Sample, Sample.id == Task.sample_id).where(Task.id.in_(db_tasks_id))
+            Sample, Sample.id == Task.sample_id).where(Task.id.in_(task_id_list))
 
         db_tasks = session.exec(stmt).mappings().all()
         return db_tasks
@@ -172,7 +177,7 @@ def update_task(task_id: int, fields_to_update: dict, session: SessionDep):
 
 
 @router.delete("/", status_code=status.HTTP_200_OK)
-def delete_task(session: SessionDep,task_ids: int | list[int] = Body() ):
+def delete_task(session: SessionDep, task_ids: int | list[int] = Body()):
     if isinstance(task_ids, list):
         # 批量删除多条记录
         stmt = delete(Task).where(Task.id.in_(task_ids))

@@ -7,7 +7,7 @@ from ..utils.dependencies import SessionDep
 router = APIRouter(prefix='/notes', tags=["Note"])
 
 
-@router.post("/", response_model=NotePublic, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=NotePublic, status_code=status.HTTP_200_OK)
 def create_note(note_create: NoteCreate, session: SessionDep):
     db_note = Note.model_validate(note_create)
     session.add(db_note)

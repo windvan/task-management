@@ -1,4 +1,4 @@
-from sqlmodel import Field, Enum as dbEnum, Relationship,Column,DateTime
+from sqlmodel import Field, Enum as dbEnum, Relationship, Column, DateTime
 from datetime import datetime
 from pydantic import field_validator
 
@@ -7,6 +7,7 @@ from .enums import (IndicationEnum, ProjectManagerEnum, ProjectStatusEnum, Stage
                     RegManagerEnum, RegEntityEnum, RegistrationTypeEnum, SubmissionStatusEnum)
 from .note import ProjectNoteRelationship
 from ..utils.functions import date_to_utc
+
 
 class ProjectBase(SQLModel):
     project_name: str
@@ -18,8 +19,7 @@ class ProjectBase(SQLModel):
     reg_manager: RegManagerEnum = Field(sa_column=dbEnum(RegManagerEnum))
     project_status: ProjectStatusEnum = Field(
         sa_column=dbEnum(ProjectStatusEnum))
-    reg_entity: RegEntityEnum | None = Field(default=None,
-                                             sa_column=dbEnum(RegEntityEnum))
+    reg_entity: RegEntityEnum = Field(sa_column=dbEnum(RegEntityEnum))
     registration_type: RegistrationTypeEnum = Field(
         sa_column=dbEnum(RegistrationTypeEnum))
     notification_entrance: str | None = None

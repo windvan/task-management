@@ -137,7 +137,7 @@
 
   // #region Batch Create
   import BatchCreate from "./BatchCreate.vue";
-  const showBatchCreate = ref(true);
+  const showBatchCreate = ref(false);
   function handleShowBatchCreate() {
     showBatchCreate.value = true;
   }
@@ -146,7 +146,7 @@
   }
 
   function handleBatchCreateRefresh(newDatas) {
-    tasks.value.push(newDatas);
+    tasks.value.push(...newDatas);
   }
   // #endregion Batch Create
 

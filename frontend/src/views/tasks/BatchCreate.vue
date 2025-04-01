@@ -209,14 +209,14 @@
 
       for (let i = 0; i < newTasks.value?.length; i++) {
         try {
-          let newTask = await rowSchema.validate(newTasks.value[i])
+
+          let newTask = await rowSchema.validate({...(newTasks.value[i])})
           newTask.project_id = e.states?.project.value.id
           newTask.task_owner_id = newTask.task_owner.id
           delete newTask.task_category
           delete newTask.task_owner
           valid_tasks.push(newTask)
         } catch (error) {
-          // console.log(error)
           tableError.value = `${error} at row ${i + 1}`;
           return;
         }
@@ -226,9 +226,9 @@
 
       // post new tasks to database
 
-      const newData = await Api.post('/tasks/', valid_tasks)
+      const newDatas = await Api.post('/tasks/', valid_tasks)
       emit('close')
-      emit('refresh', newData)
+      emit('refresh', newDatas)
 
 
     }

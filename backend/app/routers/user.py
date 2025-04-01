@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, HTTPException, Query
+from fastapi import APIRouter, status, HTTPException, Query, Response
 from sqlmodel import select, or_
 
 from ..schemas.user import User, UserCreate, UserPublic, UserUpdate
@@ -38,7 +38,8 @@ def update_user(user_id: int, user_update: UserUpdate, session: SessionDep):
 
 
 @router.get('/search')
-def search_users(session: SessionDep, query: str = ""):
+def search_users(session: SessionDep, response: Response, query: str = ""):
+    response.headers["Cache-Control"] = 'max-age=604800'  # 7 days
 
     search_pattern = f"%{query}%"
     conditions = or_(

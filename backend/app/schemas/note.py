@@ -50,8 +50,25 @@ class Note(SQLModel, AutoFieldMixin, table=True):
 
 
 class NoteCreate(SQLModel):
-    pass
+    project_id: int | None = None
+    task_id: int | None = None
+    content: str
+    tags: str | None = None
+    severity: NoteSeverityEnum = NoteSeverityEnum.Info
+
+    @model_validator(mode='after')
+    def check_project_or_task(cls, values):
+        project_id = values.project_id
+        task_id = values.task_id
+        if (project_id is None and task_id is None) or (project_id is not None and task_id is not None):
+            raise ValueError("Either project_id or task_id must be set, but not both")
+        return values
 
 
 class NotePublic(SQLModel):
-    pass
+    id: int
+    project_id: int | None = None
+    task_id: int | None = None
+    content: str
+    tags: str | None = None
+    severity: NoteSeverityEnum
