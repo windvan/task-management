@@ -2,7 +2,7 @@
 from fastapi import APIRouter,  HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import EmailStr
-from sqlmodel import select,  SQLModel
+from sqlmodel import select,  SQLModel, Session
 import jwt
 from datetime import datetime, timedelta, timezone
 
@@ -10,6 +10,7 @@ from ..schemas.user import User
 from ..utils.functions import verify_password
 from ..utils.dependencies import SessionDep, TokenDep, CurrentUserDep
 from ..config import settings
+from ..database.database import engine
 
 router = APIRouter(prefix='/auth', tags=["JwtAuth"])
 
@@ -25,7 +26,8 @@ def create_token(user: User, scopes: list):
     # iat(issued at): 发行时间
     # jti(JWT ID): 令牌的唯一标识符
     payload = {"sub": user.id, "exp": access_token_expires, "scopes": scopes}
-    encoded_jwt = jwt.encode(payload, settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM)
+    encoded_jwt = jwt.encode(
+        payload, settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM)
     return encoded_jwt
 
 
@@ -35,10 +37,13 @@ class Credential(SQLModel):
 
 
 @router.post('/login')
-def password_login(session: SessionDep, credential: Credential):
+def password_login(credential: Credential):
+
+    session = Session(engine)  # session without user context
 
     user: User = session.exec(select(User).where(
         User.email == credential.username.lower())).first()
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -79,7 +84,8 @@ async def refresh_token(token: TokenDep):
     payload['exp'] = datetime.now(tz=timezone(timedelta(hours=8))) + \
         timedelta(minutes=settings.JWT_TOKEN_EXPIRE_MINUTES)
 
-    access_token = jwt.encode(payload, settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM)
+    access_token = jwt.encode(
+        payload, settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM)
 
     response = JSONResponse()
 
