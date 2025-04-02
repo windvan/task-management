@@ -92,7 +92,8 @@ class TaskCategoryEnum(Enum):
     Residue_Study = "Residue_Study"
     Processing_Residue_Study = "Processing_Residue_Study"
     Risk_Assessment = "Risk_Assessment"
-    Unplanned = "Unplanned"
+    Pre_Scoping = "Pre_Scoping"
+    Others = "Others"
 
 
 class TaskStatusEnum(Enum):

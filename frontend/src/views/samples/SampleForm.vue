@@ -114,7 +114,7 @@
         >
       </FormField>
       <FormField v-slot="$field" name="expiration_date" class="form-field">
-        <label>Production Date</label>
+        <label>Expiratioin Date</label>
         <DatePicker
           inputId="expiration_date"
           showIcon

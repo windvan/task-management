@@ -112,13 +112,6 @@
   )
 
 
-  // function onDataPickerHide() {
-  //   // a compromise for datepicker in datatable cell-edit-mode
-  //   document.body.click()
-  // }
-
-
-
   const projectSuggestion = ref()
   async function filterProjectSuggestion(event) {
     projectSuggestion.value = await Api.get(
@@ -127,6 +120,7 @@
   }
 
   const taskLibrary = JSON.parse(localStorage.getItem('cachedTaskLibrary')) || {}
+  // tree select option
   let taskOptions = taskLibrary.reduce((groups, item) => {
     const group = groups.find(g => g.key === item.task_category);
     if (group) {
@@ -175,7 +169,7 @@
       })
   })
 
-  const expandedRowGroups = ref(['Tox_Study', 'Eco_Tox_Study', 'Risk_Assessment', 'Residue_Study', 'Processing_Residue_Study', 'Unplanned',]
+  const expandedRowGroups = ref(['Tox_Study', 'Eco_Tox_Study', 'Risk_Assessment', 'Residue_Study', 'Processing_Residue_Study', 'Pre_Scoping', 'Others']
   )
   const taskOwnerSuggestion = ref()
   async function filterTaskOwnerSuggestion(event) {
@@ -210,7 +204,7 @@
       for (let i = 0; i < newTasks.value?.length; i++) {
         try {
 
-          let newTask = await rowSchema.validate({...(newTasks.value[i])})
+          let newTask = await rowSchema.validate({ ...(newTasks.value[i]) })
           newTask.project_id = e.states?.project.value.id
           newTask.task_owner_id = newTask.task_owner.id
           delete newTask.task_category

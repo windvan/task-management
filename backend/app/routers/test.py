@@ -1,37 +1,77 @@
-from sqlmodel import SQLModel
-from pydantic import field_validator
-from dateutil.parser import parse
-from datetime import datetime,timezone
-import json
-from ..schemas.note import Note
-from ..schemas.enums import NoteSeverityEnum
-from sqlmodel import Session
+from ..schemas import TaskLibrary
+from sqlmodel import Session,select,text
 from ..database.database import engine
 
-# note=Note( content="test",task_id=1,severity=NoteSeverityEnum.Info,tags='["test","test2"]')
-# session=Session(engine)
-# session.add(note)
-# session.commit()    
-# print('note',note)
-# print('id',note.id)
 
+task_library_data = [
+    TaskLibrary(task_category="Tox_Study",
+                task_name="Acute Oral", default_task_owner_id=3, created_by=1),
+    TaskLibrary(task_category="Tox_Study",
+                task_name="Acute Dermal", default_task_owner_id=3, created_by=1),
+    TaskLibrary(task_category="Tox_Study",
+                task_name="Eye Irritation", default_task_owner_id=3, created_by=1),
+    TaskLibrary(task_category="Tox_Study",
+                task_name="Skin Irritation", default_task_owner_id=3, created_by=1),
+    TaskLibrary(task_category="Tox_Study",
+                task_name="Skin Sensitization", default_task_owner_id=3, created_by=1),
+    TaskLibrary(task_category="Tox_Study",
+                task_name="Acute inhalation", default_task_owner_id=3, created_by=1),
+    TaskLibrary(task_category="Eco_Tox_Study",
+                task_name="Avian Acute oral toxicity", default_task_owner_id=2, created_by=1),
+    TaskLibrary(task_category="Eco_Tox_Study",
+                task_name="Acute toxcity to daphnia", default_task_owner_id=2, created_by=1),
+    TaskLibrary(task_category="Eco_Tox_Study",
+                task_name="Algal Growth Inhibition", default_task_owner_id=2, created_by=1),
+    TaskLibrary(task_category="Eco_Tox_Study",
+                task_name="Acute toxicity to trichogrammatid", default_task_owner_id=2, created_by=1),
+    TaskLibrary(task_category="Eco_Tox_Study",
+                task_name="Acute toxicity to silkworm", default_task_owner_id=2, created_by=1),
+    TaskLibrary(task_category="Eco_Tox_Study",
+                task_name="Acute toxicity to ladybird", default_task_owner_id=2, created_by=1),
+    TaskLibrary(task_category="Eco_Tox_Study",
+                task_name="Acute oral toxicity to bee", default_task_owner_id=2, created_by=1),
+    TaskLibrary(task_category="Eco_Tox_Study",
+                task_name="Acute contact toxicity to bee", default_task_owner_id=2, created_by=1),
+    TaskLibrary(task_category="Eco_Tox_Study",
+                task_name="Acute toxicity to earthworm", default_task_owner_id=2, created_by=1),
+    TaskLibrary(task_category="Eco_Tox_Study",
+                task_name="Acute fish toxicity", default_task_owner_id=2, created_by=1),
+    TaskLibrary(task_category="Risk_Assessment",
+                task_name="Operator risk assessment", default_task_owner_id=3, created_by=1),
+    TaskLibrary(task_category="Risk_Assessment",
+                task_name="Environment risk assessment", default_task_owner_id=2, created_by=1),
+    TaskLibrary(task_category="Risk_Assessment",
+                task_name="Dietary risk assessment", default_task_owner_id=None, created_by=1),
+    TaskLibrary(task_category="Residue_Study",
+                task_name="Residue study", default_task_owner_id=None, created_by=1),
+    TaskLibrary(task_category="Processing_Residue_Study",
+                task_name="Processing_residue_study", default_task_owner_id=None, created_by=1),
+    TaskLibrary(task_category="Pre_Scoping",
+                task_name="OPEX_Scoping", default_task_owner_id=3, created_by=1),
+    TaskLibrary(task_category="Pre_Scoping",
+                task_name="DRA_Scoping", default_task_owner_id=None, created_by=1),
+    TaskLibrary(task_category="Pre_Scoping",
+                task_name="ERA_Scoping", default_task_owner_id=2, created_by=1),
+    TaskLibrary(task_category="Pre_Scoping",
+                task_name="Residue_Scoping", default_task_owner_id=None, created_by=1),
+    TaskLibrary(task_category="Others",
+                task_name="Deco_Doc", default_task_owner_id=7, created_by=1),
+    TaskLibrary(task_category="Others",
+                task_name="Statement", default_task_owner_id=None, created_by=1),
+    TaskLibrary(task_category="Others",
+                task_name="Label_Review", default_task_owner_id=7, created_by=1),
+    TaskLibrary(task_category="Others",
+                task_name="Check_List", default_task_owner_id=7, created_by=1),
+    TaskLibrary(task_category="Others",
+                task_name="Risk_Matrix", default_task_owner_id=7, created_by=1),
+    TaskLibrary(task_category="Others",
+                task_name="Gov_Doc_Tox", default_task_owner_id=3, created_by=1),
+    TaskLibrary(task_category="Others",
+                task_name="Gov_Doc_EcoTox", default_task_owner_id=2, created_by=1),
+]
 
-class DateTest(SQLModel):
-    # start_date: datetime
-    # end_date: datetime
-    title: str
-    content: str
-
-#     @field_validator('start_date', 'end_date',mode='before')
-#     @classmethod
-#     def JS_date_to_python_date(cls, v):
-#         return parse(v).astimezone(timezone.utc)
-
-
-# jsonstr = json.dumps({"start_date": "Tue Mar 25 2025 14:00:37 GMT+0800",
-#                      "end_date": "Tue Mar 25 2026 14:00:37 GMT+0600"})
-
-jsonstr = json.dumps({"title": "test"})
-mymode = DateTest.model_validate_json(jsonstr)
-
-print(mymode)
+with Session(engine) as session:
+    session.exec(text('DELETE FROM task_library'))
+    for task_item in task_library_data:
+        session.add(task_item)
+    session.commit()

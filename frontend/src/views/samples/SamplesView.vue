@@ -22,6 +22,7 @@
               'Search by Product Name, Sample Name, Batch Number, Sealing Number'
             "
             size="small"
+            type="search"
           />
         </IconField>
       </template>

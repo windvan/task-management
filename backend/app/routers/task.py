@@ -146,7 +146,7 @@ def get_task(task_id: int, session: SessionDep):
 
 # update one task with modified fields
 @router.patch('/{task_id}')
-def update_task(task_id: int, fields_to_update: dict, session: SessionDep):
+def update_task(task_id: int, updates: dict, session: SessionDep):
 
     db_task = session.get(Task, task_id)
     if not db_task:
@@ -154,7 +154,7 @@ def update_task(task_id: int, fields_to_update: dict, session: SessionDep):
                             task_id} not found")
 
     # task_update = task_data.model_dump(exclude_unset=True)
-    db_task.sqlmodel_update(fields_to_update)
+    db_task.sqlmodel_update(updates)
     session.add(db_task)
     session.commit()
 

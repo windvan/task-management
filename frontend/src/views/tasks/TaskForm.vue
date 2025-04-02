@@ -23,8 +23,8 @@
       <!-- task_name -->
       <FormField v-slot="$field" name="task_name" class="form-field">
         <label for="task_name" class="required-mark">Task Name</label>
-        <AutoComplete inputId="task_name" :suggestions="taskNameSuggestion" optionLabel="task_name" forceSelection
-          dropdown placeholder="Search" @complete="filterTaskNameSugestoin" fluid>
+        <AutoComplete inputId="task_name" :suggestions="taskNameSuggestion" forceSelection dropdown placeholder="Search"
+          @complete="filterTaskNameSugestoin" fluid :disabled="Boolean(initialFormData?.id)">
         </AutoComplete>
 
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{ $field.error?.message }}
@@ -61,18 +61,26 @@
         <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{ $field.error?.message }}
         </Message>
       </FormField>
+      <!-- task_owner -->
+      <FormField v-slot="$field" name="key_results" class="form-field">
+        <label for="key_results">Key Results</label>
+        <Textarea id="key_results"></Textarea>
+        <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{ $field.error?.message }}
+        </Message>
+      </FormField>
     </Form>
   </Dialog>
 </template>
 
 <script setup>
-  import { inject, onMounted, ref, useTemplateRef } from "vue";
+  import { computed, inject, onMounted, ref, useTemplateRef } from "vue";
   import { InputText, useToast } from "primevue";
   import { yupResolver } from "@primevue/forms/resolvers/yup";
   import * as yup from "yup";
 
   const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};
   const taskLibrary = JSON.parse(localStorage.getItem("cachedTaskLibrary")) || {};
+  const taskNameLibrary = taskLibrary.map(task => task.task_name)
   const toast = useToast();
   const Api = inject("Api");
 
@@ -90,11 +98,11 @@
   const taskNameSuggestion = ref();
   async function filterTaskNameSugestoin(event) {
     if (!event.query.trim().length) {
-      taskNameSuggestion.value = [...taskLibrary];
+      taskNameSuggestion.value = taskNameLibrary;
     } else {
       const regexp = new RegExp(event.query, "i");
-      taskNameSuggestion.value = taskLibrary.filter((task) => {
-        return regexp.test(task.task_name) || regexp.test(task.task_category);
+      taskNameSuggestion.value = taskNameLibrary.filter((name) => {
+        return regexp.test(name);
       });
     }
   }
@@ -134,10 +142,7 @@
   const resolver = yupResolver(
     yup.object().shape({
       project: yup.mixed().required(),
-      task_name: yup.mixed().test('isObject', 'Please select a value from the suggestion list', value => {
-        return typeof value === 'object' && value !== '';
-      }),
-
+      task_name: yup.string().required('Task name is required').matches(/\S/, 'Task name cannot be only spaces'),
       task_status: yup.string().required(),
       start_year: yup.number('Start year must be a number').required("Start year is required"),
       expected_delivery_date: yup
@@ -156,6 +161,7 @@
 
 
   async function handleSave(e) {
+    console.log(e)
 
     if (!e.valid) return;
 

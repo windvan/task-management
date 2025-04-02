@@ -2,6 +2,8 @@ from sqlmodel import Field, Relationship, Enum as dbEnum
 from pydantic import model_validator
 from sqlalchemy import CheckConstraint
 
+from datetime import datetime
+
 
 from ..database.database import AutoFieldMixin, SQLModel
 from .enums import NoteSeverityEnum
@@ -72,3 +74,4 @@ class NotePublic(SQLModel):
     content: str
     tags: str | None = None
     severity: NoteSeverityEnum
+    updated_at:datetime
