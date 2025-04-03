@@ -54,7 +54,7 @@
         <Tab value="0">Project</Tab>
         <Tab value="1">Tasks</Tab>
       </TabList>
-      <TabPanels pt:root="pl-0 pr-2" class=" h-dvh overflow-auto h-">
+      <TabPanels pt:root="pl-0 pr-2" class=" h-dvh overflow-auto">
         <TabPanel value="0">
           <div v-for="comment in comments?.project_notes" key="comment.id"
             class="border border-surface-200 rounded mb-6 p-2 bg-surface-50">

@@ -152,7 +152,6 @@ class Task(TaskBase, AutoFieldMixin, table=True):
     @field_validator('expected_delivery_date', 'planned_start', 'expected_finish', 'actual_start', 'actual_finish', 'delivery_date')
     @classmethod
     def date_field_validator(cls, v):
-  
         return date_to_utc(v)
 
 

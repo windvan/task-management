@@ -2,17 +2,18 @@ from sqlmodel import Field, Enum as dbEnum, Relationship, Column, DateTime
 from pydantic import field_validator
 from datetime import datetime
 from ..database.database import AutoFieldMixin, SQLModel
-from .enums import MessageSeverityEnum
+from .enums import MessageSeverityEnum, MessageCategoryEnum
 from ..utils.functions import date_to_utc
 
 
 class Message(SQLModel, AutoFieldMixin, table=True):
     id: int | None = Field(default=None, primary_key=True)
     sender_id: int | None = Field(default=None, foreign_key="user.id")
+    category: MessageCategoryEnum = Field(sa_column=dbEnum(MessageCategoryEnum))
     content: str
     severity:  MessageSeverityEnum = Field(
         default=MessageSeverityEnum.Info, sa_column=dbEnum(MessageSeverityEnum))
-    
+
     sender: "User" = Relationship(back_populates="sent_messages",  # type: ignore
                                   sa_relationship_kwargs={"foreign_keys": "Message.sender_id"}
                                   )

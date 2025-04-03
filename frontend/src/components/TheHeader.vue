@@ -8,8 +8,9 @@
     <div class="flex items-center gap-4">
       <Button icon="pi pi-bell" rounded severity="secondary" class="size-8" iconClass="size-4"
         @click="toggleNc"></Button>
-      <Button icon="pi pi-envelope" rounded severity="secondary" class="size-8" iconClass="size-4"
-        @click="toggleMc"></Button>
+
+      <Button icon="pi pi-cog" rounded severity="secondary" class="size-8" iconClass="size-4"
+        @click="handleShowSettings"></Button>
 
       <Button :label="current_user.name" severity="secondary" class="h-8" rounded @click="toggleUc">
         <span class="pi pi-user text-primary"></span>
@@ -21,8 +22,10 @@
         <Button icon="pi pi-sign-out" label="logout" severity="secondary" class="h-8" @click="logout"></Button>
       </Popover>
 
-      <MessageCenter ref="mcRef" v-if="showMc"></MessageCenter>
-      <NotificationCenter ref="ncRef" v-if="showNc"></NotificationCenter>
+      <Settings v-if="showSettings" @close="handleCloseSettings"></Settings>
+
+
+      <NotificationCenter ref="ncRef" v-if="showNc" @close="toggleNc"></NotificationCenter>
     </div>
   </header>
 </template>
@@ -30,7 +33,7 @@
 <script setup>
   import { nextTick, useTemplateRef, ref } from "vue"
   import { useAuthStore } from "@/stores/authStore";
-  import MessageCenter from "./MessageCenter.vue";
+  import Settings from "./Settings.vue";
   import NotificationCenter from './NotificationCenter.vue'
 
   const { current_user, logout } = useAuthStore()
@@ -45,19 +48,16 @@
   // #endregion user center
 
 
-  // #region message center
-  const mcRef = useTemplateRef('mcRef')
-  const showMc = ref(false)
-  async function toggleMc(event) {
-    if (showMc.value) {
-      // mcRef.value.toggle(event)
-      showMc.value = !showMc.value
-    } else {
-      showMc.value = !showMc.value
-      await nextTick()
-      mcRef.value.toggle(event)
-    }
+  // #region settings
 
+  const showSettings = ref(false)
+  function handleShowSettings() {
+    showSettings.value = true
+
+  }
+
+  function handleCloseSettings() {
+    showSettings.value = false
   }
 
   // #region message center

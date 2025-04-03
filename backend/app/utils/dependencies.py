@@ -62,3 +62,5 @@ async def get_current_user(session: SessionDep):
 
 # for validate token, and get user from db
 CurrentUserDep = Annotated[User, Depends(get_current_user)]
+
+

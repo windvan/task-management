@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Form, Query, status, HTTPException, UploadFile, Body
-from sqlalchemy import or_, and_
+from fastapi import APIRouter, Form, Query, status, HTTPException, UploadFile, Body,BackgroundTasks
+from sqlalchemy import Integer, or_, and_,func
 from sqlmodel import select, delete, SQLModel
 from sqlalchemy.orm import joinedload, selectinload, load_only
 from pathlib import Path
 from uuid import uuid4
+from datetime import datetime,timedelta,timezone
 
 from app.schemas.product import Product
 
@@ -16,10 +17,42 @@ from ..schemas.sample import Sample, SamplePublic
 from ..utils.dependencies import SessionDep, TokenDep
 from ..schemas.enums import SampleStatusEnum
 from ..config import settings
+from ..utils.notifications import create_task_update_message
 
 
 router = APIRouter(prefix='/tasks', tags=["Task"])
 
+NOTIFY_ON_FIELDS = {
+    'task_status': "Status",
+    'task_progress': "Progress",
+    'payment_status': "Payment Status",
+    'expected_delivery_date': "Expected Delivery Date"
+}
+
+def create_task_notifications(
+    background_tasks: BackgroundTasks,
+    session: SessionDep,
+    task: Task,
+    updates: dict,
+    current_user_id: int
+):
+    """Create notifications for important task updates"""
+    for field, display_name in NOTIFY_ON_FIELDS.items():
+        if field in updates:
+            # Get relevant recipients (e.g., task owner, project members)
+            recipient_ids = [task.task_owner_id]
+            if task.task_owner_id != current_user_id:
+                recipient_ids.append(current_user_id)
+                
+            background_tasks.add_task(
+                create_task_update_message,
+                session=session,
+                sender_id=current_user_id,
+                recipient_ids=recipient_ids,
+                task_name=task.task_name,
+                field_name=display_name,
+                new_value=str(updates[field])
+            )
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_task(task_create: TaskCreate | list[TaskCreate], session: SessionDep):
@@ -146,15 +179,25 @@ def get_task(task_id: int, session: SessionDep):
 
 # update one task with modified fields
 @router.patch('/{task_id}')
-def update_task(task_id: int, updates: dict, session: SessionDep):
+def update_task(task_id: int, updates: dict, session: SessionDep, background_tasks: BackgroundTasks):
 
     db_task = session.get(Task, task_id)
     if not db_task:
-        raise HTTPException(status_code=404, detail=f"Task with id {
-                            task_id} not found")
+        raise HTTPException(status_code=404, detail=f"Task with id {task_id} not found")
 
-    # task_update = task_data.model_dump(exclude_unset=True)
-    db_task.sqlmodel_update(updates)
+    validated_updates = TaskUpdate.model_validate(updates).model_dump(exclude_unset=True)
+
+    # Add notifications for important changes
+    create_task_notifications(
+        background_tasks=background_tasks,
+        session=session,
+        task=db_task,
+        updates=validated_updates,
+        current_user_id=session._current_user_id
+    )
+
+    db_task.sqlmodel_update(validated_updates)
+
     session.add(db_task)
     session.commit()
 
@@ -227,3 +270,26 @@ def search_tasks(session: SessionDep, query: str = ""):
     results = session.exec(stmt).mappings().all()
     # 转换为字典格式
     return results
+
+
+@router.get('/reminders/')
+def get_task_reminder(session: SessionDep):
+    user_id = session._current_user_id
+
+    stmt = select(
+        Task.task_name,
+        Task.expected_delivery_date,
+        Project.project_name,
+        (func.cast(func.julianday(Task.expected_delivery_date) - func.julianday(func.now()), Integer)).label('days_remaining')
+    ).join(
+        Project, Project.id == Task.project_id
+    ).where(
+        Task.expected_delivery_date <= datetime.now() + timedelta(days=30)
+    ).where(
+        Task.task_owner_id == user_id
+    ).where(
+        Task.task_status == "Go"
+    ).order_by(Task.expected_delivery_date)
+    
+    tasks_to_remind = session.exec(stmt).mappings().all()
+    return tasks_to_remind
