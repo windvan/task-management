@@ -1,42 +1,44 @@
 from ..schemas.message import Message, MessageRecipient
+from ..schemas.task import Task
 from ..schemas.enums import MessageCategoryEnum, MessageSeverityEnum
 from sqlmodel import Session
-from typing import List
-from ..database.database import UserAwareSession, engine
+
+from ..database.database import engine
 
 
-async def create_task_update_message(
-    sender_id: int,
-    recipient_ids: List[int],
-    task_name: str,
-    field_name: str,
-    new_value: str,
-    category: MessageCategoryEnum = MessageCategoryEnum.Update,
-    severity: MessageSeverityEnum = MessageSeverityEnum.Info
-):
-    """Create a notification message for task updates"""
-    # Create new session for background task
-    session = UserAwareSession(engine)
+WATCHING_FIELDS = ['task_status',
+                   'task_progress',
+                   'expected_delivery_date']
+
+
+def create_task_notification(task: dict, updates: dict, current_user_id: int):
+    print("create_task_notification", '\n\n\n\n\n\n', updates)
+
+    updated_watching_fields = {
+        field: updates[field] for field in WATCHING_FIELDS if field in updates}
+    if not updated_watching_fields:
+        return
+
+    session = Session(engine)
+
     try:
-        content = f"Task '{task_name}' has been updated: {field_name} changed to {new_value}"
-
+        content = f"The following fields of task '{task.project_name}_{task.task_name}' has been updated:\n {updates}"
+        # Create message for task update,to portfolio and task owner
+        recipient_ids = [task.project.portfolio_contact_id, current_user_id]
         message = Message(
-            sender_id=sender_id,
-            category=category,
+            sender_id=current_user_id,
+            category=MessageCategoryEnum.Update,
             content=content,
-            severity=severity
+            severity=MessageSeverityEnum.Info
         )
+
+        message.recipients = [
+            MessageRecipient(
+                recipient_id=recipient_id
+            ) for recipient_id in recipient_ids
+        ]
 
         session.add(message)
         session.flush()
-
-        # Create message recipients
-        for recipient_id in recipient_ids:
-            message.recipients.append(MessageRecipient(
-                message_id=message.id,
-                recipient_id=recipient_id
-            ))
-
-        session.commit()
     finally:
         session.close()

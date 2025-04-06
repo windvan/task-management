@@ -122,15 +122,16 @@
   }
 
   function handleRefreshTasks(newData) {
+    console.log("handleRefreshTasks", newData);
     const index = tasks.value.findIndex((task) => task.id === newData.id);
-    if (index !== -1) {
-      // Object.assign(projects.value[index], newData);
+    if (index == -1) {
+      
       tasks.value.push(newData);
-      // tasks.value = Api.get("/tasks/");
+      
     } else {
-      tasks.value.splice(index, 1, newData);
-      // tasks.value[index] = newData;
-      // tasks.value = Api.get("/tasks/");
+      // tasks.value.splice(index, 1, newData);
+      tasks.value[index] = newData;
+      
     }
   }
   //# endregion Task Form

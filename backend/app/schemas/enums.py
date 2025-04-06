@@ -171,9 +171,10 @@ class MessageSeverityEnum(Enum):
     Warn = "Warning"
     Info = "Info"
 
+
 class MessageCategoryEnum(Enum):
     Update = "Update"   # to inform related people when record is updated
-    Notify = "Notify"   # to notify people directly in Note content by @mentioning
+    Mention = "Mention"   # to notify people directly in Note content by @mentioning
 
 # endregion
 

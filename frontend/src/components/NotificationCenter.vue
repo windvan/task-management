@@ -24,27 +24,34 @@
             <Badge :class="reminder.days_remaining <=15?'bg-red-500':'bg-orange-400'"></Badge>
             <p>
               <span>{{ `Task 【 ${reminder.project_name}_${reminder.task_name}】is expected to be delivered in `}}</span>
-              <span>{{ `${reminder.days_remaining} days` }}</span>
+              <span class="font-bold" :class="reminder.days_remaining <=15?'text-red-500':'text-orange-400'">{{ `${reminder.days_remaining} days` }}</span>
             </p>
           </div>
         </TabPanel>
         <!-- update -->
         <TabPanel value="1">
-
-          <div v-for="msg of reminders" class="rounded border-t border-surface-300 p-3 hover:bg-surface-200">
-
-            <div :class="{ 'font-bold': !msg.read }" class="flex justify-between">
-              <span>{{ msg.name }}</span>
-              <OverlayBadge :severity="msg.severity"><span>{{ msg.date }}</span></OverlayBadge>
-            </div>
-
-            <p class="bg-surface-100 rounded-md p-2">{{ msg.content }}</p>
-
+         
+          <div v-for="msg of messages?.updates" class="rounded border-t border-surface-300 p-3 hover:bg-surface-200">
+            <!-- <div :class="{ 'font-bold': !msg.read }" class="flex justify-between">
+              
+              <OverlayBadge :severity="msg.severity"></OverlayBadge>
+            </div> -->
+            <p class="bg-surface-100 rounded-md p-2 whitespace-pre-wrap">{{ msg.content }}</p>
           </div>
 
         </TabPanel>
         <!-- Message -->
-        <TabPanel value="2"></TabPanel>
+        <TabPanel value="2">
+          <div v-for="msg of messages?.mentions" class="rounded border-t border-surface-300 p-3 hover:bg-surface-200">
+            <!-- <div :class="{ 'font-bold': !msg.read }" class="flex justify-between">
+              
+              <OverlayBadge :severity="msg.severity"></OverlayBadge>
+            </div> -->
+            <p class="bg-surface-100 rounded-md p-2">{{ msg.content }}</p>
+          </div>
+
+
+        </TabPanel>
       </TabPanels>
 
     </Tabs>
@@ -70,8 +77,10 @@
   // const activeNotiCategory = ref('Reminder')
 
   const reminders = ref()
+  const messages = ref() //updates and mentions
   onMounted(async () => {
-    reminders.value = await Api.get('/tasks/reminders/')
+    reminders.value = await Api.get('/tasks/notifications/reminders/')
+    messages.value = await Api.get('/tasks/notifications/messages/')
   })
 
 </script>

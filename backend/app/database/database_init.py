@@ -263,7 +263,7 @@ def create_test_data(engin):
 
     project_data = [
         Project(product_id=2, registration_type=RegistrationTypeEnum.FNE,
-                project_name='APN SOLO 200 FS ON RICE', indication=IndicationEnum.Fungicide,
+                project_name='APN SOLO 200 FS ON RICE', indication=IndicationEnum.Fungicide,reg_entity=RegEntityEnum.KunShan,
                 project_status=ProjectStatusEnum.Finished, portfolio_contact_id=7, project_manager='Siying_Zhu',
                 reg_manager='Zheng_Li', created_by=1),
 

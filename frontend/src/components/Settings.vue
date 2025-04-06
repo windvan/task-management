@@ -1,7 +1,7 @@
 <template>
 
   <Drawer v-model:visible="visible" header="Settings" class="w-96" :position  @hide="emit('close')">
-    Message Center Content
+    Settings
   </Drawer>
 
 </template>
