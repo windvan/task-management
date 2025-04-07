@@ -480,31 +480,31 @@
       <!-- MARK: planned_start -->
       <Column v-if="visibleTaskColumns['planned_start']" field="planned_start"
         :header="visibleTaskColumns['planned_start']">
-        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]).toLocaleDateString()) : null
+        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]+'Z').toLocaleDateString()) : null
         }}</template>
       </Column>
       <!-- MARK: expected_finish -->
       <Column v-if="visibleTaskColumns['expected_finish']" field="expected_finish"
         :header="visibleTaskColumns['expected_finish']">
-        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]).toLocaleDateString()) : null
+        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]+'Z').toLocaleDateString()) : null
         }}</template>
       </Column>
       <!-- MARK: actual_start -->
       <Column v-if="visibleTaskColumns['actual_start']" field="actual_start"
         :header="visibleTaskColumns['actual_start']">
-        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]).toLocaleDateString()) : null
+        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]+'Z').toLocaleDateString()) : null
         }}</template>
       </Column>
       <!-- MARK: actual_finish -->
       <Column v-if="visibleTaskColumns['actual_finish']" field="actual_finish"
         :header="visibleTaskColumns['actual_finish']">
-        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]).toLocaleDateString()) : null
+        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]+'Z').toLocaleDateString()) : null
         }}</template>
       </Column>
       <!-- MARK: delivery_date -->
       <Column v-if="visibleTaskColumns['delivery_date']" field="delivery_date"
         :header="visibleTaskColumns['delivery_date']">
-        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]).toLocaleDateString()) : null
+        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]+'Z').toLocaleDateString()) : null
         }}</template>
       </Column>
       <!-- MARK: stuff_days -->

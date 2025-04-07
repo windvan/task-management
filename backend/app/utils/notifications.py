@@ -4,8 +4,8 @@ from ..schemas.enums import MessageCategoryEnum, MessageSeverityEnum
 from sqlmodel import Session
 
 from ..database.database import engine
-from datetime import datetime
-import pytz
+from datetime import datetime,timedelta,timezone
+
 
 
 WATCHING_FIELDS = ['task_status',
@@ -24,10 +24,10 @@ def create_task_notification(task: dict, updates: dict, current_user_id: int):
             elif field == 'expected_delivery_date':
 
                 updated_watching_fields[field] = updates[field].astimezone(
-                    pytz.timezone('Asia/Shanghai')).strftime('%Y-%m-%d')
+                    timezone(timedelta(hours=8))).strftime('%Y-%m-%d')
             else:
                 updated_watching_fields[field] = updates[field]
-
+    
     # updated_watching_fields = {
     #     field: updates[field] for field in WATCHING_FIELDS if field in updates}
     if not updated_watching_fields:

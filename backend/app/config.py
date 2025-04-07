@@ -4,15 +4,6 @@ import os
 from pathlib import Path
 
 
-def get_env_file():
-    env = os.getenv('ENV', 'development')  # default ENV = development
-    if env == 'development':
-        env_file = Path(__file__).parent / 'dev.env'
-    else:
-        env_file = Path(__file__).parent / 'prod.env'
-    return env_file
-    
-
 class Settings(BaseSettings):
 
     ENV: str
@@ -22,12 +13,11 @@ class Settings(BaseSettings):
     DB_PORT: str | None = None
     DB_USER: str | None = None
     DB_PASSWORD: str | None = None
-    DB_NAME:  str | None = 'database'
+    DB_NAME:  str | None = 'test_db'
 
     # 静态文件设置
-    STATIC_ROOT:str
-    STATIC_GAP_FOLDER:str
-
+    STATIC_ROOT: str
+    STATIC_GAP_FOLDER: str
 
     # JWT 设置
     JWT_SECRET_KEY: str
@@ -52,18 +42,21 @@ class Settings(BaseSettings):
             return v
 
         if info.data.get("ENV") == "production":
+            # 生产环境使用 MySQL
             return (
-                f"mysql://{info.data.get('DB_USER')}:{info.data.get('DB_PASSWORD')}@"
+                f"mysql+pymysql://{info.data.get('DB_USER')}:{info.data.get('DB_PASSWORD')}@"
                 f"{info.data.get('DB_HOST')}:{info.data.get('DB_PORT')}/{info.data.get('DB_NAME')}"
             )
         else:
             # 开发环境使用 SQLite
-            # return "sqlite:///" + Path(__file__).parent.joinpath("database",f"{info.data.get('DB_NAME')}.db").resolve()
-            return f"sqlite:///./app/database/{info.data.get('DB_NAME')}.db"
+            # return "sqlite:///" + Path(__file__).parent.joinpath(f"{info.data.get('DB_NAME')}.db").resolve().as_posix()
+            return f"sqlite:///./app/database/{info.data.get('DB_NAME')}.db" 
+            
 
-    model_config = SettingsConfigDict(env_file=get_env_file(), env_file_encoding='utf-8', case_sensitive=True)
+    # config env file
+    model_config = SettingsConfigDict(
+        env_file=Path(__file__).parent / 'env.env', env_file_encoding='utf-8', case_sensitive=True)
 
 
 # 创建Settings实例,根据环境变量ENV,读取不同的配置：dev.env/prod.env
 settings = Settings()
-

@@ -3,10 +3,10 @@ from .enums import (TaskCategoryEnum, TaskProgressEnum, TaskStatusEnum,
 from ..database.database import AutoFieldMixin, SQLModel
 from .note import TaskNoteRelationship
 from sqlmodel import Field, Enum as dbEnum, Column, Relationship, DateTime
-from pydantic import EmailStr, field_validator
+from pydantic import EmailStr
 from decimal import Decimal
 from datetime import datetime
-from ..utils.functions import date_to_utc
+
 
 
 class TaskBase(SQLModel):
@@ -149,10 +149,6 @@ class Task(TaskBase, AutoFieldMixin, table=True):
     notes: list["Note"] = Relationship(  # type: ignore
         back_populates="task", link_model=TaskNoteRelationship)
 
-    # @field_validator('expected_delivery_date', 'planned_start', 'expected_finish', 'actual_start', 'actual_finish', 'delivery_date')
-    # @classmethod
-    # def date_field_validator(cls, v):
-    #     return date_to_utc(v)
 
 
 class TaskLibrary(SQLModel, AutoFieldMixin, table=True):

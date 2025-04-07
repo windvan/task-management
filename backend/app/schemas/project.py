@@ -6,7 +6,7 @@ from ..database.database import AutoFieldMixin, SQLModel
 from .enums import (IndicationEnum, ProjectManagerEnum, ProjectStatusEnum, StageEnum,
                     RegManagerEnum, RegEntityEnum, RegistrationTypeEnum, SubmissionStatusEnum)
 from .note import ProjectNoteRelationship
-from ..utils.functions import date_to_utc
+
 
 
 class ProjectBase(SQLModel):
@@ -61,10 +61,4 @@ class Project(ProjectBase, AutoFieldMixin, table=True):
     notes: list["Note"] = Relationship(  # type: ignore
         back_populates="project", link_model=ProjectNoteRelationship)
 
-    # product: Product = Relationship(back_populates="projects")
-    # portfolio_contact:User = Relationship(back_populates="projects")
 
-    # @field_validator('approved_date')
-    # @classmethod
-    # def date_field_validator(cls, v):
-    #     return date_to_utc(v)

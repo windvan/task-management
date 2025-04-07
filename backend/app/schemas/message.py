@@ -3,7 +3,7 @@ from pydantic import field_validator
 from datetime import datetime
 from ..database.database import AutoFieldMixin, SQLModel
 from .enums import MessageSeverityEnum, MessageCategoryEnum
-from ..utils.functions import date_to_utc
+
 
 
 class Message(SQLModel, AutoFieldMixin, table=True):
@@ -31,8 +31,3 @@ class MessageRecipient(SQLModel, AutoFieldMixin, table=True):
     message: Message = Relationship(back_populates="recipients")
     recipient: "User" = Relationship(back_populates="received_messages", sa_relationship_kwargs={  # type: ignore
                                      "foreign_keys": "MessageRecipient.recipient_id"})
-
-    # @field_validator('read_at')
-    # @classmethod
-    # def date_field_validator(cls, v):
-    #     return date_to_utc(v)

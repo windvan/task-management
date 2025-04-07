@@ -33,11 +33,12 @@ class User(UserBase, AutoFieldMixin, table=True):
     external_auth: str | None = None
 
     received_messages: list["MessageRecipient"] = Relationship(back_populates='recipient',
-                                                     sa_relationship_kwargs= {"foreign_keys": "[MessageRecipient.recipient_id]"})
-    sent_messages: list["Message"] = Relationship(back_populates='sender', # type: ignore
+                                                               sa_relationship_kwargs={"foreign_keys": "[MessageRecipient.recipient_id]"})
+    sent_messages: list["Message"] = Relationship(back_populates='sender',  # type: ignore
                                                   sa_relationship_kwargs={"foreign_keys": "[Message.sender_id]"})
-    tasks: list["Task"] = Relationship(back_populates='task_owner', # type: ignore
-                                      sa_relationship_kwargs={"foreign_keys": "Task.task_owner_id"})
+    tasks: list["Task"] = Relationship(back_populates='task_owner',  # type: ignore
+                                       sa_relationship_kwargs={"foreign_keys": "Task.task_owner_id"})
+
 
 class UserUpdate(SQLModel):
     email: EmailStr | None = None

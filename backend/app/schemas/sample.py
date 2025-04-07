@@ -1,8 +1,6 @@
 from sqlmodel import Field, Enum as dbEnum, Relationship, Column, DateTime
 from datetime import datetime
-from pydantic import field_validator
 
-from ..utils.functions import date_to_utc
 from ..database.database import AutoFieldMixin, SQLModel
 from .enums import SampleStatusEnum
 
@@ -47,7 +45,3 @@ class Sample(SampleBase, AutoFieldMixin, table=True):
     product: "Product" = Relationship(back_populates="samples")  # type: ignore
     tasks: list["Task"] = Relationship(back_populates="sample")  # type: ignore
 
-    # @field_validator('production_date', 'expiration_date')
-    # @classmethod
-    # def date_field_validator(cls, v):
-    #     return date_to_utc(v)

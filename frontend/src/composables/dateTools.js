@@ -1,43 +1,15 @@
-function dateToStr(date) {
-  if (date) {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-  } else return null
-}
 
-
-function toBeiJingTime(dateString) {
-  const date = new Date(dateString);
-  const options = {
-    timeZone: 'Asia/Shanghai',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    
-  };
-  return date.toLocaleString('zh-CN', options);
-
-}
-function strToDate(dateStr, format) {
-  let date
-  switch (format) {
-    case 'yyyy-mm-dd':
-      date = new Date(dateStr)
-      break
-    case 'yyyy':
-      date = new Date(dateStr, 0)
-      break
-    case 'yyyy-mm':
-      {
-        let [yyyy, mm] = dateStr.split('-')
-        date = new Date(yyyy, mm)
-      }
-      break
-    default:
-      date = new Date(dateStr)
-      break
+function toLocalStr(date) {
+  // convert iso date string or Date instance to local string
+  if (typeof date === 'string') {
+    let _date
+    if (!date.endsWith('Z')) { _date = date + 'Z' }
+    return new Date(_date).toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' })
+  } else if (date instanceof Date) {
+    return date.toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' })
   }
-
-  return date
+  else {
+    throw new Error('Invalid date type')
+  }
 }
-
-export { dateToStr, strToDate, toBeiJingTime }
+export { toLocalStr };

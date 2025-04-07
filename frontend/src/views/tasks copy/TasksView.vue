@@ -128,9 +128,7 @@
         header="Expected Delivery Date">
         <template #editor="{ data, field }">
           <DatePicker showIcon iconDisplay="input" showButtonBar date-format="yy-mm-dd" :min-date="new Date()"
-            :model-value="new Date(data[field])" @update:model-value="
-              (value) => onCellChange(data.id, field, dateToStr(value))
-            " />
+            :model-value="new Date(data[field])" />
         </template>
       </Column>
       <Column v-if="visibleColumns.has('task_owner_id')" field="task_owner_id" header="Task Owner">

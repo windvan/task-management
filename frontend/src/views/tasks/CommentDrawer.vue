@@ -60,7 +60,7 @@
             class="border border-surface-200 rounded mb-6 p-2 bg-surface-50">
             <div class="flex gap-2">
               <span class=" font-bold">{{ comment.created_by_name }}</span>
-              <span>{{ new Date(comment.updated_at).toLocaleDateString() }}</span>
+              <span>{{ new Date(comment.updated_at+'Z').toLocaleDateString() }}</span>
               <span class="text-primary mx-auto"> {{ comment.tags }}</span>
               <Select v-model="comment.severity" :options="enums.NoteSeverityEnum" placeholder="severity" size="small"
                 class=" border-none bg-surface-50" pt:dropdown="hidden" @change="handelChangeSeverity(comment)">
@@ -96,7 +96,7 @@
             class="border border-surface-200 rounded mb-6 p-2 bg-surface-50">
             <div class="flex gap-2">
               <span class=" font-bold">{{ comment.created_by_name }}</span>
-              <span>{{ new Date(comment.updated_at).toLocaleDateString() }}</span>
+              <span>{{ new Date(comment.updated_at+'Z').toLocaleDateString() }}</span>
               <span class="text-primary mx-auto"> {{ comment.tags }}</span>
               <Select v-model="comment.severity" :options="enums.NoteSeverityEnum" placeholder="severity" size="small"
                 class=" border-none bg-surface-50" pt:dropdown="hidden" @change="handelChangeSeverity(comment)">

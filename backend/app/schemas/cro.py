@@ -4,7 +4,7 @@ from datetime import datetime
 
 from ..database.database import AutoFieldMixin, SQLModel
 from .enums import DisciplineEnum
-from ..utils.functions import date_to_utc
+
 
 
 class CroBase(SQLModel):
@@ -45,10 +45,7 @@ class Cro(CroBase, AutoFieldMixin, table=True):
     contacts: list['CroContact'] = Relationship(back_populates='cro')
     tasks: list['Task'] = Relationship(back_populates='cro') # type: ignore
 
-    # @field_validator('certification_expiration_date', 'fw_contract_start', 'fw_contract_end')
-    # @classmethod
-    # def date_field_validator(cls, v):
-    #     return date_to_utc(v)
+
 
 class CroContactBase(SQLModel):
     cro_id: int = Field(foreign_key="cro.id")

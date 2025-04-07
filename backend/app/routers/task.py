@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Form, Query, status, HTTPException, UploadFile, Body,BackgroundTasks
-from sqlalchemy import Integer, or_, and_,func
+from fastapi import APIRouter, Form, Query, status, HTTPException, UploadFile, Body, BackgroundTasks
+from sqlalchemy import Integer, or_, and_, func
 from sqlmodel import select, delete, SQLModel
 from sqlalchemy.orm import joinedload, selectinload, load_only
 from pathlib import Path
 from uuid import uuid4
-from datetime import datetime,timedelta,timezone
+from datetime import datetime, timedelta, timezone
 
 from app.schemas.product import Product
 
@@ -14,7 +14,7 @@ from ..schemas.user import User
 from ..schemas.cro import Cro
 from ..schemas.gap import Gap, GapCreate
 from ..schemas.sample import Sample, SamplePublic
-from ..schemas.message import Message,MessageRecipient
+from ..schemas.message import Message, MessageRecipient
 from ..utils.dependencies import SessionDep, TokenDep
 from ..schemas.enums import SampleStatusEnum
 from ..config import settings
@@ -22,9 +22,6 @@ from ..utils.notifications import create_task_notification
 
 
 router = APIRouter(prefix='/tasks', tags=["Task"])
-
-
-
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
@@ -125,7 +122,8 @@ def search_tasks(session: SessionDep,  query: str = "", sample_id: int = None):
             Task.task_name.ilike(search_pattern),  # 不区分大小写的模糊匹配
             Task.tags.ilike(search_pattern)),
         Task.task_owner_id == session._current_user_id,
-        or_(Task.sample_id.is_(None), Task.sample_id != sample_id) if sample_id else True
+        or_(Task.sample_id.is_(None), Task.sample_id !=
+            sample_id) if sample_id else True
     )
 
     stmt = select(
@@ -150,23 +148,23 @@ def get_task(task_id: int, session: SessionDep):
     return db_task
 
 
-
 # update one task with modified fields
 @router.patch('/{task_id}')
 def update_task(task_id: int, updates: dict, session: SessionDep, background_tasks: BackgroundTasks):
 
     db_task = session.get(Task, task_id)
     if not db_task:
-        raise HTTPException(status_code=404, detail=f"Task with id {task_id} not found")
+        raise HTTPException(
+            status_code=404, detail=f"Task with id {task_id} not found")
 
-    validated_updates = TaskUpdate.model_validate(updates).model_dump(exclude_unset=True)
+    validated_updates = TaskUpdate.model_validate(
+        updates).model_dump(exclude_unset=True)
 
-    
     db_task.sqlmodel_update(validated_updates)
 
     session.add(db_task)
     session.commit()
-    
+
     # return task and related fields
     stmt = select(Task.__table__.columns,
                   Project.project_name,
@@ -185,11 +183,11 @@ def update_task(task_id: int, updates: dict, session: SessionDep, background_tas
 
     # Add notifications for important changes
     background_tasks.add_task(
-            create_task_notification,
-            task=task,
-            updates=validated_updates,
-            current_user_id=session._current_user_id
-        )
+        create_task_notification,
+        task=task,
+        updates=validated_updates,
+        current_user_id=session._current_user_id
+    )
 
     return task
 
@@ -255,7 +253,7 @@ def get_task_reminder(session: SessionDep):
         Task.task_name,
         Task.expected_delivery_date,
         Project.project_name,
-        (func.cast(func.julianday(Task.expected_delivery_date) - func.julianday(func.now()), Integer)).label('days_remaining')
+
     ).join(
         Project, Project.id == Task.project_id
     ).where(
@@ -265,21 +263,22 @@ def get_task_reminder(session: SessionDep):
     ).where(
         Task.task_status == "Go"
     ).order_by(Task.expected_delivery_date)
-    
+
     tasks_to_remind = session.exec(stmt).mappings().all()
     return tasks_to_remind
+
 
 @router.get('/notifications/messages/')
 def get_task_message(session: SessionDep):
     user_id = session._current_user_id
 
-    stmt=select(Message).join(MessageRecipient,MessageRecipient.message_id==Message.id).where(
-        MessageRecipient.recipient_id == user_id,    
+    stmt = select(Message).join(MessageRecipient, MessageRecipient.message_id == Message.id).where(
+        MessageRecipient.recipient_id == user_id,
     ).order_by(MessageRecipient.is_read, Message.created_at.desc())
-    updates=session.exec(stmt.where(
+    updates = session.exec(stmt.where(
         Message.category == "Update"
     )).all()
-    mentions=session.exec(stmt.where(
+    mentions = session.exec(stmt.where(
         Message.category == "Mention"
     )).all()
     messages = {
@@ -287,5 +286,3 @@ def get_task_message(session: SessionDep):
         "mentions": mentions
     }
     return messages
-
-
