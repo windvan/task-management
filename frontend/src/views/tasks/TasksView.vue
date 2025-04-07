@@ -362,7 +362,7 @@
       <!-- MARK: Expected Delivery Date -->
       <Column v-if="visibleTaskColumns['expected_delivery_date']" field="expected_delivery_date"
         :header="visibleTaskColumns['expected_delivery_date']" sortable>
-        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]).toLocaleDateString()) : null
+        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]+'Z').toLocaleDateString()) : null
         }}</template>
       </Column>
       <!-- MARK: Task Owner Name -->

@@ -18,7 +18,7 @@ class TaskBase(SQLModel):
     task_status: TaskStatusEnum = Field(
         default=TaskStatusEnum.Idle, sa_column=dbEnum(TaskStatusEnum))
 
-    expected_delivery_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    expected_delivery_date: datetime | None = None
     
     start_year: int
     pi_number: str | None = None
@@ -43,11 +43,11 @@ class TaskBase(SQLModel):
     vv_doc_number: str | None = None
 
     task_confirmed: bool | None = False
-    planned_start: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
-    expected_finish: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
-    actual_start: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
-    actual_finish: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
-    delivery_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    planned_start: datetime | None = None
+    expected_finish: datetime | None = None
+    actual_start: datetime | None = None
+    actual_finish: datetime | None = None
+    delivery_date: datetime | None = None
     stuff_days: float | None = None
     task_progress: TaskProgressEnum = Field(
         default=TaskProgressEnum.Not_Start, sa_column=dbEnum(TaskProgressEnum))
@@ -85,7 +85,7 @@ class TaskUpdate(SQLModel):
     task_status: TaskStatusEnum | None = None
 
     start_year: int | None = None
-    expected_delivery_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    expected_delivery_date: datetime | None = None
     task_owner_id: int | None = None
 
     budget_confirmed: bool | None = None
@@ -110,11 +110,11 @@ class TaskUpdate(SQLModel):
     vv_doc_number: str | None = None
 
     task_progress: TaskProgressEnum | None = None
-    planned_start: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
-    expected_finish: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
-    actual_start: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
-    actual_finish: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
-    delivery_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    planned_start: datetime | None = None
+    expected_finish: datetime | None = None
+    actual_start: datetime | None = None
+    actual_finish: datetime | None = None
+    delivery_date: datetime | None = None
     stuff_days: float | None = None
 
     cro_id: int | None = None
@@ -149,10 +149,10 @@ class Task(TaskBase, AutoFieldMixin, table=True):
     notes: list["Note"] = Relationship(  # type: ignore
         back_populates="task", link_model=TaskNoteRelationship)
 
-    @field_validator('expected_delivery_date', 'planned_start', 'expected_finish', 'actual_start', 'actual_finish', 'delivery_date')
-    @classmethod
-    def date_field_validator(cls, v):
-        return date_to_utc(v)
+    # @field_validator('expected_delivery_date', 'planned_start', 'expected_finish', 'actual_start', 'actual_finish', 'delivery_date')
+    # @classmethod
+    # def date_field_validator(cls, v):
+    #     return date_to_utc(v)
 
 
 class TaskLibrary(SQLModel, AutoFieldMixin, table=True):

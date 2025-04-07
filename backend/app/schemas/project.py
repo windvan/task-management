@@ -25,7 +25,7 @@ class ProjectBase(SQLModel):
     notification_entrance: str | None = None
     submission_status: SubmissionStatusEnum = Field(default=SubmissionStatusEnum.Preparation,
                                                     sa_column=dbEnum(SubmissionStatusEnum))
-    approved_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    approved_date: datetime | None = None
     is_three_new: bool = False
 
 
@@ -49,7 +49,7 @@ class ProjectUpdate(SQLModel):
     registration_type: RegistrationTypeEnum | None = None
     notification_entrance: str | None = None
     submission_status: SubmissionStatusEnum | None = None
-    approved_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    approved_date: datetime | None = None
     is_three_new: bool | None = None
 
 
@@ -64,7 +64,7 @@ class Project(ProjectBase, AutoFieldMixin, table=True):
     # product: Product = Relationship(back_populates="projects")
     # portfolio_contact:User = Relationship(back_populates="projects")
 
-    @field_validator('approved_date')
-    @classmethod
-    def date_field_validator(cls, v):
-        return date_to_utc(v)
+    # @field_validator('approved_date')
+    # @classmethod
+    # def date_field_validator(cls, v):
+    #     return date_to_utc(v)

@@ -184,11 +184,7 @@ def update_task(task_id: int, updates: dict, session: SessionDep, background_tas
     task = session.exec(stmt).mappings().first()
 
     # Add notifications for important changes
-    updated_watching_fields = {
-        field: validated_updates[field] for field in WATCHING_FIELDS if field in validated_updates}
-    if updated_watching_fields:
-
-        background_tasks.add_task(
+    background_tasks.add_task(
             create_task_notification,
             task=task,
             updates=validated_updates,

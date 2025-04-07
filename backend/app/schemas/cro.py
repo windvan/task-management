@@ -11,10 +11,10 @@ class CroBase(SQLModel):
     cro_name: str = Field(index=True, nullable=False, unique=True)
     certification_number: str = Field(unique=True)
     certification_scope: str
-    certification_expiration_date: datetime = Field(sa_column=Column(DateTime(timezone=True)))
+    certification_expiration_date: datetime
     address: str | None = None
-    fw_contract_start: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
-    fw_contract_end: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    fw_contract_start: datetime | None = None
+    fw_contract_end: datetime | None = None
     fw_contract_detail: str | None = None
     comments: str | None = None
 
@@ -32,9 +32,9 @@ class CroUpdate(SQLModel):
     cro_name: str | None = None
     certification_number: str | None = None
     certification_scope: str | None = None
-    certification_expiration_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    certification_expiration_date: datetime | None = None
     address: str | None = None
-    fw_contract_start: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    fw_contract_start: datetime | None = None
     fw_contract_end: datetime | None = None
     fw_contract_detail: str | None = None
 
@@ -45,10 +45,10 @@ class Cro(CroBase, AutoFieldMixin, table=True):
     contacts: list['CroContact'] = Relationship(back_populates='cro')
     tasks: list['Task'] = Relationship(back_populates='cro') # type: ignore
 
-    @field_validator('certification_expiration_date', 'fw_contract_start', 'fw_contract_end')
-    @classmethod
-    def date_field_validator(cls, v):
-        return date_to_utc(v)
+    # @field_validator('certification_expiration_date', 'fw_contract_start', 'fw_contract_end')
+    # @classmethod
+    # def date_field_validator(cls, v):
+    #     return date_to_utc(v)
 
 class CroContactBase(SQLModel):
     cro_id: int = Field(foreign_key="cro.id")

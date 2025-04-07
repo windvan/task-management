@@ -185,7 +185,7 @@ const globalFilterFields = [
 ];
 
 onMounted(async () => {
-  console.log(route);
+  
   sample_list.value = await Api.get("/samples/");
   filters.value.global.value = sample_list.value.find(
     (sample) => sample.id == route.query.id

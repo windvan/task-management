@@ -11,7 +11,7 @@ def get_env_file():
     else:
         env_file = Path(__file__).parent / 'prod.env'
     return env_file
-
+    
 
 class Settings(BaseSettings):
 

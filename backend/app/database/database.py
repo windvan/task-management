@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, create_engine, Field, Column, DateTime
+from sqlmodel import SQLModel, create_engine, Field, Column, DateTime,text
 from pathlib import Path
 from datetime import datetime, timezone
 from contextlib import contextmanager
@@ -45,12 +45,35 @@ class AutoFieldMixin:
     created_by: int | None = Field(default=None, foreign_key='user.id')
     updated_by: int | None = Field(default=None, foreign_key='user.id')
 
+# sql database engin
+# engine = create_engine(settings.DATABASE_URL, echo=True)
+# if __name__ == "__main__":
 
-engine = create_engine(settings.DATABASE_URL, echo=True)
+#     Path(__file__).parent.joinpath("database.db").unlink(missing_ok=True)
+#     SQLModel.metadata.create_all(engine)
+#     from .database_init import create_test_data
+#     create_test_data(engine)
+
+
+# mysql+pymysql://root:password@localhost:3306/database
+if settings.ENV == "development":
+        Path(__file__).parent.joinpath(f"{settings.DB_NAME}.db").unlink(missing_ok=True)
+else:
+    temp_engine = create_engine(f"mysql+pymysql://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}", echo=True)
+    with temp_engine.connect() as conn:
+        # clear the database if it exists
+        conn.execute(text(f'DROP DATABASE IF EXISTS {settings.DB_NAME};'))
+        # create the database
+        conn.execute(text(f'CREATE DATABASE IF NOT EXISTS {settings.DB_NAME};'))
+        conn.commit()
+    
+engine = create_engine(
+    settings.DATABASE_URL,
+    echo=True
+)
 
 if __name__ == "__main__":
-
-    Path(__file__).parent.joinpath("database.db").unlink(missing_ok=True)
+    
     SQLModel.metadata.create_all(engine)
     from .database_init import create_test_data
     create_test_data(engine)

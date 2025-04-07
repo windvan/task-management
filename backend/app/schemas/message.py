@@ -26,13 +26,13 @@ class MessageRecipient(SQLModel, AutoFieldMixin, table=True):
     message_id: int = Field(foreign_key="message.id")
     recipient_id: int = Field(foreign_key="user.id")
     is_read: bool = Field(default=False)
-    read_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    read_at: datetime | None = None
 
     message: Message = Relationship(back_populates="recipients")
     recipient: "User" = Relationship(back_populates="received_messages", sa_relationship_kwargs={  # type: ignore
                                      "foreign_keys": "MessageRecipient.recipient_id"})
 
-    @field_validator('read_at')
-    @classmethod
-    def date_field_validator(cls, v):
-        return date_to_utc(v)
+    # @field_validator('read_at')
+    # @classmethod
+    # def date_field_validator(cls, v):
+    #     return date_to_utc(v)

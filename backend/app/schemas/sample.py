@@ -15,8 +15,8 @@ class SampleBase(SQLModel):
     sample_quantity: str | None = None
     batch_number: str | None = None
     sealing_number: str | None = None
-    production_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
-    expiration_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    production_date: datetime | None = None
+    expiration_date: datetime | None = None
     shipped_quantity: int | None = None
     receiver_information: str | None = None
 
@@ -35,8 +35,8 @@ class SampleUpdate(SQLModel):
     sample_quantity: str | None = None
     batch_number: str | None = None
     sealing_number: str | None = None
-    production_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
-    expiration_date: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    production_date: datetime | None = None
+    expiration_date: datetime | None = None
     shipped_quantity: int | None = None
     receiver_information: str | None = None
 
@@ -47,7 +47,7 @@ class Sample(SampleBase, AutoFieldMixin, table=True):
     product: "Product" = Relationship(back_populates="samples")  # type: ignore
     tasks: list["Task"] = Relationship(back_populates="sample")  # type: ignore
 
-    @field_validator('production_date', 'expiration_date')
-    @classmethod
-    def date_field_validator(cls, v):
-        return date_to_utc(v)
+    # @field_validator('production_date', 'expiration_date')
+    # @classmethod
+    # def date_field_validator(cls, v):
+    #     return date_to_utc(v)
