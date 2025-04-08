@@ -1,6 +1,6 @@
 from .enums import (TaskCategoryEnum, TaskProgressEnum, TaskStatusEnum,
                     CostCenterEnum, PaymentMethodEnum, PaymentStatusEnum)
-from ..database.database import AutoFieldMixin, SQLModel
+from ..database.db import AutoFieldMixin, SQLModel
 from .note import TaskNoteRelationship
 from sqlmodel import Field, Enum as dbEnum, Column, Relationship, DateTime
 from pydantic import EmailStr

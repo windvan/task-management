@@ -1,5 +1,5 @@
 from sqlmodel import Field
-from ..database.database import AutoFieldMixin, SQLModel
+from ..database.db import AutoFieldMixin, SQLModel
 
 
 class CropBase(SQLModel):

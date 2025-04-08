@@ -10,7 +10,7 @@ from ..schemas.user import User
 from ..utils.functions import verify_password
 from ..utils.dependencies import SessionDep, TokenDep, CurrentUserDep
 from ..config import settings
-from ..database.database import engine
+from ..database.db import engine
 
 router = APIRouter(prefix='/auth', tags=["JwtAuth"])
 

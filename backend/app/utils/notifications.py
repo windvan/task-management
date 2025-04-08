@@ -3,7 +3,7 @@ from ..schemas.task import Task
 from ..schemas.enums import MessageCategoryEnum, MessageSeverityEnum
 from sqlmodel import Session
 
-from ..database.database import engine
+from ..database.db import engine
 from datetime import datetime,timedelta,timezone
 
 
@@ -36,7 +36,7 @@ def create_task_notification(task: dict, updates: dict, current_user_id: int):
     session = Session(engine)
 
     try:
-        content = f"The following fields of task '{task.project_name}_{task.task_name}' has been updated:\n {updated_watching_fields}"
+        content = f"The following fields of task '{task.project_name}_{task.task_name}' has been updated on {task.updated_at.strftime("%Y-%m-%d")}:\n {updated_watching_fields}"
         # Create message for task update,to portfolio and task owner
         portfolio_contact_id = session.get(Task, task.id).project.portfolio_contact_id
         recipient_ids = [portfolio_contact_id, current_user_id]

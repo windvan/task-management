@@ -5,7 +5,7 @@ import jwt
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 from typing import Annotated
 
-from ..database.database import engine, UserAwareSession
+from ..database.db import engine, UserAwareSession
 from ..schemas import User
 from ..config import settings
 
@@ -38,11 +38,10 @@ TokenDep = Annotated[int, Depends(validate_token)]
 
 # region Session dependency
 
-
 def get_session_with_user(user_id: TokenDep) -> Generator[UserAwareSession, None, None]:
     with UserAwareSession(engine) as session:
-        with session.user_context(user_id):
-            yield session
+        session.set_user_id(user_id)
+        yield session
 
 
 SessionDep = Annotated[Session, Depends(get_session_with_user)]

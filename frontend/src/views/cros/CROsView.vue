@@ -2,108 +2,58 @@
   <div>
     <Toolbar class="min-w-100 mb-3">
       <template #start>
-        <Button
-          icon="pi pi-plus"
-          label="New"
-          severity="primary"
-          size="small"
-          @click="handleShowCroForm('new', null)"
-        />
+        <Button icon="pi pi-plus" label="New" severity="primary" size="small" @click="handleShowCroForm('new', null)" />
       </template>
       <template #end>
         <IconField>
           <InputIcon>
             <i class="pi pi-search" />
           </InputIcon>
-          <InputText
-            v-model="filters['global'].value"
-            placeholder="Search Cro"
-            v-tooltip="'Search by Name, Scope, Cert Number'"
-            size="small"
-          />
+          <InputText v-model="filters['global'].value" placeholder="Search Cro"
+            v-tooltip="'Search by Name, Scope, Cert Number'" size="small" />
         </IconField>
       </template>
     </Toolbar>
 
-    <DataTable
-      :value="cro_list"
-      v-model:selection="selectedCro"
-      v-model:expandedRows="expandedRows"
-      v-model:filters="filters"
-      :globalFilterFields="globalFilterFields"
-      @rowExpand="onRowExpand"
-      scrollable
-      selectionMode="single"
-      dataKey="id"
-      resizableColumns
-      columnResizeMode="expand"
-      showGridlines
-      tableStyle="min-width: 50rem"
-      size="small"
-    >
+    <DataTable :value="cro_list" v-model:selection="selectedCro" v-model:expandedRows="expandedRows"
+      v-model:filters="filters" :globalFilterFields="globalFilterFields" @rowExpand="onRowExpand" scrollable
+      selectionMode="single" dataKey="id" resizableColumns columnResizeMode="expand" showGridlines
+      tableStyle="min-width: 50rem" size="small">
       <Column expander class="w-12" frozen />
       <Column field="certification_number" header="Cert Number">
         <template #body="{ data, field }">
-          <Button
-            :label="data[field]"
-            variant="link"
-            @click="handleShowCroForm('edit', data)"
-            class="px-0 text-left"
-          ></Button>
+          <Button :label="data[field]" variant="link" @click="handleShowCroForm('edit', data)"
+            class="px-0 text-left"></Button>
         </template>
       </Column>
       <Column field="cro_name" header="CRO Name"></Column>
-      <Column
-        field="certification_expiration_date"
-        header="Expiration"
-      ></Column>
+      <Column field="certification_expiration_date" header="Expiration">
+        <template #body="{ data, field }">
+          {{ toLocalStr(data[field]) }}</template>
+      </Column>
       <Column field="certification_scope" header="Scope" class="w-20"></Column>
-      <Column field="fw_contract_start" header="Fw Contract Start"></Column>
-      <Column field="fw_contract_end" header="Fw Contract End"></Column>
+      <Column field="fw_contract_start" header="Fw Contract Start"><template #body="{ data, field }">
+          {{ toLocalStr(data[field]) }}</template></Column>
+      <Column field="fw_contract_end" header="Fw Contract End"><template #body="{ data, field }">
+          {{ toLocalStr(data[field]) }}</template></Column>
       <Column field="fw_contract_detail" header="Fw Contract Detail"></Column>
       <Column field="address" header="Address"></Column>
 
       <template #expansion="{ data }">
-        <div
-          class="mt-4 flex flex-col gap-4 rounded"
-          @click="selectedCro = data"
-        >
+        <div class="mt-4 flex flex-col gap-4 rounded" @click="selectedCro = data">
           <!-- <p class="font-bold">Contacts</p> -->
           <div class="flex gap-4 items-center">
             <p class="text-xl">Contacts</p>
-            <Button
-              icon="pi pi-plus"
-              rounded
-              variant="outlined"
-              @click="handleShowContactForm('new', data.id)"
-            ></Button>
-            <Button
-              icon="pi pi-pencil"
-              rounded
-              variant="outlined"
-              v-if="selectedContact?.cro_id === data.id"
-              @click="handleShowContactForm('edit', data.id)"
-            ></Button>
-            <Button
-              icon=" pi pi-trash"
-              rounded
-              variant="outlined"
-              v-if="selectedContact?.cro_id === data.id"
-              @click="handleDeleteContact(data)"
-            ></Button>
+            <Button icon="pi pi-plus" rounded variant="outlined"
+              @click="handleShowContactForm('new', data.id)"></Button>
+            <Button icon="pi pi-pencil" rounded variant="outlined" v-if="selectedContact?.cro_id === data.id"
+              @click="handleShowContactForm('edit', data.id)"></Button>
+            <Button icon=" pi pi-trash" rounded variant="outlined" v-if="selectedContact?.cro_id === data.id"
+              @click="handleDeleteContact(data)"></Button>
           </div>
 
-          <DataTable
-            :value="data.contacts"
-            dataKey="id"
-            scrollable
-            scrollHeight="flex"
-            selectionMode="single"
-            v-model:selection="selectedContact"
-            showGridlines
-            resizableColumns
-            columnResizeMode="expand"
-          >
+          <DataTable :value="data.contacts" dataKey="id" scrollable scrollHeight="flex" selectionMode="single"
+            v-model:selection="selectedContact" showGridlines resizableColumns columnResizeMode="expand">
             <Column selectionMode="single" class="w-8"></Column>
             <Column field="contact_name" header="Contact Name"></Column>
             <Column field="discipline" header="Discipline"></Column>
@@ -122,21 +72,11 @@
         <p class="text-center text-primary">No Cros Found!</p>
       </template>
     </DataTable>
-    <CroForm
-      v-if="showCroForm"
-      :initialFormData="initialCro"
-      @close="showCroForm = false"
-      @refresh="handleRefreshCro"
-    >
+    <CroForm v-if="showCroForm" :initialFormData="initialCro" @close="showCroForm = false" @refresh="handleRefreshCro">
     </CroForm>
 
-    <ContactForm
-      v-if="showContactForm"
-      :croId="targetCroID"
-      :initialFormData="initialContact"
-      @close="showContactForm = false"
-      @refresh="handleRefreshContact"
-    ></ContactForm>
+    <ContactForm v-if="showContactForm" :croId="targetCroID" :initialFormData="initialContact"
+      @close="showContactForm = false" @refresh="handleRefreshContact"></ContactForm>
   </div>
 </template>
 
@@ -145,6 +85,7 @@ import CroForm from "./CroForm.vue";
 import ContactForm from "./ContactForm.vue";
 import { onMounted, ref, inject } from "vue";
 import { FilterMatchMode } from "@primevue/core/api";
+import { toLocalStr } from "../../composables/dateTools";
 // import { useErrorStore } from "../../stores/errorStore";
 
 const Api = inject("Api");

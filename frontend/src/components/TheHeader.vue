@@ -6,8 +6,11 @@
         @click="emit('toggle')"></Button>
     </div>
     <div class="flex items-center gap-4">
-      <Button icon="pi pi-bell" rounded severity="secondary" class="size-8" iconClass="size-4"
-        @click="toggleNc"></Button>
+     
+        <Button icon="pi pi-bell" rounded severity="secondary" class="size-8" iconClass="size-4"
+          @click="toggleNc"></Button>
+
+
 
       <Button icon="pi pi-cog" rounded severity="secondary" class="size-8" iconClass="size-4"
         @click="handleShowSettings"></Button>
@@ -35,6 +38,7 @@
   import { useAuthStore } from "@/stores/authStore";
   import Settings from "./Settings.vue";
   import NotificationCenter from './NotificationCenter.vue'
+  import { OverlayBadge } from "primevue";
 
   const { current_user, logout } = useAuthStore()
   const emit = defineEmits(['toggle'])

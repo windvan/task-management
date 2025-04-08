@@ -5,7 +5,7 @@ from sqlalchemy import CheckConstraint
 from datetime import datetime
 
 
-from ..database.database import AutoFieldMixin, SQLModel
+from ..database.db import AutoFieldMixin, SQLModel
 from .enums import NoteSeverityEnum
 
 

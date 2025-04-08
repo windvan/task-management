@@ -9,6 +9,7 @@
   import TaskExpansion from "./TaskExpansion.vue";
   import TaskCard from "./TaskCard.vue";
   import { useConfirm } from "primevue";
+  import { toLocalStr } from "../../composables/dateTools.js";
   const confirm = useConfirm()
 
   const layout = ref("table"); // table, grid
@@ -362,7 +363,7 @@
       <!-- MARK: Expected Delivery Date -->
       <Column v-if="visibleTaskColumns['expected_delivery_date']" field="expected_delivery_date"
         :header="visibleTaskColumns['expected_delivery_date']" sortable>
-        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]+'Z').toLocaleDateString()) : null
+        <template #body="{ data, field }">{{ toLocalStr(data[field])
         }}</template>
       </Column>
       <!-- MARK: Task Owner Name -->
@@ -480,32 +481,27 @@
       <!-- MARK: planned_start -->
       <Column v-if="visibleTaskColumns['planned_start']" field="planned_start"
         :header="visibleTaskColumns['planned_start']">
-        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]+'Z').toLocaleDateString()) : null
-        }}</template>
+        <template #body="{ data, field }">{{ toLocalStr(data[field]) }}</template>
       </Column>
       <!-- MARK: expected_finish -->
       <Column v-if="visibleTaskColumns['expected_finish']" field="expected_finish"
         :header="visibleTaskColumns['expected_finish']">
-        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]+'Z').toLocaleDateString()) : null
-        }}</template>
+        <template #body="{ data, field }">{{ toLocalStr(data[field]) }}</template>
       </Column>
       <!-- MARK: actual_start -->
       <Column v-if="visibleTaskColumns['actual_start']" field="actual_start"
         :header="visibleTaskColumns['actual_start']">
-        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]+'Z').toLocaleDateString()) : null
-        }}</template>
+        <template #body="{ data, field }">{{ toLocalStr(data[field]) }}</template>
       </Column>
       <!-- MARK: actual_finish -->
       <Column v-if="visibleTaskColumns['actual_finish']" field="actual_finish"
         :header="visibleTaskColumns['actual_finish']">
-        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]+'Z').toLocaleDateString()) : null
-        }}</template>
+        <template #body="{ data, field }">{{ toLocalStr(data[field]) }}</template>
       </Column>
       <!-- MARK: delivery_date -->
       <Column v-if="visibleTaskColumns['delivery_date']" field="delivery_date"
         :header="visibleTaskColumns['delivery_date']">
-        <template #body="{ data, field }">{{ data[field] ? (new Date(data[field]+'Z').toLocaleDateString()) : null
-        }}</template>
+        <template #body="{ data, field }">{{ toLocalStr(data[field]) }}</template>
       </Column>
       <!-- MARK: stuff_days -->
       <Column v-if="visibleTaskColumns['stuff_days']" field="stuff_days" :header="visibleTaskColumns['stuff_days']">

@@ -1,6 +1,6 @@
 from sqlmodel import Field, Enum as dbEnum, Relationship
 
-from ..database.database import AutoFieldMixin, SQLModel
+from ..database.db import AutoFieldMixin, SQLModel
 from .enums import StageEnum
 
 

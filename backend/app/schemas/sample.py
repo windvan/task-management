@@ -1,7 +1,7 @@
 from sqlmodel import Field, Enum as dbEnum, Relationship, Column, DateTime
 from datetime import datetime
 
-from ..database.database import AutoFieldMixin, SQLModel
+from ..database.db import AutoFieldMixin, SQLModel
 from .enums import SampleStatusEnum
 
 

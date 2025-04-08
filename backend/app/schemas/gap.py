@@ -1,7 +1,7 @@
 from sqlmodel import Field, Relationship
 from decimal import Decimal
 
-from ..database.database import AutoFieldMixin, SQLModel
+from ..database.db import AutoFieldMixin, SQLModel
 
 
 class Image(SQLModel):

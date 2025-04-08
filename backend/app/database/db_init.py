@@ -1,8 +1,11 @@
-from datetime import date
+from datetime import datetime, timezone, timedelta
 from ..schemas import *
 from ..schemas.enums import *
 from ..utils.functions import get_password_hash
-from sqlmodel import Session
+from sqlmodel import Session, create_engine, text
+from ..config import settings
+from pathlib import Path
+from .db import SQLModel
 
 
 def create_test_data(engin):
@@ -263,7 +266,7 @@ def create_test_data(engin):
 
     project_data = [
         Project(product_id=2, registration_type=RegistrationTypeEnum.FNE,
-                project_name='APN SOLO 200 FS ON RICE', indication=IndicationEnum.Fungicide,reg_entity=RegEntityEnum.KunShan,
+                project_name='APN SOLO 200 FS ON RICE', indication=IndicationEnum.Fungicide, reg_entity=RegEntityEnum.KunShan,
                 project_status=ProjectStatusEnum.Finished, portfolio_contact_id=7, project_manager='Siying_Zhu',
                 reg_manager='Zheng_Li', created_by=1),
 
@@ -276,7 +279,7 @@ def create_test_data(engin):
 
     cro_data = [
         Cro(cro_name="沈阳沈化院测试技术有限公司安全评价中心", certification_number="SD2024120", certification_scope="residue,process,tox,eco-tox",
-            certification_expiration_date=date(2029, 5, 19), address="辽宁省沈阳市铁西区沈辽路600号", created_by=1),
+            certification_expiration_date=datetime(2029, 5, 19, 0, 0, 0, 0, timezone(timedelta(hours=8))), address="辽宁省沈阳市铁西区沈辽路600号", created_by=1),
 
     ]
 
@@ -304,11 +307,11 @@ def create_test_data(engin):
 
     task_data = [
         Task(project_id=1, task_name="Residue study",
-             task_category="Residue_Study", task_owner_id=6, task_status="Idle", expected_delivery_date=date(2025, 12, 31), start_year=2025, created_by=1),
+             task_category="Residue_Study", task_owner_id=6, task_status="Idle", expected_delivery_date=datetime(2025, 4, 30, 8, 0, 0, 0, timezone(timedelta(hours=8))), start_year=2025, created_by=1),
         Task(project_id=1, task_name="Acute Oral",
-             task_category="Tox_Study", task_owner_id=3, task_status="Go", expected_delivery_date=date(2025, 12, 31), start_year=2025, created_by=1),
+             task_category="Tox_Study", task_owner_id=3, task_status="Go", expected_delivery_date=datetime(2025, 5, 30, 8, 0, 0, 0, timezone(timedelta(hours=8))), start_year=2025, created_by=1),
         Task(project_id=1, task_name="Acute Dermal",
-             task_category="Tox_Study", task_owner_id=3, task_status="Go", expected_delivery_date=date(2025, 12, 31), start_year=2025, created_by=1),
+             task_category="Tox_Study", task_owner_id=3, task_status="Go", expected_delivery_date=datetime(2025, 6, 30, 8, 0, 0, 0, timezone(timedelta(hours=8))), start_year=2025, created_by=1),
 
 
     ]
@@ -317,3 +320,27 @@ def create_test_data(engin):
         for task in task_data:
             session.add(task)
         session.commit()
+
+
+if __name__ == "__main__":
+    # delete old database
+    if settings.ENV == "development":
+        db_path = Path(__file__).parent.joinpath(f"{settings.DB_NAME}.db")
+        db_path.unlink(missing_ok=True)
+        
+    else:
+        # Create initial connection without database
+        engine = create_engine(
+            f"mysql+pymysql://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}", echo=True)
+        with engine.connect() as conn:
+            # clear the database if it exists
+            conn.execute(text(f'DROP DATABASE IF EXISTS {settings.DB_NAME};'))
+            # create the database
+            conn.execute(
+                text(f'CREATE DATABASE IF NOT EXISTS {settings.DB_NAME};'))
+            conn.commit()
+        
+    # Create new connection with database name for schema creation
+    engine = create_engine(settings.DATABASE_URL, echo=True)
+    SQLModel.metadata.create_all(engine)
+    create_test_data(engine)

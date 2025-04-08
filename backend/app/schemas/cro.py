@@ -2,7 +2,7 @@ from sqlmodel import Field, Enum as dbEnum, Relationship,DateTime,Column
 from pydantic import EmailStr,field_validator
 from datetime import datetime
 
-from ..database.database import AutoFieldMixin, SQLModel
+from ..database.db import AutoFieldMixin, SQLModel
 from .enums import DisciplineEnum
 
 

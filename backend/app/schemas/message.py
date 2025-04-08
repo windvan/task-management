@@ -1,7 +1,8 @@
 from sqlmodel import Field, Enum as dbEnum, Relationship, Column, DateTime
-from pydantic import field_validator
-from datetime import datetime
-from ..database.database import AutoFieldMixin, SQLModel
+from pydantic import model_validator
+from sqlmodel import SQLModel
+from datetime import datetime,timezone
+from ..database.db import AutoFieldMixin, SQLModel
 from .enums import MessageSeverityEnum, MessageCategoryEnum
 
 
@@ -31,3 +32,10 @@ class MessageRecipient(SQLModel, AutoFieldMixin, table=True):
     message: Message = Relationship(back_populates="recipients")
     recipient: "User" = Relationship(back_populates="received_messages", sa_relationship_kwargs={  # type: ignore
                                      "foreign_keys": "MessageRecipient.recipient_id"})
+
+    # generate read_at if is_read set to True
+    @model_validator(mode='after')
+    def set_read_at(self):
+        if self.is_read:
+            self.read_at = datetime.now(timezone.utc)
+        return self
