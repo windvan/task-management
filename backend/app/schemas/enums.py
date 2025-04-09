@@ -188,6 +188,15 @@ class NoteSeverityEnum(Enum):
 
 # endregon
 
+# region Comment
+class CommentSeverityEnum(Enum):
+    Danger = "Danger"
+    Warn = "Warning"
+    Info = "Info"
+
+
+# endregon
+
 def get_all_enums():
     all_enums = {}
     class_list = [item[1] for item in globals().items() if item[0].endswith(

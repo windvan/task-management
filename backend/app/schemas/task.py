@@ -148,6 +148,7 @@ class Task(TaskBase, AutoFieldMixin, table=True):
             "foreign_keys": "Task.sample_id"})  # type: ignore
     notes: list["Note"] = Relationship(  # type: ignore
         back_populates="task", link_model=TaskNoteRelationship)
+    comments: list["TaskComment"] = Relationship(back_populates="task")  # type: ignore
 
 
 

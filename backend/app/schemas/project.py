@@ -60,5 +60,6 @@ class Project(ProjectBase, AutoFieldMixin, table=True):
     tasks: list["Task"] = Relationship(back_populates="project")  # type: ignore
     notes: list["Note"] = Relationship(  # type: ignore
         back_populates="project", link_model=ProjectNoteRelationship)
+    comments: list["ProjectComment"] = Relationship(back_populates="project")  # type: ignore
 
 

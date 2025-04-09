@@ -4,7 +4,7 @@
     <template #header>
       <div class="flex items-center justify-between w-full gap-2">
         <span class="font-bold text-xl">Comments</span>
-        <Button label="Add Comment" icon='pi pi-plus' size="small" outlined @click="handleShowNewComment"
+        <Button label="Add Comment" icon='pi pi-plus' size="small" outlined @click="handleShowCreate"
           v-if="!showNewComment"></Button>
         <Button severity="secondary" variant="text" :icon="'pi pi-window-' + (position === 'full' ? 'minimize' : 'maximize')
           " @click="togglePosition"></Button>
@@ -14,8 +14,7 @@
 
     <form class="flex flex-col gap-2 p-4" v-if="showNewComment">
       <div class="flex gap-1">
-        <Select name="severity" v-model="newComment.severity" :options="enums.NoteSeverityEnum" placeholder="severity"
-          size="small">
+        <Select v-model="newComment.severity" :options="enums.NoteSeverityEnum" placeholder="severity" size="small">
           <template #value="{ value, placeholder }">
             <div v-if="value" class="flex items-center">
               <i :class="['pi pi-circle-fill', getCommentSeverity(value)]" />
@@ -33,19 +32,18 @@
           </template>
 
         </Select>
+
         <div class="p-inputtext p-inputtext-sm flex items-center gap-2 bg-surface-100">
-          <i :class="id_type === 'project' ? 'pi pi-folder' : 'pi pi-list'" />
-          <span>{{ id_type === 'project' ? 'Project Comment' : 'Task Comment' }}</span>
+          <i :class="commentType === 'project' ? 'pi pi-folder' : 'pi pi-list'" />
+          <span>{{ commentType === 'project' ? 'Project Comment' : 'Task Comment' }}</span>
         </div>
-
-
-        <AutoComplete name='tags' v-model="newComment.tags" placeholder="#Tags" size="small" class="grow text-primary"
-          pt:pcInputText:root="w-full"></AutoComplete>
+        <input type="number" v-model="newComment[id_field]" class="hidden" />
+        <input type="number" v-model="newComment.parent_id" class="hidden" />
       </div>
-      <MentionEdit  v-model="newComment.content"></MentionEdit>
+      <MentionEdit v-model="newComment.mentionEdit"></MentionEdit>
       <div class="flex gap-4 justify-center">
-        <Button label="Cancel" icon="pi pi-times" size="small" outlined @click="handleHideNewComment"></Button>
-        <Button label="Save" icon="pi pi-save" size="small" outlined @click="handleCreateComment"></Button>
+        <Button label="Cancel" icon="pi pi-times" size="small" outlined @click="handleCancel"></Button>
+        <Button label="Save" icon="pi pi-save" size="small" outlined @click="handleSave"></Button>
       </div>
     </form>
 
@@ -140,30 +138,30 @@
 <script setup>
 
   import { useToast } from "primevue";
-  import { ref, watch, inject, onMounted } from "vue";
+  import { ref, computed, inject, onMounted } from "vue";
 import { toLocalStr } from "../../composables/dateTools";
 import MentionEdit from "./MentionEdit.vue";
 
   // whether the drawer is triggered from task or project
-  const { trigger_id, id_type } = defineProps({
-    trigger_id: {
+  const { triggerId, commentType } = defineProps({
+    triggerId: {
       type: Number,
-      required: false
+      required: true
     },
-    id_type: {
+    commentType: {
       type: String,
-      required: false,
+      required: true,
       validator: (value) => ['task', 'project'].includes(value)
     }
   });
+  const id_field=computed(() => commentType === 'task' ? 'task_id' : 'project_id')
   const emit = defineEmits(["close"]);
   const visible = ref(true);
-  const activeTab = ref((id_type === "task") ? '1' : '0')
+  const activeTab = ref((commentType === "task") ? '1' : '0')
   const position = ref("right");
   function togglePosition() {
     position.value = position.value === "full" ? "right" : "full";
   }
-
 
   // #region new comment
   // import { useAuthStore } from "@/stores/auth";
@@ -175,14 +173,12 @@ import MentionEdit from "./MentionEdit.vue";
   const newComment = ref()
 
   const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};
-  function handleShowNewComment() {
-    let defalut = {}
-    defalut[(id_type === "task") ? 'task_id' : 'project_id'] = trigger_id
-    defalut['severity'] = 'Info'
-    newComment.value = defalut
+  function handleShowCreate() {
+
+    newComment.value = { id_field: triggerId, severity: 'Info', mentionEdit: { content: null, mentions: [] } ,parent_id:null,}
     showNewComment.value = true
   }
-  function handleHideNewComment() {
+  function handleCancel() {
     showNewComment.value = false
   }
   function getCommentSeverity(severity) {
@@ -201,7 +197,7 @@ import MentionEdit from "./MentionEdit.vue";
 
 
 
-  async function handleCreateComment() {
+  async function handleSave() {
 
     // if (!(newComment.value.task_id || newComment.value.project_id)) {
     //   toast.add({ severity: 'error', summary: 'Error', detail: 'Please select a project or a task to comment on', life: 3000 })
@@ -237,7 +233,7 @@ import MentionEdit from "./MentionEdit.vue";
   const comments = ref()
   onMounted(async () => {
     // comments.value = await Api.get(`/notes/?project_id=${project_id}&task_id=${task_id}`)
-    comments.value = await Api.get(`/notes/${id_type}/${trigger_id}`)
+    comments.value = await Api.get(`/comments/${commentType}/${triggerId}`)
   })
 
 

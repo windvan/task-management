@@ -8,6 +8,7 @@ from .cro import Cro, CroContact
 # from .crop import Crop
 from .message import Message
 from .gap import Gap
+from .comment import ProjectComment, TaskComment
 
 
 __all__ = ['User',
@@ -19,5 +20,7 @@ __all__ = ['User',
            'Cro', 'CroContact',
            'Gap',
            'Message',
+           'ProjectComment', 'TaskComment',
+           # 'Crop',
 
            ]

@@ -196,8 +196,8 @@
   const showCommentDrawer = ref(false);
   const commentDrawerProps = {};
   function handleShowComments(task_id) {
-    commentDrawerProps.trigger_id = task_id;
-    commentDrawerProps.id_type = 'task';
+    commentDrawerProps.triggerId = task_id;
+    commentDrawerProps.commentType = 'task';
     showCommentDrawer.value = true;
   }
   function handleCloseComments() {
