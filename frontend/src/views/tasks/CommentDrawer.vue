@@ -4,125 +4,25 @@
     <template #header>
       <div class="flex items-center justify-between w-full gap-2">
         <span class="font-bold text-xl">Comments</span>
-        <Button label="Add Comment" icon='pi pi-plus' size="small" outlined @click="handleShowCreate"
-          v-if="!showNewComment"></Button>
         <Button severity="secondary" variant="text" :icon="'pi pi-window-' + (position === 'full' ? 'minimize' : 'maximize')
           " @click="togglePosition"></Button>
       </div>
     </template>
 
 
-    <form class="flex flex-col gap-2 p-4" v-if="showNewComment">
-      <div class="flex gap-1">
-        <Select v-model="newComment.severity" :options="enums.NoteSeverityEnum" placeholder="severity" size="small">
-          <template #value="{ value, placeholder }">
-            <div v-if="value" class="flex items-center">
-              <i :class="['pi pi-circle-fill', getCommentSeverity(value)]" />
-              <span class="ml-2">{{ value }}</span>
-            </div>
-            <span v-else>
-              {{ placeholder }}
-            </span>
-          </template>
-          <template #option="{ option }">
-            <div class="flex items-center text-sm">
-              <i :class="['pi pi-circle-fill', getCommentSeverity(option)]" />
-              <span class="ml-2">{{ option }}</span>
-            </div>
-          </template>
-
-        </Select>
-
-        <div class="p-inputtext p-inputtext-sm flex items-center gap-2 bg-surface-100">
-          <i :class="commentType === 'project' ? 'pi pi-folder' : 'pi pi-list'" />
-          <span>{{ commentType === 'project' ? 'Project Comment' : 'Task Comment' }}</span>
-        </div>
-        <input type="number" v-model="newComment[id_field]" class="hidden" />
-        <input type="number" v-model="newComment.parent_id" class="hidden" />
-      </div>
-      <MentionEdit v-model="newComment.mentionEdit"></MentionEdit>
-      <div class="flex gap-4 justify-center">
-        <Button label="Cancel" icon="pi pi-times" size="small" outlined @click="handleCancel"></Button>
-        <Button label="Save" icon="pi pi-save" size="small" outlined @click="handleSave"></Button>
-      </div>
-    </form>
-
-    <Tabs v-else v-model:value="activeTab">
+    <Tabs v-model:value="activeTab" class="flex flex-col h-full">
       <TabList>
         <Tab value="0">Project</Tab>
         <Tab value="1">Tasks</Tab>
       </TabList>
-      <TabPanels pt:root="pl-0 pr-2" class=" h-dvh overflow-auto">
+      <TabPanels class=" overflow-auto">
         <TabPanel value="0">
-          <div v-for="comment in comments?.project_notes" key="comment.id"
-            class="border border-surface-200 rounded mb-6 p-2 bg-surface-50">
-            <div class="flex gap-2">
-              <span class=" font-bold">{{ comment.created_by_name }}</span>
-              <span>{{ toLocalStr(comment.updated_at) }}</span>
-              <span class="text-primary mx-auto"> {{ comment.tags }}</span>
-              <Select v-model="comment.severity" :options="enums.NoteSeverityEnum" placeholder="severity" size="small"
-                class=" border-none bg-surface-50" pt:dropdown="hidden" @change="handelChangeSeverity(comment)">
-                <template #value="{ value, placeholder }">
-                  <div v-if="value" class="flex items-center">
-                    <i :class="['pi pi-circle-fill', getCommentSeverity(value)]" />
-                    <!-- <span class="ml-2">{{ value }}</span> -->
-                  </div>
-                  <span v-else>
-                    {{ placeholder }}
-                  </span>
-                </template>
-                <template #option="{ option }">
-                  <div class="flex items-center">
-                    <i :class="['pi pi-circle-fill', getCommentSeverity(option)]" />
-                    <span class="ml-2">{{ option }}</span>
-                  </div>
-                </template>
-
-              </Select>
-
-            </div>
-            <!-- <Textarea v-model="comment.content" fluid></Textarea> -->
-            <div class="px-2 whitespace-pre-wrap">
-
-              {{ comment.content }}
-            </div>
-
-          </div>
+          <CommentItem v-for="comment in comments?.project_comments" key="comment.id" :comment></CommentItem>
+          <CommentForm :targetId="triggerId" targetType="project" @refreshComment="handelRefreshComment"></CommentForm>
         </TabPanel>
         <TabPanel value="1">
-          <div v-for="comment in comments?.task_notes" key="comment.id"
-            class="border border-surface-200 rounded mb-6 p-2 bg-surface-50">
-            <div class="flex gap-2">
-              <span class=" font-bold">{{ comment.created_by_name }}</span>
-              <span>{{ toLocalStr(comment.updated_at) }}</span>
-              <span class="text-primary mx-auto"> {{ comment.tags }}</span>
-              <Select v-model="comment.severity" :options="enums.NoteSeverityEnum" placeholder="severity" size="small"
-                class=" border-none bg-surface-50" pt:dropdown="hidden" @change="handelChangeSeverity(comment)">
-                <template #value="{ value, placeholder }">
-                  <div v-if="value" class="flex items-center">
-                    <i :class="['pi pi-circle-fill', getCommentSeverity(value)]" />
-                    <!-- <span class="ml-2">{{ value }}</span> -->
-                  </div>
-                  <span v-else>
-                    {{ placeholder }}
-                  </span>
-                </template>
-                <template #option="{ option }">
-                  <div class="flex items-center">
-                    <i :class="['pi pi-circle-fill', getCommentSeverity(option)]" />
-                    <span class="ml-2">{{ option }}</span>
-                  </div>
-                </template>
-
-              </Select>
-
-            </div>
-            <!-- <Textarea v-model="comment.content" fluid></Textarea> -->
-            <div class="px-2 whitespace-pre-wrap">
-              {{ comment.content }}
-            </div>
-
-          </div>
+          <CommentItem v-for="comment in comments?.task_comments" key="comment.id" :comment></CommentItem>
+          <CommentForm :targetId="triggerId" targetType="task" @refreshComment="handelRefreshComment"></CommentForm>
         </TabPanel>
 
       </TabPanels>
@@ -138,9 +38,10 @@
 <script setup>
 
   import { useToast } from "primevue";
-  import { ref, computed, inject, onMounted } from "vue";
-import { toLocalStr } from "../../composables/dateTools";
-import MentionEdit from "./MentionEdit.vue";
+  import { ref, inject, onMounted } from "vue";
+
+  import CommentItem from "./CommentItem.vue";
+  import CommentForm from "./CommentForm.vue";
 
   // whether the drawer is triggered from task or project
   const { triggerId, commentType } = defineProps({
@@ -154,7 +55,7 @@ import MentionEdit from "./MentionEdit.vue";
       validator: (value) => ['task', 'project'].includes(value)
     }
   });
-  const id_field=computed(() => commentType === 'task' ? 'task_id' : 'project_id')
+
   const emit = defineEmits(["close"]);
   const visible = ref(true);
   const activeTab = ref((commentType === "task") ? '1' : '0')
@@ -166,77 +67,25 @@ import MentionEdit from "./MentionEdit.vue";
   // #region new comment
   // import { useAuthStore } from "@/stores/auth";
   // const {currentUser} = useAuthStore();
-  const showNewComment = ref(false)
+
   const toast = useToast()
   const Api = inject('Api')
 
-  const newComment = ref()
 
-  const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};
-  function handleShowCreate() {
-
-    newComment.value = { id_field: triggerId, severity: 'Info', mentionEdit: { content: null, mentions: [] } ,parent_id:null,}
-    showNewComment.value = true
-  }
-  function handleCancel() {
-    showNewComment.value = false
-  }
-  function getCommentSeverity(severity) {
-    switch (severity) {
-      case 'Danger':
-        return 'text-red-600'
-      case 'Warning':
-        return 'text-orange-400'
-      case 'Info':
-        return 'text-green-600'
-      default:
-        return 'text-green-60'
-    }
-  }
-
-
-
-
-  async function handleSave() {
-
-    // if (!(newComment.value.task_id || newComment.value.project_id)) {
-    //   toast.add({ severity: 'error', summary: 'Error', detail: 'Please select a project or a task to comment on', life: 3000 })
-    //   return
-    // }
-
-    if (!newComment.value?.content?.trim()) {
-      toast.add({ severity: 'error', summary: 'Error', detail: 'Please input comment content', life: 3000 })
-      return
-    }
-
-    const dbNewComment = await Api.post('/notes/', newComment.value)
-    if (dbNewComment.project_id) {
-      // project comment
-      comments.value.project_notes.unshift(dbNewComment)
-    } else {
-      comments.value.task_notes.unshift(dbNewComment)
-    }
-    showNewComment.value = false
-  }
-
-  async function handelChangeSeverity(comment) {
-    try {
-      await Api.patch(`/notes/${comment.id}`, { severity: comment.severity }, { skipInterceptor:true})
-    } catch (error) {
-      toast.add({ severity: 'error', summary: 'Update severity Failed', detail: error.message, life: 3000 })
-    }
-  }
 
   // #endregion new comment
 
   // #region comment list
   const comments = ref()
   onMounted(async () => {
-    // comments.value = await Api.get(`/notes/?project_id=${project_id}&task_id=${task_id}`)
-    comments.value = await Api.get(`/comments/${commentType}/${triggerId}`)
+
+    comments.value = await Api.get(`/comments/all`)
   })
 
-
-
   // #endregion comment list
+
+  function handelRefreshComment(commentType,newComment) {
+    comments.value[commentType].unshift(newComment)
+  }
+
 </script>

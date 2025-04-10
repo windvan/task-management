@@ -1,24 +1,33 @@
 <template>
-  <div id="editor-container" class="border border-surface-200 rounded">
-
+  <div class="my-2">
+    <!-- <div id="toolbar-container"></div> -->
+    <div :id="uid" class="border border-surface-200 "></div>
   </div>
 </template>
 
 <script setup>
   import Quill from "quill";
   import "quill-mention/autoregister";
-  import { ref, inject, onMounted } from "vue";
+  import { inject, onMounted } from "vue";
   // import 'quill-mention/dist/quill.mention.css';
   import 'quill/dist/quill.snow.css';
+  defineExpose({ reset });
 
-
+  const uid=generateUniqueId()
   const modelValue = defineModel()
+  // modelValue schema:
+  // {
+  //     plain_text: null,
+  //     rich_text: null,
+  //     mentions: []
+  // }
 
   const Api = inject('Api')
   let userSuggestion = []
   let quill
 
   onMounted(async () => {
+ 
     const user_list = await Api.get('/users/')
     userSuggestion = user_list.map((user) => {
       return {
@@ -30,7 +39,7 @@
     })
 
     // Initialize Quill after DOM is mounted
-    quill = new Quill("#editor-container", {
+    quill = new Quill("#"+uid, {
       placeholder: 'typing @ for mentions',
       theme: "snow",
       modules: {
@@ -47,41 +56,70 @@
               renderList(matches, searchTerm);
             }
           },
-         
+
           dataAttributes: ['id', 'value'],
           listItemClass: "p-2  rounded",
           mentionContainerClass: "rounded border border-surface-200 shadow-sm bg-surface-50",
           mentionListClass: "max-h-48 overflow-y-auto",
-          offsetLeft: 20
+          offsetLeft: 20,
+
 
         }
       }
     });
 
+
     // 设置初始内容
     if (modelValue.value) {
-      quill.setContents(modelValue.value)
+      quill.setContents(modelValue.value.plain_text)
     }
 
     // 监听内容变化
     quill.on('text-change', (delta, oldDelta, source) => {
-   
+
       if (delta.ops.length === 0) {
         return
       }
+
+      modelValue.value.rich_text = quill.getContents()
+      modelValue.value.plain_text = extractTextFromHTML(quill.getSemanticHTML().replace(/\uFEFF|&#xFEFF;/g,''))
       
-      modelValue.value.content = quill.getContents()
       for (const op of delta.ops) {
         if (op.insert?.mention) {
-          const mention = op.insert.mention
-      
-          modelValue.value.mentions.push(parseInt(mention.id))
           // 这里可以处理提及的用户信息
-          // 比如：modelValue.value.mentions.push(mention)
+          const mention = op.insert.mention
+          modelValue.value.mentions.push(parseInt(mention.id))
+
         }
       }
     })
+
+    quill.focus()
   })
+
+  function extractTextFromHTML(htmlString) {
+    // quill.getText() will not contain mention text
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, 'text/html');
+    return doc.body.textContent
+  }
+  function generateUniqueId() {
+    const timestamp = new Date().getTime();
+    const randomString = Math.random().toString(36).substring(2, 15);
+    return `id-${timestamp}-${randomString}`;
+  }
+
+  function reset() {
+    if (quill) {
+      quill.setContents([]);
+      modelValue.value = {
+        plain_text: null,
+        rich_text: null,
+        mentions: []
+      }
+    }
+  }
+
 </script>
 
 <style>
@@ -94,8 +132,10 @@
     user-select: all;
   }
 
-  #editor-container>.ql-editor {
-    min-height: 200px;
+  .ql-container>.ql-editor {
+    min-height: 150px;
+    background-color: white;
+    border-radius: 2px;
   }
 
   #quill-mention-list>.selected {

@@ -63,4 +63,17 @@ function getStatusSeverity(field, status) {
  
 }
 
-export { getChangedFields, getStatusSeverity };
+
+function getCommentSeverity(severity) {
+  switch (severity) {
+    case 'Danger':
+      return 'text-red-600'
+    case 'Warning':
+      return 'text-orange-400'
+    case 'Info':
+      return 'text-green-600'
+    default:
+      return 'text-green-60'
+  }
+}
+export { getChangedFields, getStatusSeverity, getCommentSeverity };

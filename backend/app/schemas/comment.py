@@ -9,9 +9,10 @@ class ProjectComment(SQLModel, AutoFieldMixin, table=True):
     id: int = Field(default=None, primary_key=True)
     project_id: int | None = Field(default=None, foreign_key='project.id')
     parent_id: int | None = Field(foreign_key='project_comment.id')
-    content: str  # quill delta array
-    mentions: list[str] | None = Field(default=None, sa_column=Column(JSON))  # "[1,2,3]"
-    severity: CommentSeverityEnum = Field(
+    rich_text: dict = Field(sa_column=Column(JSON))  # quill delta format
+    plain_text: str  # plain text
+    mentions: list[int] | None = Field(default=None, sa_column=Column(JSON))  # "[1,2,3]"
+    severity: CommentSeverityEnum | None = Field(
         default=CommentSeverityEnum.Info, sa_column=dbEnum(CommentSeverityEnum))
 
     project: "Project" = Relationship(back_populates="comments")  # type: ignore
@@ -22,9 +23,10 @@ class TaskComment(SQLModel, AutoFieldMixin, table=True):
     id: int = Field(default=None, primary_key=True)
     task_id: int | None = Field(foreign_key='task.id')
     parent_id: int | None = Field(default=None, foreign_key='task_comment.id')
-    content: str  # quill delta array
-    mentions: list[str] | None = Field(default=None, sa_column=Column(JSON))  # "[1,2,3]"
-    severity: CommentSeverityEnum = Field(
+    rich_text: dict = Field(sa_column=Column(JSON))  # quill delta format
+    plain_text: str  # plain text
+    mentions: list[int] | None = Field(default=None, sa_column=Column(JSON))  # "[1,2,3]"
+    severity: CommentSeverityEnum | None = Field(
         default=CommentSeverityEnum.Info, sa_column=dbEnum(CommentSeverityEnum))
 
     task: "Task" = Relationship(back_populates="comments")  # type: ignore
