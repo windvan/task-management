@@ -4,7 +4,9 @@
     <template #header>
       <div class="flex items-center justify-between w-full gap-2">
         <span class="font-bold text-xl">Comments</span>
-        <Button severity="secondary" variant="text" :icon="'pi pi-window-' + (position === 'full' ? 'minimize' : 'maximize')
+        <Button v-show="(activeTab === '1' && !showCommentForm)" severity="secondary" size="small" outlined
+          label="New Comment" @click="showCommentForm = true"></Button>
+        <Button severity="secondary" rounded variant="text" :icon="'pi pi-window-' + (position === 'full' ? 'minimize' : 'maximize')
           " @click="togglePosition"></Button>
       </div>
     </template>
@@ -17,21 +19,32 @@
       </TabList>
       <TabPanels class=" overflow-auto">
         <TabPanel value="0">
-          <CommentItem v-for="comment in comments?.project_comments" key="comment.id" :comment></CommentItem>
-          <CommentForm :targetId="triggerId" targetType="project" @refreshComment="handelRefreshComment"></CommentForm>
+
+          <div v-for="node in comments?.project_comments" :key="node.id" class="bg-surface-100">
+            <CommentItem :comment="node"></CommentItem>
+            <div v-for="child in node.children" :key="child.id" class="ml-20">
+              <CommentItem :comment="child"></CommentItem>
+            </div>
+          </div>
+
         </TabPanel>
         <TabPanel value="1">
-          <CommentItem v-for="comment in comments?.task_comments" key="comment.id" :comment></CommentItem>
-          <CommentForm :targetId="triggerId" targetType="task" @refreshComment="handelRefreshComment"></CommentForm>
+          <div v-for="node in comments?.task_comments" :key="node.id" class="bg-surface-100">
+            <CommentItem :comment="node"></CommentItem>
+            <div v-for="child in node.children" :key="child.id" class="ml-20">
+              <CommentItem :comment="child"></CommentItem>
+            </div>
+          </div>
+
+          <!-- new comment： can only add task comment on this drawer -->
+          <CommentForm v-if="showCommentForm" :targetId="triggerId" targetType="task" @close="showCommentForm = false"
+            @refreshComment="handelRefreshComment"></CommentForm>
+          <!-- <InputText v-else fluid placeholder="replay" @focus="showCommentForm = true" /> -->
         </TabPanel>
 
       </TabPanels>
     </Tabs>
-    <!-- <template #footer>
-      <div class="flex items-center gap-2">
-        <Button label="Add Comment" icon="pi pi-plus" class="flex-auto" outlined></Button>
-      </div>
-    </template> -->
+
   </Drawer>
 </template>
 
@@ -71,7 +84,7 @@
   const toast = useToast()
   const Api = inject('Api')
 
-
+  const showCommentForm = ref(false)
 
   // #endregion new comment
 
@@ -84,7 +97,7 @@
 
   // #endregion comment list
 
-  function handelRefreshComment(commentType,newComment) {
+  function handelRefreshComment(commentType, newComment) {
     comments.value[commentType].unshift(newComment)
   }
 

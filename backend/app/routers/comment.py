@@ -1,9 +1,11 @@
 from fastapi import APIRouter, status, HTTPException, Depends, Response
+from fastapi.encoders import jsonable_encoder
+from sqlalchemy.orm import selectinload, joinedload
 from sqlmodel import select
 
 from ..schemas.user import User
 
-from ..schemas.comment import ProjectComment, TaskComment
+from ..schemas.comment import ProjectComment, TaskComment, CommentsOut
 from ..schemas.task import Task
 from ..schemas.project import Project
 from ..utils.dependencies import SessionDep
@@ -32,16 +34,30 @@ def create_task_comment(task_comment: dict, session: SessionDep):
     return db_comment
 
 
-@router.get("/all")
+@router.get("/all", )
 def get_all_comments(session: SessionDep):
 
-    project_comments = session.exec(select(ProjectComment)).all()
-    task_comments = session.exec(select(TaskComment)).all()
+    proj_stmt = (
+        select(ProjectComment.__table__.columns, User.name.label('created_by_name'))
+        .select_from(ProjectComment).join(User, User.id == ProjectComment.created_by)
+        .where(ProjectComment.parent_id.is_(None))  # 只选择顶级评论,Model中已指定懒加载策略
+        .options(joinedload(ProjectComment.children))
+    )
 
-    db_comments = {
-        "project_comments": project_comments,
-        "task_comments": task_comments
-    }
+    task_stmt = (
+        select(TaskComment.__table__.columns, User.name.label('created_by_name'))
+        .select_from(TaskComment).join(User, User.id == TaskComment.created_by)
+        .where(TaskComment.parent_id == None)  # 只选择顶级评论
+        .options(joinedload(TaskComment.children))
+    )
+
+    proj_comments = session.execute(proj_stmt).mappings().all()  # must use sqlalchemy session.execute
+    task_comments = session.execute(task_stmt).mappings().all()
+
+    print('\n\n\nproj_comments\n', proj_comments)
+    print('\n\n\ntask_comments\n', task_comments)
+
+    db_comments = {"project_comments": proj_comments,  "task_comments": task_comments}
 
     return db_comments
 

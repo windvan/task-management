@@ -63,7 +63,8 @@ def get_user(user_id: int, session: SessionDep):
 
 
 @router.get('/', response_model=list[UserPublic])
-def get_users(session: SessionDep):
+def get_users(session: SessionDep,response:Response):
+    response.headers["Cache-Control"] = 'max-age=604800'
     users = session.exec(select(User)).all()
     return users
 

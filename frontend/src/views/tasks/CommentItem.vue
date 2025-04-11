@@ -6,7 +6,7 @@
             <div class="flex gap-2">
                 <span>{{ comment.created_by_name }} on </span>
                 <span>{{ toLocalStr(comment.updated_at) }}</span>
-                <Select v-model="comment.severity" :options="enums.CommentSeverityEnum" placeholder="severity"
+                <Select v-if="!comment.parent_id" v-model="comment.severity" :options="enums.CommentSeverityEnum" placeholder="severity"
                     size="small" class=" border-none ml-auto" pt:dropdown="hidden" @change="handelChangeSeverity()">
                     <template #value="{ value, placeholder }">
                         <div v-if="value" class="flex items-center">
@@ -31,23 +31,23 @@
             <div class="whitespace-pre-wrap my-4 break-words ">
                 {{ comment.plain_text }}
             </div>
+
+            <!-- footer -->
+            <div v-if="!comment.parent_id" class="flex gap-4 justify-end items-center text-sm">         
+                <span>{{ comment.children.length }} replies</span>   
+                <Button icon="pi pi-reply " size="small" rounded outlined severity="secondary" @click="handelStartReplay"></Button>
+            </div>
         </div>
 
         <!-- replay -->
         <div v-if="showReplay" class="bg-surface-100 p-4 border-t border-surface-200">
             <MentionEditor v-model="mentionEditor"></MentionEditor>
             <div class="mt-2 flex gap-2 justify-end font-bold">
-                <Button severity="secondary" outlined  size="small" @click="showReplay = false">Cancel</Button>
+                <Button severity="secondary" outlined size="small" @click="showReplay = false">Cancel</Button>
                 <Button size="small" @click="handleSaveReplay" outlined>Replay</Button>
             </div>
 
         </div>
-        <div v-else class="px-4 pb-4">
-            <InputText fluid placeholder="replay" @focus="handelStartReplay" />
-        </div>
-
-        <!-- mention eidt -->
-
 
     </div>
 </template>
