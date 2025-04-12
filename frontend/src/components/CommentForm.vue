@@ -30,12 +30,10 @@
         </div>
 
         <MentionEditor ref="mentionEditorRef" v-model="newComment.mentionEditor" class="my-2"></MentionEditor>
-        <div class="flex gap-4 justify-end">
-            <Button label="Reset" icon="pi pi-times" size="small" outlined severity="secondary"
-                @click="mentionEditorRef?.reset"></Button>
-            <Button label="Cancel" icon="pi pi-cancel" size="small" outlined severity="secondary"
-                @click="emit('close')"></Button>
-            <Button label="Comment" icon="pi pi-save" size="small" outlined @click="handleSave"></Button>
+        <div class="flex gap-4 justify-end font-bold">
+            <Button size="small" outlined severity="secondary" @click="mentionEditorRef?.reset">Reset</Button>
+            <Button size="small" outlined severity="secondary" @click="emit('close')">Cancel</Button>
+            <Button size="small" outlined @click="handleSave">Comment</Button>
         </div>
     </form>
 </template>
@@ -82,11 +80,9 @@
         }
 
         const dbNewComment = await Api.post(`/comments/${targetType}`, _comment)
-        emit('refreshComment', targetType === 'project' ? 'project_comments' : 'task_comments', dbNewComment)
-        // reset
-        newComment.value.severity = 'Info'
-        mentionEditorRef.value.reset()
         
+        emit('refreshComment', targetType === 'project' ? 'project_comments' : 'task_comments', dbNewComment)
+        emit('close')
     }
 
 

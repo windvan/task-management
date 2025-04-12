@@ -3,6 +3,7 @@ from sqlmodel import Field, Relationship, Enum as dbEnum, Column, JSON
 from ..database.db import AutoFieldMixin, SQLModel
 from .enums import CommentSeverityEnum
 from datetime import datetime
+from ..schemas import User
 
 
 class ProjectComment(SQLModel, AutoFieldMixin, table=True):
@@ -18,12 +19,9 @@ class ProjectComment(SQLModel, AutoFieldMixin, table=True):
         default=CommentSeverityEnum.Info, sa_column=dbEnum(CommentSeverityEnum))
 
     project: "Project" = Relationship(back_populates="comments")  # type: ignore
-    children: list["ProjectComment"] = Relationship(
-        sa_relationship_kwargs={
-            "lazy": "joined", "join_depth": 2
-        }
-    )
-
+    children: list["ProjectComment"] = Relationship(    )
+    creater: "User" = Relationship(sa_relationship_kwargs={
+                                   "foreign_keys": "ProjectComment.created_by"})
 
 class TaskComment(SQLModel, AutoFieldMixin, table=True):
     __tablename__ = 'task_comment'
@@ -37,12 +35,9 @@ class TaskComment(SQLModel, AutoFieldMixin, table=True):
     severity: CommentSeverityEnum | None = Field(
         default=CommentSeverityEnum.Info, sa_column=dbEnum(CommentSeverityEnum))
 
-    task: "Task" = Relationship(back_populates="comments")  # type: ignore
-    children: list["TaskComment"] = Relationship(
-        sa_relationship_kwargs={
-            "lazy": "joined", "join_depth": 2
-        }
-    )
+    task: "Task" = Relationship(back_populates="comments",sa_relationship_kwargs={"foreign_keys":"TaskComment.task_id"})  # type: ignore
+    children: list["TaskComment"] = Relationship(sa_relationship_kwargs={"foreign_keys": "TaskComment.parent_id"})
+    creater: "User" = Relationship(sa_relationship_kwargs={"foreign_keys": "TaskComment.created_by"})
 
 
 class ProjectCommentPublic(SQLModel):

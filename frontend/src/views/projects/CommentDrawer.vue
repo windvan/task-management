@@ -42,7 +42,7 @@
           <!-- new comment： can only add task comment on this drawer -->
           <CommentForm
             v-if="showCommentForm"
-            :targetId="triggerId"
+            :targetId="targetId"
             targetType="task"
             @close="showCommentForm = false"
             @refreshComment="handelRefreshComment"></CommentForm>
@@ -77,8 +77,8 @@
   import CommentForm from "../../components/CommentForm.vue";
 
   // whether the drawer is triggered from task or project
-  const { triggerId, commentType } = defineProps({
-    triggerId: {
+  const { targetId, commentType } = defineProps({
+    targetId: {
       type: Number,
       required: true,
     },
@@ -98,12 +98,8 @@
   }
 
   // #region new comment
-  // import { useAuthStore } from "@/stores/auth";
-  // const {currentUser} = useAuthStore();
-
   const toast = useToast();
   const Api = inject("Api");
-
   const showCommentForm = ref(false);
 
   // #endregion new comment
@@ -111,7 +107,7 @@
   // #region comment list
   const comments = ref();
   onMounted(async () => {
-    comments.value = await Api.get(`/comments/task/${triggerId}`);
+    comments.value = await Api.get(`/comments/project/${targetId}`);
   });
 
   // #endregion comment list

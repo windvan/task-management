@@ -54,6 +54,18 @@
       </template>
 
       <Column expander class="w-12" />
+      <Column class="w-4 p-0 mx-auto" frozen>
+        <template #body="{ data }">
+          <Button severity="secondary" variant="text" rounded size="small" class="p-0" icon="pi pi-comments"
+            @click="handleShowComments(data.id)"></Button>
+        </template>
+      </Column>
+      <Column class="w-4 p-0 mx-auto" frozen>
+        <template #body="{ data,index }">
+          <Button severity="secondary" variant="text" rounded size="small" class="p-0" icon="pi pi-trash"
+            @click="handleDeleteProject(data.id, index)"></Button>
+        </template>
+      </Column>
       <!-- <Column selectionMode="multiple" class="w-12" frozen></Column> -->
       <Column field="project_name" header="Project Name">
         <template #body="{ data }">
@@ -102,28 +114,20 @@
           {{ data.approved_date ? data.approved_date : "Not Approved Yet" }}
         </template>
       </Column>
-      <Column header="Action">
-        <template #body="{ data, index }">
-          <Button
-            icon="pi pi-trash"
-            @click="handleDeleteProject(data.id, index)"
-            rounded
-            outlined
-          ></Button>
-        </template>
-      </Column>
 
       <template #expansion="{ data }">
         <div class="mt-4 flex flex-col gap-4" @click="selectedProject = data">
+
+          
           <div class="flex gap-4 items-center">
             <p class="text-xl">Related Tasks</p>
-            <Button
-              icon="pi pi-plus"
-              severity="info"
-              outlined
-              size="small"
-              @click="handleShowTaskForm('new', data, null)"
-            />
+
+            <Button icon="pi pi-plus" rounded variant="outlined"
+              @click="handleShowTaskForm('new', data, null)"></Button>
+            <Button icon="pi pi-pencil" rounded variant="outlined" v-if="selectedTask?.project_id === data.id"
+              @click="handleShowTaskForm('edit', data)"></Button>
+            <Button icon=" pi pi-trash" rounded variant="outlined" v-if="selectedTask?.project_id === data.id"
+              @click="handleDeleteTask(data)"></Button>
           </div>
 
           <DataTable
@@ -166,7 +170,7 @@
                   icon=" pi pi-trash"
                   rounded
                   variant="outlined"
-                  @click="handleDeleteProjectTask(data.id, props.data.id)"
+                  
                 ></Button>
               </template>
             </Column>
@@ -197,6 +201,9 @@
       @close="handleCloseTaskForm"
       @refresh="handleRefreshProjectTasks"
     ></TaskFrom>
+
+    <CommentDrawer v-if="showCommentDrawer" v-bind="commentDrawerProps" @close="handleCloseComments">
+    </CommentDrawer>
   </div>
 </template>
 
@@ -254,24 +261,15 @@ async function onRowExpand(event) {
 
 function handleDeleteProject(project_id, index) {
   confirm.require({
-    position: "top",
+    
     message: "Are you sure you want delete?",
     header: "Confirmation",
     icon: "pi pi-exclamation-triangle",
-    rejectProps: {
-      label: "Cancel",
-      severity: "secondary",
-      outlined: true,
-    },
-    acceptProps: {
-      label: "Confirm",
-    },
     accept: async () => {
       await Api.delete(`/projects/${project_id}`);
       //refresh products
       projects.value.splice(index, 1);
-    },
-    reject: null,
+    }
   });
 }
 
@@ -288,7 +286,10 @@ function handleRefreshProject(newData) {
   }
 }
 
-// #endregion
+
+
+
+// #endregion project table
 
 // #region project form
 const showProjectForm = ref(false);
@@ -380,6 +381,22 @@ function handleRefreshProjectTasks(project_id, newData) {
 }
 
 // #endregion
+
+  // #region Comment Drawer
+  import CommentDrawer from "./CommentDrawer.vue";
+  const showCommentDrawer = ref(false);
+  const commentDrawerProps = {};
+  function handleShowComments(proj_id) {
+    commentDrawerProps.targetId = proj_id;
+    commentDrawerProps.commentType = 'project';
+    showCommentDrawer.value = true;
+  }
+  function handleCloseComments() {
+    showCommentDrawer.value = false;
+  }
+
+  // #endregion Comment Drawer
+
 </script>
 
 <style module></style>
