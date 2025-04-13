@@ -8,8 +8,7 @@
     <template #header>
       <div class="flex items-center justify-between w-full gap-2">
         <span class="font-bold text-xl">Comments</span>
-        <!-- <Button v-show="(activeTab === '1' && !showCommentForm)" severity="secondary" size="small" outlined
-          label="New Comment" @click="handleShowCommentForm"></Button> -->
+
         <Button
           severity="secondary"
           rounded
@@ -28,22 +27,11 @@
       </TabList>
       <TabPanels class="overflow-auto">
         <TabPanel value="0">
-          <div
-            v-for="node in comments?.project_comments"
-            :key="node.id"
-            class="bg-surface-100">
-            <CommentItem :comment="node"></CommentItem>
-            <div v-for="child in node.children" :key="child.id" class="ml-20">
-              <CommentItem :comment="child"></CommentItem>
-            </div>
-          </div>
-        </TabPanel>
-        <TabPanel value="1">
-          <!-- new comment： can only add task comment on this drawer -->
+          <!-- new comment： can only add project comment on this drawer -->
           <CommentForm
             v-if="showCommentForm"
             :targetId="targetId"
-            targetType="task"
+            targetType="project"
             @close="showCommentForm = false"
             @refreshComment="handelRefreshComment"></CommentForm>
           <InputText
@@ -53,7 +41,7 @@
             @focus="showCommentForm = true"
             class="placeholder-surface-300 placeholder:italic mb-3" />
           <div
-            v-for="node in comments?.task_comments"
+            v-for="node in comments?.project_comments"
             :key="node.id"
             class="bg-surface-100">
             <CommentItem
@@ -61,6 +49,24 @@
               @refreshReply="handelRefreshCommentReply"></CommentItem>
             <div v-for="child in node.children" :key="child.id" class="ml-20">
               <CommentItem :comment="child"></CommentItem>
+            </div>
+          </div>
+        </TabPanel>
+        <TabPanel value="1">
+          <div
+            v-for="(task_comment, task_id) in comments?.task_comments"
+            :key="task_id">
+            <p>{{ task_comment[0].task_name }}</p>
+            <div
+              v-for="node in task_comment"
+              :key="node.id"
+              class="bg-surface-100 mb-2">
+              <CommentItem
+                :comment="node"
+                @refreshReply="handelRefreshCommentReply"></CommentItem>
+              <div v-for="child in node.children" :key="child.id" class="ml-20">
+                <CommentItem :comment="child"></CommentItem>
+              </div>
             </div>
           </div>
         </TabPanel>
@@ -77,12 +83,12 @@
   import CommentForm from "../../components/CommentForm.vue";
 
   // whether the drawer is triggered from task or project
-  const { targetId, commentType } = defineProps({
+  const { targetId, targetType } = defineProps({
     targetId: {
       type: Number,
       required: true,
     },
-    commentType: {
+    targetType: {
       type: String,
       required: true,
       validator: (value) => ["task", "project"].includes(value),
@@ -91,7 +97,7 @@
 
   const emit = defineEmits(["close"]);
   const visible = ref(true);
-  const activeTab = ref(commentType === "task" ? "1" : "0");
+  const activeTab = ref(targetType === "task" ? "1" : "0");
   const position = ref("right");
   function togglePosition() {
     position.value = position.value === "full" ? "right" : "full";
@@ -112,15 +118,28 @@
 
   // #endregion comment list
 
-  async function handelRefreshComment(commentType, newComment) {
-    comments.value[commentType].unshift(newComment);
+  async function handelRefreshComment(targetType, newComment) {
+    comments.value[targetType].unshift(newComment);
   }
-  async function handelRefreshCommentReply(commentType, newComment) {
-    const index = comments.value[commentType].findIndex(
-      (comment) => comment.id === newComment.parent_id
-    );
-    if (index !== -1) {
-      comments.value[commentType][index].children.unshift(newComment);
+  async function handelRefreshCommentReply(category, newComment) {
+    
+    console.log(category);
+    if (category === "project_comments") {
+      const index = comments.value[category].findIndex(
+        (comment) => comment.id === newComment.parent_id
+      );
+      console.log(index);
+      if (index !== -1) {
+        comments.value[category][index].children.unshift(newComment);
+      }
+    } else {
+      const task_id = newComment.parent_id;
+      const index = comments.value[category][task_id].findIndex(
+        (comment) => comment.id === newComment.parent_id
+      );
+      if (index !== -1) {
+        comments.value[category][task_id][index].children.unshift(newComment);
+      }
     }
   }
 </script>

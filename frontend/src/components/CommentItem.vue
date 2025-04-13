@@ -35,7 +35,7 @@
 
       <!-- footer -->
       <div
-        v-if="!comment.parent_id"
+        
         class="flex gap-4 justify-end items-center text-sm">
         <span>{{ comment.children.length }} replies</span>
         <Button
@@ -118,15 +118,17 @@
       `/comments/${comment.project_id ? "project" : "task"}`,
       _comment
     );
+
     emit("refreshReply",comment.project_id?'project_comments' : 'task_comments',dbNewComment);
     showReplay.value = false;
+    
   }
 
   async function handelChangeSeverity() {
-    const commentType = comment.project_id ? "project" : "task";
+    const targetType = comment.project_id ? "project" : "task";
     try {
       const response = await Api.patch(
-        `/comments/${commentType}/${comment.id}`,
+        `/comments/${targetType}/${comment.id}`,
         { severity: comment.severity },
         { skipInterceptor: true }
       );

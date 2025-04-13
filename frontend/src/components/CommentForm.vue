@@ -50,7 +50,7 @@
     
     
     const emit = defineEmits(['refreshComment','close'])
-
+    // default initial value
     const newComment = ref({
         severity: 'Info',
         mentionEditor: {
@@ -65,7 +65,6 @@
     const mentionEditorRef = useTemplateRef('mentionEditorRef')
     async function handleSave() {
 
-        console.log(newComment.value)
         if (!newComment.value.mentionEditor.plain_text?.trim()) {
             toast.add({ severity: 'error', summary: 'Error', detail: 'Please input comment', life: 3000 })
             return

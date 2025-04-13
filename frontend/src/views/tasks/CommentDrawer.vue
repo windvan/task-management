@@ -33,16 +33,30 @@
             :key="node.id"
             class="bg-surface-100">
             <CommentItem :comment="node"></CommentItem>
-            <div v-for="child in node.children" :key="child.id" class="ml-20">
+            <TimeLine
+              :value="node.children"
+              pt:eventOpposite="grow-0 whitespace-nowrap"
+              pt:eventContent="whitespace-pre-wrap break-words border border-surface-300 rounded mb-2 ml-2">
+              <template #opposite="{ item, index }">
+                <p>{{ item.created_by_name }}</p>
+                <p>{{ toLocalStr(item.created_at) }}</p>
+              </template>
+              <template #content="{ item, index }">
+                
+                  {{ item.plain_text }}
+
+              </template>
+            </TimeLine>
+            <!-- <div v-for="child in node.children" :key="child.id" class="ml-20">
               <CommentItem :comment="child"></CommentItem>
-            </div>
+            </div> -->
           </div>
         </TabPanel>
         <TabPanel value="1">
           <!-- new comment： can only add task comment on this drawer -->
           <CommentForm
             v-if="showCommentForm"
-            :targetId="triggerId"
+            :targetId="targetId"
             targetType="task"
             @close="showCommentForm = false"
             @refreshComment="handelRefreshComment"></CommentForm>
@@ -59,9 +73,24 @@
             <CommentItem
               :comment="node"
               @refreshReply="handelRefreshCommentReply"></CommentItem>
-            <div v-for="child in node.children" :key="child.id" class="ml-20">
+
+            <TimeLine
+              :value="node.children"
+              pt:eventOpposite="grow-0 whitespace-nowrap"
+              pt:eventContent="whitespace-pre-wrap break-words border border-surface-300 rounded mb-2 ml-2">
+              <template #opposite="{ item, index }">
+                <p>{{ item.created_by_name }}</p>
+                <p>{{ toLocalStr(item.created_at) }}</p>
+              </template>
+              <template #content="{ item, index }">
+                
+                  {{ item.plain_text }}
+           
+              </template>
+            </TimeLine>
+            <!-- <div v-for="child in node.children" :key="child.id" class="ml-20">
               <CommentItem :comment="child"></CommentItem>
-            </div>
+            </div> -->
           </div>
         </TabPanel>
       </TabPanels>
@@ -75,14 +104,15 @@
 
   import CommentItem from "../../components/CommentItem.vue";
   import CommentForm from "../../components/CommentForm.vue";
+  import { toLocalStr } from "../../composables/dateTools";
 
   // whether the drawer is triggered from task or project
-  const { triggerId, commentType } = defineProps({
-    triggerId: {
+  const { targetId, targetType } = defineProps({
+    targetId: {
       type: Number,
       required: true,
     },
-    commentType: {
+    targetType: {
       type: String,
       required: true,
       validator: (value) => ["task", "project"].includes(value),
@@ -91,7 +121,7 @@
 
   const emit = defineEmits(["close"]);
   const visible = ref(true);
-  const activeTab = ref(commentType === "task" ? "1" : "0");
+  const activeTab = ref(targetType === "task" ? "1" : "0");
   const position = ref("right");
   function togglePosition() {
     position.value = position.value === "full" ? "right" : "full";
@@ -111,20 +141,20 @@
   // #region comment list
   const comments = ref();
   onMounted(async () => {
-    comments.value = await Api.get(`/comments/task/${triggerId}`);
+    comments.value = await Api.get(`/comments/task/${targetId}`);
   });
 
   // #endregion comment list
 
-  async function handelRefreshComment(commentType, newComment) {
-    comments.value[commentType].unshift(newComment);
+  async function handelRefreshComment(targetType, newComment) {
+    comments.value[targetType].unshift(newComment);
   }
-  async function handelRefreshCommentReply(commentType, newComment) {
-    const index = comments.value[commentType].findIndex(
+  async function handelRefreshCommentReply(targetType, newComment) {
+    const index = comments.value[targetType].findIndex(
       (comment) => comment.id === newComment.parent_id
     );
     if (index !== -1) {
-      comments.value[commentType][index].children.unshift(newComment);
+      comments.value[targetType][index].children.unshift(newComment);
     }
   }
 </script>
