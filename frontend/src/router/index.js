@@ -11,6 +11,50 @@ import SamplesView from '@/views/samples/SamplesView.vue'
 import CROsView from '@/views/cros/CROsView.vue'
 import UsersView from '@/views/users/UsersView.vue'
 import LinksView from '@/views/others/LinksView.vue'
+const roleRoutes = {
+  admin: [
+    'Dashboard',
+    'Products',
+    'Projects',
+    'Tasks',
+    'CROs',
+    'Samples',
+    'Users',
+    'Setting'
+  ],
+  Operation: [
+    'Dashboard',
+    'Products',
+    'Projects',
+    'Tasks',
+    'CROs',
+    'Samples',
+    'Users',
+    'Setting'
+  ],
+  Portfolio: [
+    'Dashboard',
+    'Products',
+    'Projects',
+    'Tasks',
+    'CROs',
+    'Samples',
+    'Users',
+    'Setting'
+  ],
+  Science_Delivery: [
+    'Dashboard',
+    'Products',
+    'Projects',
+    'Tasks',
+    'CROs',
+    'Samples',
+  ]
+  ,
+  Guest: [
+    'Dashboard',
+  ]
+}
 
 import { useAuthStore } from '../stores/authStore'
 
@@ -20,7 +64,13 @@ const router = createRouter({
     {
       path: '/',
       component: MainLayout,
-      redirect: '/dashboard',
+      redirect: () => {
+        const authStore = useAuthStore();
+        console.log(authStore.current_user)
+        
+        // return roleRoutes[authStore.current_user?.role][0]?.toLowerCase();
+        return '/dashboard'
+      },
       meta: { requiresAuth: true },
       children: [
         {
@@ -98,6 +148,8 @@ const router = createRouter({
   ]
 })
 
+
+
 router.beforeEach(async (to, from, next) => {
   // 刷新页面，会触发登陆状态验证（auth/check）
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
@@ -127,3 +179,4 @@ router.beforeEach(async (to, from, next) => {
 })
 
 export default router
+export { roleRoutes}

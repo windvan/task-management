@@ -1,23 +1,14 @@
 <template>
-  <Drawer
-    v-model:visible="visible"
-    @hide="emit('close')"
-    :position="position"
-    class="w-[40rem]"
+  <Drawer v-model:visible="visible" @hide="emit('close')" :position="position" class="w-[40rem]"
     pt:content="overflow-hidden">
     <template #header>
       <div class="flex items-center justify-between w-full gap-2">
         <span class="font-bold text-xl">Comments</span>
         <!-- <Button v-show="(activeTab === '1' && !showCommentForm)" severity="secondary" size="small" outlined
           label="New Comment" @click="handleShowCommentForm"></Button> -->
-        <Button
-          severity="secondary"
-          rounded
-          variant="text"
-          :icon="
+        <Button severity="secondary" rounded variant="text" :icon="
             'pi pi-window-' + (position === 'full' ? 'minimize' : 'maximize')
-          "
-          @click="togglePosition"></Button>
+          " @click="togglePosition"></Button>
       </div>
     </template>
 
@@ -26,71 +17,49 @@
         <Tab value="0">Project</Tab>
         <Tab value="1">Tasks</Tab>
       </TabList>
-      <TabPanels class="overflow-auto">
+      <TabPanels class="overflow-auto bg-surface-50">
+        <!-- proj comment -->
         <TabPanel value="0">
-          <div
-            v-for="node in comments?.project_comments"
-            :key="node.id"
-            class="bg-surface-100">
-            <CommentItem :comment="node"></CommentItem>
-            <TimeLine
-              :value="node.children"
-              pt:eventOpposite="grow-0 whitespace-nowrap"
-              pt:eventContent="whitespace-pre-wrap break-words border border-surface-300 rounded mb-2 ml-2">
+          <div v-for="node in comments?.project_comments" :key="node.id"
+            class="bg-white mb-4 rounded border border-surface-200">
+            <CommentItem :comment="node" @refreshReply="handelRefreshCommentReply"
+              @toggleChild="node.showChildren = !node.showChildren"></CommentItem>
+            <TimeLine v-if="node.showChildren" :value="node.children"
+              pt:eventOpposite="grow-0 whitespace-nowrap text-sm"
+              pt:eventContent="whitespace-pre-wrap break-words border border-surface-200 rounded mb-2 mx-2"
+              pt:root="my-4">
               <template #opposite="{ item, index }">
                 <p>{{ item.created_by_name }}</p>
                 <p>{{ toLocalStr(item.created_at) }}</p>
               </template>
               <template #content="{ item, index }">
-                
-                  {{ item.plain_text }}
-
+                {{ item.plain_text }}
               </template>
             </TimeLine>
-            <!-- <div v-for="child in node.children" :key="child.id" class="ml-20">
-              <CommentItem :comment="child"></CommentItem>
-            </div> -->
           </div>
         </TabPanel>
         <TabPanel value="1">
-          <!-- new comment： can only add task comment on this drawer -->
-          <CommentForm
-            v-if="showCommentForm"
-            :targetId="targetId"
-            targetType="task"
-            @close="showCommentForm = false"
+          <!-- task comment -->
+          <CommentForm v-if="showCommentForm" :targetId="targetId" targetType="task" @close="showCommentForm = false"
             @refreshComment="handelRefreshComment"></CommentForm>
-          <InputText
-            v-else
-            fluid
-            placeholder="New Comment"
-            @focus="showCommentForm = true"
+          <InputText v-else fluid placeholder="New Comment" @focus="showCommentForm = true"
             class="placeholder-surface-300 placeholder:italic mb-3" />
-          <div
-            v-for="node in comments?.task_comments"
-            :key="node.id"
-            class="bg-surface-100">
-            <CommentItem
-              :comment="node"
-              @refreshReply="handelRefreshCommentReply"></CommentItem>
-
-            <TimeLine
-              :value="node.children"
-              pt:eventOpposite="grow-0 whitespace-nowrap"
-              pt:eventContent="whitespace-pre-wrap break-words border border-surface-300 rounded mb-2 ml-2">
+          <div v-for="node in comments?.task_comments" :key="node.id"
+            class="bg-white mb-4 rounded border border-surface-200">
+            <CommentItem :comment="node" @refreshReply="handelRefreshCommentReply"
+              @toggleChild="node.showChildren = !node.showChildren"></CommentItem>
+            <TimeLine v-if="node.showChildren" :value="node.children"
+              pt:eventOpposite="grow-0 whitespace-nowrap text-sm"
+              pt:eventContent="whitespace-pre-wrap break-words border border-surface-200 rounded mb-2 mx-2"
+              pt:root="my-4">
               <template #opposite="{ item, index }">
                 <p>{{ item.created_by_name }}</p>
                 <p>{{ toLocalStr(item.created_at) }}</p>
               </template>
               <template #content="{ item, index }">
-                
-                  {{ item.plain_text }}
-           
+                {{ item.plain_text }}
               </template>
             </TimeLine>
-            <!-- <div v-for="child in node.children" :key="child.id" class="ml-20">
-              <CommentItem :comment="child"></CommentItem>
-            </div> -->
           </div>
         </TabPanel>
       </TabPanels>

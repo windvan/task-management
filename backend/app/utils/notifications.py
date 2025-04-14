@@ -57,3 +57,7 @@ def create_task_notification(task: dict, updates: dict, current_user_id: int):
         session.commit()
     finally:
         session.close()
+
+
+def create_comment_notification(task: dict, updates: dict, current_user_id: int):
+    pass

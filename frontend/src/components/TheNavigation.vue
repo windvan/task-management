@@ -1,6 +1,7 @@
 <template>
   <nav class="flex flex-col flex-none overflow-auto bg-white rounded-md w-52">
-    <Menu :model="items" :pt="{root:'border-none',itemLink:'p-3',itemContent:'hover:bg-primary has-[a.isActive]:bg-primary'}">
+    <Menu :model="items"
+      :pt="{ root: 'border-none', itemLink: 'p-3', itemContent: 'hover:bg-primary has-[a.isActive]:bg-primary' }">
       <template #item="{ item, props }">
         <router-link v-if="item.route" v-slot="{ href, navigate, isActive }" :to="item.route" custom>
           <a :href="href" v-bind="props.action" @click="navigate" :class="{ isActive: isActive }" aria-hidden="false">
@@ -19,30 +20,33 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue'
+  import { ref, computed } from 'vue'
+  import { useAuthStore } from '../stores/authStore'
+  import { roleRoutes } from '../router'
+
+  const authStore = useAuthStore()
+
+  // 定义每个角色可以访问的路由
 
 
-  const items = ref([
-    {
-      label: 'Dashboard',
-      icon: 'pi pi-chart-bar',
-      route: '/dashboard'
-    },
-      {
-      label: 'Products',
-      icon: 'pi pi-bookmark',
-      route: '/products'
-    },
+  // 基础导航项配置
+  const baseItems = [
+
+
     {
       label: 'Projects',
       icon: 'pi pi-folder',
       route: '/projects'
     },
-
     {
       label: 'Tasks',
       icon: 'pi pi-list',
       route: '/tasks'
+    },
+    {
+      label: 'Products',
+      icon: 'pi pi-bookmark',
+      route: '/products'
     },
     {
       label: 'CROs',
@@ -63,6 +67,11 @@
       separator: true
     },
     {
+      label: 'Dashboard',
+      icon: 'pi pi-chart-bar',
+      route: '/dashboard'
+    },
+    {
       label: 'Setting',
       icon: 'pi pi-cog',
       route: '/setting'
@@ -81,19 +90,20 @@
       label: 'testcommand',
       icon: 'pi pi-user',
       command: () => { alert("command test") }
-    },{
+    }, {
       label: 'test',
       icon: 'pi pi-user',
-      route:"/test"
+      route: "/test"
     },
+  ]
 
-
-  ])
-
-
+  // 根据角色过滤导航项
+  const items = computed(() => {
+    const role = authStore.current_user?.role || 'Guest'
+    return baseItems.filter(item => {
+      return roleRoutes[role].includes(item.label)
+    })
+  })
 </script>
 
-<style module>
-
-
-</style>
+<style module></style>
