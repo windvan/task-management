@@ -21,14 +21,14 @@
         <Tab value="1">
           <div class="relative">
             <span>Update</span>
-            <i v-if="messages?.updates?.some(item => !item.is_read)"
+            <i v-if="updates?.some(item => !item.is_read)"
               class="pi pi-circle-fill text-[5px] absolute top-0 text-red-500"></i>
           </div>
         </Tab>
         <Tab value="2">
           <div class="relative">
             <span>Message</span>
-            <i v-if="messages?.mentions?.some(item => !item.is_read)"
+            <i v-if="messages?.some(item => !item.is_read)"
               class="pi pi-circle-fill text-[5px] absolute top-0 text-red-500"></i>
           </div>
         </Tab>
@@ -49,7 +49,7 @@
         <!-- update -->
         <TabPanel value="1">
 
-          <div v-for="msg of messages?.updates" class="rounded border-t border-surface-300 p-3 hover:bg-surface-200">
+          <div v-for="msg of updates" class="rounded border-t border-surface-300 p-3 hover:bg-surface-200">
             <div class="relative">
               <p class="bg-surface-100 rounded-md p-2 whitespace-pre-wrap">{{ msg.content }}</p>
               <i class="pi pi-eye absolute top-0 right-0" :class="msg.is_read ? 'text-surface-400' : 'text-primary'"
@@ -60,11 +60,11 @@
         </TabPanel>
         <!-- Message -->
         <TabPanel value="2">
-          <div v-for="msg of messages?.mentions" class="rounded border-t border-surface-300 p-3 hover:bg-surface-200">
+          <div v-for="msg of messages" class="rounded border-t border-surface-300 p-3 hover:bg-surface-200">
             <div class="relative">
               <p class="bg-surface-100 rounded-md p-2 whitespace-pre-wrap">{{ msg.content }}</p>
               <i class="pi pi-eye absolute top-0 right-0" :class="msg.is_read ? 'text-surface-400' : 'text-primary'"
-                @click="toggleMentionReadStatus(msg)"></i>
+                @click="toggleMessageReadStatus(msg)"></i>
             </div>
           </div>
 
@@ -96,49 +96,51 @@
   // const activeNotiCategory = ref('Reminder')
 
   const reminders = ref()
-  const messages = ref() //updates and mentions
+  const updates=ref()
+  const messages = ref() // mentions
   onMounted(async () => {
-    reminders.value = await Api.get('/tasks/notifications/reminders/')
-    messages.value = await Api.get('/tasks/notifications/messages/')
+    reminders.value = await Api.get('/notifications/reminders/')
+    updates.value = await Api.get('/notifications/updates/')
+    messages.value = await Api.get('/notifications/messages/')
   })
 
   async function toggleUpdateReadStatus(msg) {
-    const index = messages.value.updates.findIndex((m) => m.msg_recp_id === msg.msg_recp_id)
+    const index = updates.value.findIndex((m) => m.msg_recp_id === msg.msg_recp_id)
     if (index !== -1) {
       await Api.patch(`/messages/read/${msg.msg_recp_id}`, {
         is_read: !msg.is_read
       })
-      messages.value.updates[index].is_read = !messages.value.updates[index].is_read
+      updates.value[index].is_read = !updates.value[index].is_read
     }
   }
 
-  async function toggleMentionReadStatus(msg) {
-    const index = messages.value.mentions.findIndex((m) => m.msg_recp_id === msg.msg_recp_id)
+  async function toggleMessageReadStatus(msg) {
+    const index = messages.value.findIndex((m) => m.msg_recp_id === msg.msg_recp_id)
     if (index !== -1) {
       await Api.patch(`/messages/read/${msg.msg_recp_id}`, {
         is_read: !msg.is_read
       })
-      messages.value.updates[index].is_read = !messages.value.updates[index].is_read
+      messages.value[index].is_read = !messages.value[index].is_read
     }
   }
 
   async function handleAllRead() {
-    const unreadUpdates = messages.value.updates.filter((msg) => !msg.is_read)
-    const unreadMentions = messages.value.mentions.filter((msg) => !msg.is_read)
-    const unreadIds = [...unreadUpdates, ...unreadMentions].map((msg) => msg.msg_recp_id)
+    const unreadUpdates = updates.value.filter((msg) => !msg.is_read)
+    const unreadMessagess = messages.value.filter((msg) => !msg.is_read)
+    const unreadIds = [...unreadUpdates, ...unreadMessagess].map((msg) => msg.msg_recp_id)
     if (unreadIds.length > 0) {
       // update database
       await Api.patch('/messages/batch-read', unreadIds)
       // update local state
       for (const id of unreadIds) {
-        const index = messages.value.updates.findIndex((msg) => msg.msg_recp_id === id)
+        const index = updates.value.findIndex((msg) => msg.msg_recp_id === id)
 
         if (index !== -1) {
-          messages.value.updates[index].is_read = true
+          updates.value[index].is_read = true
         }
         else {
-          const index = messages.value.mentions.findIndex((msg) => msg.msg_recp_id === id)
-          messages.value.mentions[index].is_read = true
+          const index = messages.value.findIndex((msg) => msg.msg_recp_id === id)
+          messages.value[index].is_read = true
         }
       }
 

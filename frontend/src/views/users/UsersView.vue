@@ -35,16 +35,16 @@
     </DataTable>
 
     <Dialog v-model:visible="showUserForm" :style="{ width: '450px' }"
-      :header="initialFormData.id ? 'Update user info' : 'Create new user'" :modal="true">
+      :header="initialFormData?.id ? 'Update user info' : 'Create new user'" :modal="true">
 
-      <Form ref="formRef" :initialValues="initialFormData" :resolver="resolver"
+      <Form id="userForm" @submit="handleSave" :initialValues="initialFormData" :resolver="resolver"
         class="flex flex-col gap-4 overflow-auto p-4 mb-4">
         <FormField v-slot="$field" name="name" class="form-field">
           <label for="name" class="required-mark">Name</label>
           <InputText id="name"></InputText>
           <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
             $field.error?.message
-          }}</Message>
+            }}</Message>
         </FormField>
 
         <FormField v-slot="$field" name="email" class="form-field">
@@ -52,7 +52,7 @@
           <InputText id="email"></InputText>
           <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
             $field.error?.message
-          }}</Message>
+            }}</Message>
         </FormField>
         <FormField v-slot="$field" name="password" class="form-field">
           <label for="password" :class="{ 'required-mark': !initialFormData.id }">
@@ -65,7 +65,7 @@
           <Password inputId="password" :feedback="false" toggleMask fluid />
           <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
             $field.error?.message
-          }}</Message>
+            }}</Message>
         </FormField>
 
         <FormField v-slot="$field" name="role" class="form-field">
@@ -73,7 +73,7 @@
           <Select inputId="role" :options="enums.RoleEnum" showClear placeholder="Select a Role" />
           <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
             $field.error?.message
-          }}</Message>
+            }}</Message>
         </FormField>
 
       </Form>
@@ -81,7 +81,7 @@
 
       <template #footer>
         <Button label="Cancel" icon="pi pi-times" severity="secondary" @click="showUserForm = false" />
-        <Button label="Save" icon="pi pi-check" @click="handleSave" />
+        <Button label="Save" icon="pi pi-check" type="submit" form="userForm" />
       </template>
     </Dialog>
 
@@ -94,15 +94,15 @@
   import { useConfirm } from 'primevue/useconfirm'
   import { useToast } from 'primevue/usetoast'
   import { FilterMatchMode } from '@primevue/core/api'
-  import { FormField } from '@primevue/forms'
   import { yupResolver } from '@primevue/forms/resolvers/yup'
   import * as yup from 'yup'
-  import { Password } from 'primevue'
+
+
 
 
   const Api = inject('Api')
   const users = ref([])
-  const initialFormData = ref({})
+  let initialFormData
   const formRef = useTemplateRef("formRef")
   const showUserForm = ref(false)
   const enums = JSON.parse(localStorage.getItem('cachedEnums')) || {}
@@ -120,7 +120,7 @@
       name: yup.string().required(),
       email: yup.string().email().required(),
       role: yup.string().required(),
-      password: initialFormData.value.id ? yup.string() : yup.string().required()
+      password: initialFormData.id ? yup.string() : yup.string().required()
     })
   ))
 
@@ -130,58 +130,51 @@
   const globalFilterFields = ['name', 'email', 'role']
 
   onMounted(async () => {
-    users.value = await Api.get('/users')
+    users.value = await Api.get('/users/')
   })
 
   function handleNew() {
-    initialFormData.value = {}
+    initialFormData = {}
     showUserForm.value = true
   }
 
   function handleEdit(currentUser) {
-    initialFormData.value = currentUser
+    initialFormData = currentUser
     showUserForm.value = true
   }
 
-  async function handleSave() {
-    const { values, errors } = await formRef.value.validate()
+  async function handleSave(e) {
 
-    if (Object.keys(errors).length !== 0) {
-      return
+    if (!e.valid) return;
+
+    let updatedFields = {};
+    Object.entries(e.states).forEach(([field, state]) => {
+      if (state.dirty) {     
+          updatedFields[field] = state.value;
+        }
+    });
+    let newData
+    if (initialFormData.id) {
+      newData = await Api.patch(`/users/${initialFormData.id}`, updatedFields)
+    } else {
+      newData = await Api.post('/users', updatedFields)
     }
 
-    try {
-      let response
-      if (initialFormData.value.id) {
-        // update user
-        response = await Api.patch(`/users/${initialFormData.value.id}`, values)
-        response = await Api.get('/users')
-        users.value = response.data
-        showUserForm.value = false
+    const index=users.value.findIndex(user=>user.id===newData.id)
+    if (index == -1) {
 
-        toast.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: response.data.message,
-          life: 3000
-        })
-      } else {
-        // add new user
-        response = await Api.post('/users', values)
-        response = await Api.get('/users')
-        users.value = response.data
-        showUserForm.value = false
-        toast.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: response.data.message,
-          life: 3000
-        })
-      }
-    } catch (err) {
-      console.log(err)
-      toast.add({ severity: 'error', summary: 'Error', detail: 'Add User Failed!' })
+      users.value.push(newData);
+
+    } else {
+      // tasks.value.splice(index, 1, newData);
+      users.value[index] = newData;
+
     }
+
+    showUserForm.value = false
+    
+
+    
   }
 
 
@@ -202,7 +195,7 @@
         severity: 'danger'
       },
       accept: async () => { await deleteUser(data.id) },
-      reject: () => { }
+      
     })
   }
 
@@ -223,4 +216,4 @@
 
 </script>
 
-<style module></style>
+

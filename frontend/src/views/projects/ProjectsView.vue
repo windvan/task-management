@@ -230,7 +230,7 @@
   const Api = inject("Api");
 
   onMounted(async () => {
-    projects.value = await Api.get("/projects");
+    projects.value = await Api.get("/projects/");
   });
 
   const splitBtnItems = [

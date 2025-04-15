@@ -32,7 +32,6 @@
   // 基础导航项配置
   const baseItems = [
 
-
     {
       label: 'Projects',
       icon: 'pi pi-folder',
@@ -100,9 +99,10 @@
   // 根据角色过滤导航项
   const items = computed(() => {
     const role = authStore.current_user?.role || 'Guest'
-    return baseItems.filter(item => {
-      return roleRoutes[role].includes(item.label)
-    })
+    const allowedRoutes = roleRoutes[role]
+    return allowedRoutes
+      .map(routeName => baseItems.find(item => item.label === routeName))
+      .filter(item => item !== undefined)
   })
 </script>
 

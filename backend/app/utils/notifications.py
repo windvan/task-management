@@ -59,5 +59,31 @@ def create_task_notification(task: dict, updates: dict, current_user_id: int):
         session.close()
 
 
-def create_comment_notification(task: dict, updates: dict, current_user_id: int):
-    pass
+def create_comment_notification(proj_name:str,task_name:str|None, comment: str, current_user_id: int, recipient_ids: list[int]):
+    if not recipient_ids:
+        return
+        
+    session = Session(engine)
+    try:
+        if task_name:
+            content = f"You were mentioned in a comment on task '{proj_name}_{task_name}':\n{comment}"
+        else:
+            content = f"You were mentioned in a comment on project '{proj_name}':\n{comment}"
+        
+        message = Message(
+            sender_id=current_user_id,
+            category=MessageCategoryEnum.Mention,
+            content=content,
+            severity=MessageSeverityEnum.Info
+        )
+
+        message.recipients = [
+            MessageRecipient(
+                recipient_id=recipient_id
+            ) for recipient_id in recipient_ids
+        ]
+
+        session.add(message)
+        session.commit()
+    finally:
+        session.close()

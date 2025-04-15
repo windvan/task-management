@@ -12,7 +12,7 @@ import logging
 from .config import settings
 from .schemas.enums import get_all_enums
 from .routers import (auth, user, sse, cro, product,
-                      project, task, note, sample, message, gap,comment)
+                      project, task, note, sample, message, gap, comment, notification)
 from .utils.dependencies import TokenDep, SessionDep
 from .schemas import *
 
@@ -44,6 +44,7 @@ app.include_router(gap.router)
 app.include_router(message.router)
 app.include_router(sse.router)
 app.include_router(comment.router)
+app.include_router(notification.router)
 
 
 app.mount('/static', StaticFiles(directory='app/statics'), name="static")

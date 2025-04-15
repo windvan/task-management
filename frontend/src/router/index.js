@@ -11,8 +11,11 @@ import SamplesView from '@/views/samples/SamplesView.vue'
 import CROsView from '@/views/cros/CROsView.vue'
 import UsersView from '@/views/users/UsersView.vue'
 import LinksView from '@/views/others/LinksView.vue'
+import NotificationCenter from '@/components/NotificationCenter.vue'
+  
+  
 const roleRoutes = {
-  admin: [
+  Admin: [
     'Dashboard',
     'Products',
     'Projects',
@@ -23,32 +26,26 @@ const roleRoutes = {
     'Setting'
   ],
   Operation: [
-    'Dashboard',
-    'Products',
-    'Projects',
+    
     'Tasks',
     'CROs',
-    'Samples',
-    'Users',
     'Setting'
   ],
   Portfolio: [
-    'Dashboard',
+    
     'Products',
     'Projects',
     'Tasks',
-    'CROs',
     'Samples',
-    'Users',
+    'Dashboard',
     'Setting'
   ],
   Science_Delivery: [
-    'Dashboard',
-    'Products',
-    'Projects',
     'Tasks',
     'CROs',
+    'Users',
     'Samples',
+    'Dashboard',
   ]
   ,
   Guest: [
@@ -64,15 +61,10 @@ const router = createRouter({
     {
       path: '/',
       component: MainLayout,
-      redirect: () => {
-        const authStore = useAuthStore();
-        console.log(authStore.current_user)
-        
-        // return roleRoutes[authStore.current_user?.role][0]?.toLowerCase();
-        return '/dashboard'
-      },
+      redirect: '/dashboard',
       meta: { requiresAuth: true },
       children: [
+        
         {
           path: 'dashboard',
           component: DashboardView,
@@ -179,4 +171,4 @@ router.beforeEach(async (to, from, next) => {
 })
 
 export default router
-export { roleRoutes}
+export { roleRoutes }

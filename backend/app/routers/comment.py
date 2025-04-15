@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, HTTPException, Depends, Response
+from fastapi import APIRouter, status, HTTPException, Depends, Response, BackgroundTasks
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import selectinload, joinedload
 from sqlmodel import select
@@ -9,17 +9,37 @@ from ..schemas.comment import ProjectComment, TaskComment, CommentsOut
 from ..schemas.task import Task
 from ..schemas.project import Project
 from ..utils.dependencies import SessionDep
+from ..utils.notifications import create_comment_notification
 
 router = APIRouter(prefix='/comments', tags=["Comment"])
 
 
 @router.post("/project")
-def create_project_comment(proj_comment: dict, session: SessionDep):
-    print('\n\n\n\n', proj_comment)
+def create_project_comment(proj_comment: dict, background_tasks: BackgroundTasks, session: SessionDep):
     db_comment = ProjectComment.model_validate(proj_comment)
     session.add(db_comment)
     session.commit()
     session.refresh(db_comment)
+
+    try:
+        # Get project name for notification
+        project_name = session.exec(
+            select(Project.project_name)
+            .where(Project.id == db_comment.project_id)
+        ).one()
+        
+        # Add notification task if there are mentions
+        if db_comment.mentions:
+            background_tasks.add_task(
+                create_comment_notification,
+                project_name,
+                None,  # task_name is None for project comments
+                db_comment.plain_text,
+                db_comment.created_by,
+                db_comment.mentions
+            )
+    except Exception as e:
+        print(f"Failed to create notification: {str(e)}")
 
     created_by_name = session.exec(select(User.name).where(
         User.id == db_comment.created_by)).one()
@@ -34,11 +54,33 @@ def create_project_comment(proj_comment: dict, session: SessionDep):
 
 
 @router.post("/task")
-def create_task_comment(task_comment: dict, session: SessionDep):
+def create_task_comment(task_comment: dict, background_tasks: BackgroundTasks, session: SessionDep):
     db_comment = TaskComment.model_validate(task_comment)
     session.add(db_comment)
     session.commit()
     session.refresh(db_comment)
+
+    try:
+        # Get task info for notification
+        related_task = session.exec(
+            select(Task.id, Task.task_name, Project.project_name)
+            .join(Task.project)
+            .where(Task.id == db_comment.task_id)
+        ).one()
+        print('\n\n\nrelated_task:',related_task)
+        # Add notification task if there are mentions
+        if db_comment.mentions:
+            background_tasks.add_task(
+                create_comment_notification,
+                related_task.project_name,
+                related_task.task_name,
+                db_comment.plain_text,
+                db_comment.created_by,
+                db_comment.mentions
+            )
+    except Exception as e:
+        # Log the error but don't fail the comment creation
+        print(f"Failed to create notification: {str(e)}")
 
     created_by_name = session.exec(select(User.name).where(
         User.id == db_comment.created_by)).one()
