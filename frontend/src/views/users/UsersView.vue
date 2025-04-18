@@ -44,7 +44,7 @@
           <InputText id="name"></InputText>
           <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
             $field.error?.message
-            }}</Message>
+          }}</Message>
         </FormField>
 
         <FormField v-slot="$field" name="email" class="form-field">
@@ -52,7 +52,7 @@
           <InputText id="email"></InputText>
           <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
             $field.error?.message
-            }}</Message>
+          }}</Message>
         </FormField>
         <FormField v-slot="$field" name="password" class="form-field">
           <label for="password" :class="{ 'required-mark': !initialFormData.id }">
@@ -65,7 +65,7 @@
           <Password inputId="password" :feedback="false" toggleMask fluid />
           <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
             $field.error?.message
-            }}</Message>
+          }}</Message>
         </FormField>
 
         <FormField v-slot="$field" name="role" class="form-field">
@@ -73,7 +73,7 @@
           <Select inputId="role" :options="enums.RoleEnum" showClear placeholder="Select a Role" />
           <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{
             $field.error?.message
-            }}</Message>
+          }}</Message>
         </FormField>
 
       </Form>
@@ -98,9 +98,8 @@
   import * as yup from 'yup'
 
 
-
-
-  const Api = inject('Api')
+  import useApi from "@/composables/useApi";
+  const Api = inject("Api")
   const users = ref([])
   let initialFormData
   const formRef = useTemplateRef("formRef")
@@ -149,9 +148,9 @@
 
     let updatedFields = {};
     Object.entries(e.states).forEach(([field, state]) => {
-      if (state.dirty) {     
-          updatedFields[field] = state.value;
-        }
+      if (state.dirty) {
+        updatedFields[field] = state.value;
+      }
     });
     let newData
     if (initialFormData.id) {
@@ -160,7 +159,7 @@
       newData = await Api.post('/users', updatedFields)
     }
 
-    const index=users.value.findIndex(user=>user.id===newData.id)
+    const index = users.value.findIndex(user => user.id === newData.id)
     if (index == -1) {
 
       users.value.push(newData);
@@ -172,9 +171,9 @@
     }
 
     showUserForm.value = false
-    
 
-    
+
+
   }
 
 
@@ -195,7 +194,7 @@
         severity: 'danger'
       },
       accept: async () => { await deleteUser(data.id) },
-      
+
     })
   }
 
@@ -215,5 +214,3 @@
   }
 
 </script>
-
-

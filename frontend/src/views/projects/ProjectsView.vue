@@ -1,29 +1,13 @@
 <template>
   <div>
-    <DataTable
-      ref="projectTableRef"
-      :value="projects"
-      v-model:selection="selectedProject"
-      v-model:expandedRows="expandedRows"
-      @rowExpand="onRowExpand"
-      scrollable
-      selectionMode="single"
-      dataKey="id"
-      paginator
-      v-model:filters="tableFilters"
-      :rows="10"
-      :rowsPerPageOptions="[5, 10, 20, 50]"
-      :globalFilterFields="globalTableFilterFields"
-      tableStyle="min-width: 50rem"
-      pt:header="px-0">
+    <DataTable ref="projectTableRef" :value="projects" v-model:selection="selectedProject"
+      v-model:expandedRows="expandedRows" @rowExpand="onRowExpand" scrollable selectionMode="single" dataKey="id"
+      paginator v-model:filters="tableFilters" :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]"
+      :globalFilterFields="globalTableFilterFields" tableStyle="min-width: 50rem" pt:header="px-0">
       <template #header>
         <Toolbar pt:start="gap-2">
           <template #start>
-            <Button
-              icon="pi pi-plus"
-              label="New"
-              @click="handleShowProjectForm('new', null)"
-              severity="secondary" />
+            <Button icon="pi pi-plus" label="New" @click="handleShowProjectForm('new', null)" severity="secondary" />
           </template>
 
           <template #center>
@@ -31,18 +15,12 @@
               <InputIcon>
                 <i class="pi pi-search" />
               </InputIcon>
-              <InputText
-                placeholder="Search"
-                v-model="tableFilters['global'].value" />
+              <InputText placeholder="Search" v-model="tableFilters['global'].value" />
             </IconField>
           </template>
 
           <template #end>
-            <SplitButton
-              severity="secondary"
-              label="Export"
-              icon="pi pi-download"
-              @click="handleExport"
+            <SplitButton severity="secondary" label="Export" icon="pi pi-download" @click="handleExport"
               :model="splitBtnItems">
             </SplitButton>
           </template>
@@ -52,35 +30,20 @@
       <Column expander frozen class="w-12" />
       <Column class="w-4 p-0 mx-auto" frozen>
         <template #body="{ data }">
-          <Button
-            severity="secondary"
-            variant="text"
-            rounded
-            size="small"
-            class="p-0"
-            icon="pi pi-comments"
+          <Button severity="secondary" variant="text" rounded size="small" class="p-0" icon="pi pi-comments"
             @click="handleShowComments(data.id)"></Button>
         </template>
       </Column>
       <Column class="w-4 p-0 mx-auto" frozen>
         <template #body="{ data, index }">
-          <Button
-            severity="secondary"
-            variant="text"
-            rounded
-            size="small"
-            class="p-0"
-            icon="pi pi-trash"
+          <Button severity="secondary" variant="text" rounded size="small" class="p-0" icon="pi pi-trash"
             @click="handleDeleteProject(data.id, index)"></Button>
         </template>
       </Column>
       <!-- <Column selectionMode="multiple" class="w-12" frozen></Column> -->
       <Column field="project_name" header="Project Name" frozen>
         <template #body="{ data }">
-          <Button
-            :label="data.project_name"
-            variant="link"
-            @click="handleShowProjectForm('edit', data)"
+          <Button :label="data.project_name" variant="link" @click="handleShowProjectForm('edit', data)"
             class="px-0 text-left text-nowrap"></Button>
         </template>
       </Column>
@@ -88,17 +51,13 @@
 
       <Column field="product_stage" header="Product Stage">
         <template #body="{ data }">
-          <Tag
-            :severity="data.product_stage >= 'stage_C' ? 'success' : 'warn'"
-            :value="data.product_stage"></Tag>
+          <Tag :severity="data.product_stage >= 'stage_C' ? 'success' : 'warn'" :value="data.product_stage"></Tag>
         </template>
       </Column>
 
       <Column field="project_status" header="Project Status">
         <template #body="{ data, field }">
-          <Tag
-            :severity="getStatusSeverity(field, data.project_status)"
-            :value="data.project_status"></Tag>
+          <Tag :severity="getStatusSeverity(field, data.project_status)" :value="data.project_status"></Tag>
         </template>
       </Column>
       <Column field="indication" header="Indication">
@@ -125,39 +84,20 @@
           <div class="flex gap-4 items-center">
             <p class="text-xl">Related Tasks</p>
 
-            <Button
-              icon="pi pi-plus"
-              rounded
-              variant="outlined"
+            <Button icon="pi pi-plus" rounded variant="outlined"
               @click="handleShowTaskForm('new', data, null)"></Button>
-            <Button
-              icon="pi pi-pencil"
-              rounded
-              variant="outlined"
-              v-if="selectedTask?.project_id === data.id"
+            <Button icon="pi pi-pencil" rounded variant="outlined" v-if="selectedTask?.project_id === data.id"
               @click="handleShowTaskForm('edit', data)"></Button>
-            <Button
-              icon=" pi pi-trash"
-              rounded
-              variant="outlined"
-              v-if="selectedTask?.project_id === data.id"
+            <Button icon=" pi pi-trash" rounded variant="outlined" v-if="selectedTask?.project_id === data.id"
               @click="handleDeleteTask(data)"></Button>
           </div>
 
-          <DataTable
-            :value="data.tasks"
-            dataKey="id"
-            scrollable
-            scrollHeight="flex"
-            selectionMode="single"
-            v-model:selection="selectedTask"
-            showGridlines>
+          <DataTable :value="data.tasks" dataKey="id" scrollable scrollHeight="flex" selectionMode="single"
+            v-model:selection="selectedTask" showGridlines>
             <!-- <Column selectionMode="single" class="w-8"></Column> -->
             <Column field="task_name" header="Task Name">
               <template #body="{ data }">
-                <Button
-                  variant="link"
-                  class="px-0 text-left text-nowrap"
+                <Button variant="link" class="px-0 text-left text-nowrap"
                   @click="handleShowTaskForm('edit', null, data)">
                   {{ data.task_name }}
                 </Button>
@@ -168,9 +108,7 @@
             <Column field="task_owner_name" header="Task Owner"></Column>
             <Column field="task_status" header="Task Status"></Column>
             <Column field="start_year" header="Start Year"></Column>
-            <Column
-              field="expected_delivery_date"
-              header="Expected Delivery Date"></Column>
+            <Column field="expected_delivery_date" header="Expected Delivery Date"></Column>
             <Column field="planned_start" header="Planned_Start"></Column>
             <Column field="expected_finish" header="Expected Finish"></Column>
             <Column field="actual_start" header="Actual Start"></Column>
@@ -194,28 +132,20 @@
     </DataTable>
     <ConfirmDialog></ConfirmDialog>
 
-    <ProjectForm
-      v-if="showProjectForm"
-      :initialFormData="initialProjectFormData"
-      @close="handleCloseProjectForm"
+    <ProjectForm v-if="showProjectForm" :initialFormData="initialProjectFormData" @close="handleCloseProjectForm"
       @refresh="handleRefreshProject">
     </ProjectForm>
-    <TaskFrom
-      v-if="showTaskFomr"
-      :initialFormData="initialTaskFormData"
-      @close="handleCloseTaskForm"
+    <TaskFrom v-if="showTaskFomr" :initialFormData="initialTaskFormData" @close="handleCloseTaskForm"
       @refresh="handleRefreshProjectTasks"></TaskFrom>
 
-    <CommentDrawer
-      v-if="showCommentDrawer"
-      v-bind="commentDrawerProps"
-      @close="handleCloseComments">
+    <CommentDrawer v-if="showCommentDrawer" v-bind="commentDrawerProps" @close="handleCloseComments">
     </CommentDrawer>
   </div>
 </template>
 
 <script setup>
   import { onMounted, inject, ref, useTemplateRef } from "vue";
+  import useApi from "@/composables/useApi";;
   import { getStatusSeverity } from "../../composables/fieldTools";
   import { useToast } from "primevue/usetoast";
   import { useConfirm } from "primevue/useconfirm";
@@ -227,7 +157,7 @@
   const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};
   const toast = useToast();
   const confirm = useConfirm();
-  const Api = inject("Api");
+  const Api = inject("Api")
 
   onMounted(async () => {
     projects.value = await Api.get("/projects/");
@@ -387,13 +317,14 @@
 
   // #region Comment Drawer
   import CommentDrawer from "./CommentDrawer.vue";
+
   const showCommentDrawer = ref(false);
   const commentDrawerProps = {};
   function handleShowComments(proj_id) {
     commentDrawerProps.targetId = proj_id;
     commentDrawerProps.targetType = "project";
     showCommentDrawer.value = true;
-    
+
   }
   function handleCloseComments() {
     showCommentDrawer.value = false;

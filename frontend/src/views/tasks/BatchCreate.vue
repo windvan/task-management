@@ -95,13 +95,14 @@
   import { inject, onMounted, ref, computed } from 'vue'
   import { yupResolver } from '@primevue/forms/resolvers/yup'
   import * as yup from 'yup'
-
+  import useApi from "@/composables/useApi";;
+  const Api = inject("Api")
 
   const visible = ref(true)
   const emit = defineEmits(['close', 'refresh'])
   const { initialFormData } = defineProps({ initialFormData: { type: Object, required: false } })
 
-  const Api = inject('Api')
+
   const enums = JSON.parse(localStorage.getItem('cachedEnums')) || {}
 
   const resolver = yupResolver(

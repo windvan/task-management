@@ -1,6 +1,6 @@
 /* Use @import in tailwindcss v4 */
-@import 'tailwindcss';
-@plugin "tailwindcss-primeui";
+@import "tailwindcss";
+@import "tailwindcss-primeui";
 
 @layer base {
   html {

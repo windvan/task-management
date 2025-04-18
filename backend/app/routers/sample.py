@@ -1,5 +1,6 @@
 from fastapi import APIRouter, status, HTTPException
 from sqlmodel import select
+from sqlalchemy import or_
 
 from app.schemas.product import Product
 from app.schemas.project import Project
@@ -41,6 +42,24 @@ def get_samples(session: SessionDep):
     db_samples = session.exec(stmt).mappings().all()
 
     return db_samples
+
+
+@router.get('/search')
+def search_projects(session: SessionDep, query: str = ""):
+    search_pattern = f"%{query}%"
+    conditions = or_(
+        Project.project_name.ilike(search_pattern),
+        Product.trade_name.ilike(search_pattern),
+        Product.internal_name.ilike(search_pattern),  # 不区分大小写的模糊匹配
+    )
+    stmt = select(
+        Sample.id,
+        Sample.sample_name,
+    ).join(Sample.product).where(conditions)
+
+    results = session.exec(stmt).mappings().all()  # 转换为字典格式
+    return results
+
 
 
 @router.delete('/{sample_id}')
@@ -106,3 +125,5 @@ def update_sample(sample_id: int, sample_update: SampleUpdate, session: SessionD
     session.commit()
     session.refresh(db_sample)
     return db_sample
+
+

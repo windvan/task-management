@@ -1,24 +1,9 @@
 <template>
-  <Dialog
-    v-model:visible="visible"
-    header="Associate Tasks"
-    :modal="true"
-    maximizable
-    @hide="emit('close')"
+  <Dialog v-model:visible="visible" header="Associate Tasks" :modal="true" maximizable @hide="emit('close')"
     style="min-width: 50rem">
-    <MultiSelect
-      v-model="selectedTasks"
-      :options="taskSuggestions"
-      filter
-      :filterFields
-      multiple
-      optionLabel="task_name"
-      placeholder="Select Tasks"
-      :maxSelectedLabels="0"
-      @show="handleShowList"
-      display="chip"
-      class="w-full mb-12"
-      filterPlaceholder="Search by product name,task name or tags">
+    <MultiSelect v-model="selectedTasks" :options="taskSuggestions" filter :filterFields multiple
+      optionLabel="task_name" placeholder="Select Tasks" :maxSelectedLabels="0" @show="handleShowList" display="chip"
+      class="w-full mb-12" filterPlaceholder="Search by product name,task name or tags">
       <template #option="{ option, index }">
         {{
           joinStrings(
@@ -66,7 +51,8 @@
   import { ref, inject, onMounted } from "vue";
   import { joinStrings } from "../../composables/strTools";
 
-  const Api = inject("Api");
+  import useApi from "@/composables/useApi";;
+  const Api = inject("Api")
   const visible = ref(true);
   const emit = defineEmits(["refresh", "close"]);
   const props = defineProps(["sample_id"]);

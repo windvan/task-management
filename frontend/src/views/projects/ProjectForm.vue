@@ -114,10 +114,12 @@
   import { yupResolver } from "@primevue/forms/resolvers/yup";
   import * as yup from "yup";
   import { AutoComplete, Select } from "primevue";
+  import useApi from "@/composables/useApi";;
+  const Api = inject("Api")
 
   const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};
   // const toast = useToast();
-  const Api = inject("Api");
+
 
   const { initialFormData } = defineProps({ initialFormData: Object });
   const emit = defineEmits(["close", "refresh"]);

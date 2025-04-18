@@ -84,10 +84,10 @@
 <script setup>
   import { useToast } from "primevue";
   import { ref, inject, onMounted } from "vue";
-  import { toLocalStr } from "../../composables/dateTools"; 
+  import { toLocalStr } from "../../composables/dateTools";
   import CommentItem from "../../components/CommentItem.vue";
   import CommentForm from "../../components/CommentForm.vue";
-  
+
   // whether the drawer is triggered from task or project
   const { targetId, targetType } = defineProps({
     targetId: {
@@ -112,7 +112,8 @@
 
   // #region new comment
   const toast = useToast();
-  const Api = inject("Api");
+  import useApi from "@/composables/useApi";;
+  const Api = inject("Api")
   const showCommentForm = ref(false);
 
   // #endregion new comment

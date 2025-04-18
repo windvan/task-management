@@ -1,26 +1,13 @@
 <script setup>
+  import { provide,onMounted } from 'vue';
   import { RouterView } from 'vue-router'
-  import { watch } from 'vue';
-  import { useErrorStore } from './stores/errorStore';
-  import { useToast } from 'primevue';
-
-  const errorStore = useErrorStore()
-  const toast = useToast()
-
-  watch(
-    () => errorStore.message,
-    (newMessage) => {
-      if (newMessage) {
-        toast.add(newMessage)
-        errorStore.resetMessage()
-      }
-    }
-  )
-  
+  import useApi from './composables/useApi';
+  onMounted(() => {
+    provide('Api', useApi())
+  })
 </script>
 
 <template>
-  <Toast position="top-center" :pt="{ summary: 'leading-4' }"></Toast>
-
+  <Toast position="top-center" />
   <RouterView />
 </template>

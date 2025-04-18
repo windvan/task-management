@@ -41,15 +41,16 @@
 <script setup>
     // can only create comment
     import { useToast } from "primevue";
+    import useApi from "@/composables/useApi";
     import { ref, inject, useTemplateRef } from 'vue'
     import { getCommentSeverity } from '@/composables/fieldTools'
     import MentionEditor from './MentionEditor.vue'
     const toast = useToast()
 
     const { targetId, targetType } = defineProps({ targetId: Number, targetType: String })
-    
-    
-    const emit = defineEmits(['refreshComment','close'])
+
+
+    const emit = defineEmits(['refreshComment', 'close'])
     // default initial value
     const newComment = ref({
         severity: 'Info',
@@ -57,11 +58,11 @@
             plain_text: null,
             rich_text: null,
             mentions: []
-        }   
+        }
     })
 
     const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};
-    const Api = inject('Api')
+    const Api = useApi
     const mentionEditorRef = useTemplateRef('mentionEditorRef')
     async function handleSave() {
 
@@ -79,7 +80,7 @@
         }
 
         const dbNewComment = await Api.post(`/comments/${targetType}`, _comment)
-        
+
         emit('refreshComment', targetType === 'project' ? 'project_comments' : 'task_comments', dbNewComment)
         emit('close')
     }

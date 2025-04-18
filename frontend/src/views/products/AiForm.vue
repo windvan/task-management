@@ -61,14 +61,15 @@
     import * as yup from 'yup'
 
     import { InputNumber, InputText, useToast } from 'primevue'
-
+    import useApi from "@/composables/useApi";;
+    const Api = inject("Api")
     const { initialFormData } = defineProps({ initialFormData: Object })
     const visible = ref(true)
     // const enums = JSON.parse(localStorage.getItem('cachedEnums')) || {}
     // const toast = useToast()
 
     const emit = defineEmits(['refresh', 'close'])
-    const Api = inject('Api')
+
 
     const resolver = yupResolver(
         yup.object().shape({
@@ -82,7 +83,7 @@
         if (!e.valid) return
         let updatedFields = { product_id: initialFormData.product_id }
         Object.entries(e.states).forEach(([field, state]) => {
-            if (state.dirty) {    
+            if (state.dirty) {
                 updatedFields[field] = state.value
             }
         })
@@ -99,7 +100,7 @@
             // new mode
             newData = await Api.post(`/products/${initialFormData.product_id}/ais`, updatedFields)
         }
-    
+
         emit('close')
         emit("refresh", initialFormData.product_id, newData)
     }

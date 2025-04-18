@@ -6,8 +6,7 @@
         <span class="font-bold text-xl">Comments</span>
         <!-- <Button v-show="(activeTab === '1' && !showCommentForm)" severity="secondary" size="small" outlined
           label="New Comment" @click="handleShowCommentForm"></Button> -->
-        <Button severity="secondary" rounded variant="text" :icon="
-            'pi pi-window-' + (position === 'full' ? 'minimize' : 'maximize')
+        <Button severity="secondary" rounded variant="text" :icon="'pi pi-window-' + (position === 'full' ? 'minimize' : 'maximize')
           " @click="togglePosition"></Button>
       </div>
     </template>
@@ -74,6 +73,8 @@
   import CommentItem from "../../components/CommentItem.vue";
   import CommentForm from "../../components/CommentForm.vue";
   import { toLocalStr } from "../../composables/dateTools";
+  import useApi from "@/composables/useApi";;
+  const Api = inject("Api")
 
   // whether the drawer is triggered from task or project
   const { targetId, targetType } = defineProps({
@@ -97,11 +98,7 @@
   }
 
   // #region new comment
-  // import { useAuthStore } from "@/stores/auth";
-  // const {currentUser} = useAuthStore();
 
-  const toast = useToast();
-  const Api = inject("Api");
 
   const showCommentForm = ref(false);
 

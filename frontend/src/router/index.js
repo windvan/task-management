@@ -32,7 +32,6 @@ const roleRoutes = {
     'Setting'
   ],
   Portfolio: [
-    
     'Products',
     'Projects',
     'Tasks',

@@ -134,7 +134,8 @@
   const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};
   const toast = useToast();
   const confirm = useConfirm();
-  const Api = inject("Api");
+  import useApi from "@/composables/useApi";;
+  const Api = inject("Api")
   const tableRef = useTemplateRef("tableRef");
 
   const products = ref([]);
@@ -226,7 +227,7 @@
     });
   }
 
-  async function handleRefreshProduct( newData) {
+  async function handleRefreshProduct(newData) {
     const index = products.value.findIndex((product) => product.id === newData.id);
     if (index === -1) {
       // products.value.push(await Api.get(`/products/${product_id}`));
@@ -235,7 +236,7 @@
       // products.value[index] = await Api.get(`/products/${product_id}`);
       products.value.splice(index, 1, newData);
     }
-     }
+  }
 
   async function onRowExpand(event) {
     event.data.ais = await Api.get(`/products/${event.data.id}/ais`);

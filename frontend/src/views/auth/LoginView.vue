@@ -17,15 +17,16 @@
             pt:pcInputText:root:autocomplete="current-password"></Password>
           <label for="password">Password</label>
         </FloatLabel>
+ 
         <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{ $field.error?.message }}
         </Message>
       </FormField>
       <Button label="Login" type="submit" rounded size="small" class="mx-8" />
       <Button label="SSO" @click="handleSSOLogin" rounded size="small" class="mx-8" severity="secondary"></Button>
     </Form>
-    <Message severity="error" v-if="loginErrorMessage">
+    <!-- <Message severity="error" v-if="loginErrorMessage">
       {{ loginErrorMessage }}
-    </Message>
+    </Message> -->
   </div>
 </template>
 
@@ -39,7 +40,7 @@
 
   const authStore = useAuthStore();
   const { login } = authStore;
-  const { loginErrorMessage } = storeToRefs(authStore);
+  // const { loginErrorMessage } = storeToRefs(authStore);
 
   const resolver = yupResolver(yup.object().shape({
     username: yup.string().email("Invalid email address!").required("Email is required!"),

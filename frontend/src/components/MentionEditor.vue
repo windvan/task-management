@@ -11,9 +11,12 @@
   import { inject, onMounted } from "vue";
   // import 'quill-mention/dist/quill.mention.css';
   import 'quill/dist/quill.snow.css';
+
+  import useApi from "@/composables/useApi";;
+  const Api = inject("Api")
   defineExpose({ reset });
 
-  const uid=generateUniqueId()
+  const uid = generateUniqueId()
   const modelValue = defineModel()
   // modelValue schema:
   // {
@@ -22,12 +25,12 @@
   //     mentions: []
   // }
 
-  const Api = inject('Api')
+
   let userSuggestion = []
   let quill
 
   onMounted(async () => {
- 
+
     const user_list = await Api.get('/users/')
     userSuggestion = user_list.map((user) => {
       return {
@@ -39,7 +42,7 @@
     })
 
     // Initialize Quill after DOM is mounted
-    quill = new Quill("#"+uid, {
+    quill = new Quill("#" + uid, {
       placeholder: 'typing @ for mentions',
       theme: "snow",
       modules: {
@@ -82,8 +85,8 @@
       }
 
       modelValue.value.rich_text = quill.getContents()
-      modelValue.value.plain_text = extractTextFromHTML(quill.getSemanticHTML().replace(/\uFEFF|&#xFEFF;/g,''))
-      
+      modelValue.value.plain_text = extractTextFromHTML(quill.getSemanticHTML().replace(/\uFEFF|&#xFEFF;/g, ''))
+
       for (const op of delta.ops) {
         if (op.insert?.mention) {
           // 这里可以处理提及的用户信息

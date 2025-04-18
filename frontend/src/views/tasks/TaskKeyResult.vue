@@ -30,7 +30,8 @@
 
 <script setup>
   import { ref, inject } from 'vue';
-  const Api = inject('Api')
+  import useApi from "@/composables/useApi";;
+  const Api = inject("Api")
   const visible = ref(true)
   const emit = defineEmits(["close", "refresh"]);
   const { content, taskId } = defineProps({ content: String, taskId: Number })

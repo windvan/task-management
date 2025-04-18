@@ -83,7 +83,9 @@
   import { useTemplateRef, ref, onMounted, inject } from "vue"
   import { toLocalStr } from "../composables/dateTools"
 
-  const Api = inject('Api')
+  import useApi from "@/composables/useApi";
+
+  const Api = inject("Api")
 
   const poRef = useTemplateRef('poRef')
   const emit = defineEmits(['close'])
@@ -96,7 +98,7 @@
   // const activeNotiCategory = ref('Reminder')
 
   const reminders = ref()
-  const updates=ref()
+  const updates = ref()
   const messages = ref() // mentions
   onMounted(async () => {
     reminders.value = await Api.get('/notifications/reminders/')

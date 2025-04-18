@@ -1,4 +1,4 @@
-import { ref} from 'vue'
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import router from '../router'
 import useApi from '../composables/useApi'
@@ -9,16 +9,16 @@ export const useAuthStore = defineStore('auth', () => {
   const Api = useApi()
   const current_user = ref(null)
   const isLoggedIn = ref(false)
-  const loginErrorMessage = ref(null)
+
 
   async function login(credentials) {
 
     try {
-      let data = await Api.post('/auth/login', credentials, { skipInterceptor: true })
+      let data = await Api.post('/auth/login', credentials)
       console.log(data)
       current_user.value = data.current_user
       isLoggedIn.value = data.isAuthenticated
-      
+
       // 获取当前路由中的 redirect 参数
       const redirect = router.currentRoute.value.query.redirect
       // 如果存在 redirect，跳转到该页面；否则跳转到首页
@@ -31,11 +31,12 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       // console.log(error)
       // use response message if responed otherwise use axios error message
-      if (error.response) {
-        loginErrorMessage.value = error.response?.data?.detail
-      } else {
-        loginErrorMessage.value = error.message
-      }
+      // if (error.response) {
+      //   loginErrorMessage.value = error.response?.data?.detail
+      // } else {
+      //   loginErrorMessage.value = error.message
+      // }
+      console.log("Login Error: ",error)
     }
   }
   async function logout() {
@@ -60,5 +61,5 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  return { login, isLoggedIn, checkAuthStatus, current_user, logout, loginErrorMessage }
+  return { login, isLoggedIn, checkAuthStatus, current_user, logout }
 })

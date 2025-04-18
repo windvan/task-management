@@ -9,8 +9,7 @@
           <InputIcon>
             <i class="pi pi-search" />
           </InputIcon>
-          <InputText v-model="filters['global'].value" placeholder="Search Sample" v-tooltip="
-              'Search by Product Name, Sample Name, Batch Number, Sealing Number'
+          <InputText v-model="filters['global'].value" placeholder="Search Sample" v-tooltip="'Search by Product Name, Sample Name, Batch Number, Sealing Number'
             " size="small" type="search" />
         </IconField>
       </template>
@@ -87,104 +86,105 @@
 </template>
 
 <script setup>
-import SampleForm from "./SampleForm.vue";
-import { useRoute } from "vue-router";
-import { onMounted, ref, inject } from "vue";
-import { FilterMatchMode } from "@primevue/core/api";
+  import SampleForm from "./SampleForm.vue";
+  import { useRoute } from "vue-router";
+  import { onMounted, ref, inject } from "vue";
+  import { FilterMatchMode } from "@primevue/core/api";
   import AddSampleTask from "./AddSampleTask.vue";
-import { toLocalStr } from "../../composables/dateTools";
-// import { useErrorStore } from "../../stores/errorStore";
-const route = useRoute();
-const Api = inject("Api");
-const sample_list = ref([]);
-const expandedRows = ref([]);
+  import { toLocalStr } from "../../composables/dateTools";
+  // import { useErrorStore } from "../../stores/errorStore";
+  const route = useRoute();
 
-// cro form use
-const selectedSample = ref();
-const showSampleForm = ref(false);
-let sampleFormData = { header: "", initialFormData: null };
+  const Api = inject("Api")
+  const sample_list = ref([]);
+  const expandedRows = ref([]);
 
-const showAddSampleTask = ref(false);
-const selectedTask = ref();
-const addSampleTaskProps = ref({ sample_id: null });
+  // cro form use
+  const selectedSample = ref();
+  const showSampleForm = ref(false);
+  let sampleFormData = { header: "", initialFormData: null };
 
-const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-});
-const globalFilterFields = [
-  "sample_name",
-  "product_name",
-  "batch_number",
-  "sealing_number",
-];
+  const showAddSampleTask = ref(false);
+  const selectedTask = ref();
+  const addSampleTaskProps = ref({ sample_id: null });
 
-onMounted(async () => {
-  
-  sample_list.value = await Api.get("/samples/");
-  filters.value.global.value = sample_list.value.find(
-    (sample) => sample.id == route.query.id
-  )?.sample_name;
-});
+  const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  });
+  const globalFilterFields = [
+    "sample_name",
+    "product_name",
+    "batch_number",
+    "sealing_number",
+  ];
 
-async function handleShowSampleForm(mode, data = null) {
-  if (mode === "new") {
-    sampleFormData.header = "Create Sample";
-    sampleFormData.initialFormData = null;
-  } else if (mode === "edit") {
-    sampleFormData.header = "Edit Sample";
-    const product = {
-      id: data.product_id,
-      internal_name: data.product_internal_name,
-    };
-    sampleFormData.initialFormData = { ...data, product: product };
+  onMounted(async () => {
+
+    sample_list.value = await Api.get("/samples/");
+    filters.value.global.value = sample_list.value.find(
+      (sample) => sample.id == route.query.id
+    )?.sample_name;
+  });
+
+  async function handleShowSampleForm(mode, data = null) {
+    if (mode === "new") {
+      sampleFormData.header = "Create Sample";
+      sampleFormData.initialFormData = null;
+    } else if (mode === "edit") {
+      sampleFormData.header = "Edit Sample";
+      const product = {
+        id: data.product_id,
+        internal_name: data.product_internal_name,
+      };
+      sampleFormData.initialFormData = { ...data, product: product };
+    }
+    // transform data here
+
+    showSampleForm.value = true;
   }
-  // transform data here
+  function handleAddSampleTask(sample_id) {
+    addSampleTaskProps.value.sample_id = sample_id;
+    showAddSampleTask.value = true;
+  }
 
-  showSampleForm.value = true;
-}
-function handleAddSampleTask(sample_id) {
-  addSampleTaskProps.value.sample_id = sample_id;
-  showAddSampleTask.value = true;
-}
+  async function handleDeleteSample(sample_id) {
+    await Api.delete(`samples/${sample_id}`);
+    sample_list.value = await Api.get("/samples/");
+    selectedSample.value = null;
+  }
 
-async function handleDeleteSample(sample_id) {
-  await Api.delete(`samples/${sample_id}`);
-  sample_list.value = await Api.get("/samples/");
-  selectedSample.value = null;
-}
-
-async function handleDeleteSampleTask(sample_id, task_id) {
-  await Api.delete(`samples/${sample_id}/tasks/${task_id}`);
-  const index = sample_list.value.findIndex(
-    (sample) => sample.id === sample_id
-  );
-  if (index !== -1) {
-    sample_list.value[index].tasks = await Api.get(
-      `samples/${sample_id}/tasks`
+  async function handleDeleteSampleTask(sample_id, task_id) {
+    await Api.delete(`samples/${sample_id}/tasks/${task_id}`);
+    const index = sample_list.value.findIndex(
+      (sample) => sample.id === sample_id
     );
+    if (index !== -1) {
+      sample_list.value[index].tasks = await Api.get(
+        `samples/${sample_id}/tasks`
+      );
+    }
+
+    selectedSample.value = null;
   }
 
-  selectedSample.value = null;
-}
+  async function handleRefreshSample() {
+    sample_list.value = await Api.get("/samples/");
+  }
 
-async function handleRefreshSample() {
-  sample_list.value = await Api.get("/samples/");
-}
+  async function onRowExpand(event) {
+    event.data.tasks = await Api.get(`samples/${event.data.id}/tasks`);
+  }
 
-async function onRowExpand(event) {
-  event.data.tasks = await Api.get(`samples/${event.data.id}/tasks`);
-}
-
-async function handleRefreshSampleTasks(Sample_id) {
-  const index = sample_list.value.findIndex(
-    (sample) => sample.id === Sample_id
-  );
-  if (index !== -1) {
-    sample_list.value[index].tasks = await Api.get(
-      `samples/${Sample_id}/tasks`
+  async function handleRefreshSampleTasks(Sample_id) {
+    const index = sample_list.value.findIndex(
+      (sample) => sample.id === Sample_id
     );
+    if (index !== -1) {
+      sample_list.value[index].tasks = await Api.get(
+        `samples/${Sample_id}/tasks`
+      );
+    }
   }
-}
 </script>
 
 <style module></style>

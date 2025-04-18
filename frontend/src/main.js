@@ -3,7 +3,7 @@ import "./assets/style.css"; /* global-css */
 import "primeicons/primeicons.css"; /* primevue-icons */
 
 // utils
-import useAxios from "./composables/useApi";
+
 import { createPinia } from "pinia";
 import router from "./router";
 
@@ -18,7 +18,9 @@ import Tooltip from "primevue/tooltip";
 import App from "./App.vue";
 import { createApp } from "vue";
 import useApi from "./composables/useApi";
-import { FormField } from "@primevue/forms";
+
+import { useToast } from "primevue";
+
 
 const MyPreset = definePreset(Aura, {
   semantic: {
@@ -44,25 +46,12 @@ const MyPreset = definePreset(Aura, {
       },
     },
   },
-  components: {
-    tooltip: {
-      color: "{red.500}",
-      background: "white",
-      maxWidth: "30rem",
-      shadow:'none'
-    },
-  },
+  
 });
 
 const app = createApp(App);
 
-app.use(createPinia());
-app.use(router);
-app.provide("Api", useApi());
-app.directive("tooltip", Tooltip);
-
-// prime vue plugin
-
+// Install PrimeVue and Toast service first
 app.use(PrimeVue, {
   theme: {
     preset: MyPreset,
@@ -70,13 +59,18 @@ app.use(PrimeVue, {
     options: {
       cssLayer: {
         name: "primevue",
-        order: "base,primevue,components,utilities",
+        order: 'theme, base, primevue',
       },
     },
   }
 });
 
-app.use(ConfirmationService);
 app.use(ToastService);
+app.use(ConfirmationService);
+app.directive("tooltip", Tooltip);
+
+app.use(createPinia());
+app.use(router);
 
 app.mount("#app");
+

@@ -81,80 +81,80 @@
 </template>
 
 <script setup>
-import CroForm from "./CroForm.vue";
-import ContactForm from "./ContactForm.vue";
-import { onMounted, ref, inject } from "vue";
-import { FilterMatchMode } from "@primevue/core/api";
-import { toLocalStr } from "../../composables/dateTools";
-// import { useErrorStore } from "../../stores/errorStore";
+  import CroForm from "./CroForm.vue";
+  import ContactForm from "./ContactForm.vue";
+  import { onMounted, ref, inject } from "vue";
+  import { FilterMatchMode } from "@primevue/core/api";
+  import { toLocalStr } from "../../composables/dateTools";
+  // import { useErrorStore } from "../../stores/errorStore";
+  import useApi from "@/composables/useApi";;
+  const Api = inject("Api")
+  const cro_list = ref([]);
+  const expandedRows = ref([]);
 
-const Api = inject("Api");
-const cro_list = ref([]);
-const expandedRows = ref([]);
+  // cro form use
+  const selectedCro = ref();
+  const showCroForm = ref(false);
+  let croFormHeaderText = "";
+  let initialCro = null;
+  // contact form use
+  const selectedContact = ref();
+  const showContactForm = ref(false);
+  let contactFormHeaderText = "";
+  let initialContact = null;
+  const targetCroID = ref();
 
-// cro form use
-const selectedCro = ref();
-const showCroForm = ref(false);
-let croFormHeaderText = "";
-let initialCro = null;
-// contact form use
-const selectedContact = ref();
-const showContactForm = ref(false);
-let contactFormHeaderText = "";
-let initialContact = null;
-const targetCroID = ref();
+  const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  });
+  const globalFilterFields = ["certification_number", "cro_name", "scope"];
 
-const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-});
-const globalFilterFields = ["certification_number", "cro_name", "scope"];
+  onMounted(async () => {
+    cro_list.value = await Api.get("/cros/");
+  });
 
-onMounted(async () => {
-  cro_list.value = await Api.get("/cros/");
-});
-
-async function onRowExpand(event) {
-  event.data.contacts = await Api.get(`cros/${event.data.id}/contacts`);
-}
-
-async function handleShowCroForm(mode, data) {
-  initialCro = mode === "new" ? {} : data;
-  showCroForm.value = true;
-}
-
-  function handleShowContactForm(mode,cro_id) {
-  initialContact = mode === "new" ? {} : selectedContact.value;
-  targetCroID.value = cro_id;
-  showContactForm.value = true;
-}
-
-async function handleDeleteContact(data) {
-  await Api.delete(`cros/contacts/${selectedContact.value.id}`);
-  data.contacts = await Api.get(`cros/${data.id}/contacts`);
-  selectedContact.value = null;
-}
-
-async function handleRefreshContact(cro_id,newData) {
-  let cro_index = cro_list.value.findIndex((obj) => (obj.id === cro_id));
-  let contact_index = cro_list.value[cro_index].contacts.findIndex(
-    (obj) => (obj.id === newData.id)
-  );
-
-  if (contact_index == -1) {
-    cro_list.value[cro_index].contacts.push(newData);
-  } else {
-    cro_list.value[cro_index].contacts[contact_index] = newData;
+  async function onRowExpand(event) {
+    event.data.contacts = await Api.get(`cros/${event.data.id}/contacts`);
   }
-}
 
-async function handleRefreshCro(newData) {
-  let index = cro_list.value.findIndex((obj) => (obj.id = newData.id));
-  if (index == -1) {
-    cro_list.value[index].push(newData);
-  } else {
-    cro_list.value[index] = newData;
+  async function handleShowCroForm(mode, data) {
+    initialCro = mode === "new" ? {} : data;
+    showCroForm.value = true;
   }
-}
+
+  function handleShowContactForm(mode, cro_id) {
+    initialContact = mode === "new" ? {} : selectedContact.value;
+    targetCroID.value = cro_id;
+    showContactForm.value = true;
+  }
+
+  async function handleDeleteContact(data) {
+    await Api.delete(`cros/contacts/${selectedContact.value.id}`);
+    data.contacts = await Api.get(`cros/${data.id}/contacts`);
+    selectedContact.value = null;
+  }
+
+  async function handleRefreshContact(cro_id, newData) {
+    let cro_index = cro_list.value.findIndex((obj) => (obj.id === cro_id));
+    let contact_index = cro_list.value[cro_index].contacts.findIndex(
+      (obj) => (obj.id === newData.id)
+    );
+
+    if (contact_index == -1) {
+      cro_list.value[cro_index].contacts.push(newData);
+    } else {
+      cro_list.value[cro_index].contacts[contact_index] = newData;
+    }
+  }
+
+  async function handleRefreshCro(newData) {
+    let index = cro_list.value.findIndex((obj) => (obj.id = newData.id));
+    if (index == -1) {
+      cro_list.value[index].push(newData);
+    } else {
+      cro_list.value[index] = newData;
+    }
+  }
 </script>
 
 <style module></style>

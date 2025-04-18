@@ -10,6 +10,8 @@
   import TaskCard from "./TaskCard.vue";
   import { useConfirm } from "primevue";
   import { toLocalStr } from "../../composables/dateTools.js";
+  import useApi from "@/composables/useApi";;
+  const Api = inject("Api")
   const confirm = useConfirm()
 
   const layout = ref("table"); // table, grid
@@ -31,7 +33,7 @@
   ];
 
   const tasks = ref();
-  const Api = inject("Api");
+
   const toast = useToast();
 
   onMounted(async () => {
@@ -126,13 +128,13 @@
     console.log("handleRefreshTasks", newData);
     const index = tasks.value.findIndex((task) => task.id === newData.id);
     if (index == -1) {
-      
+
       tasks.value.push(newData);
-      
+
     } else {
       // tasks.value.splice(index, 1, newData);
       tasks.value[index] = newData;
-      
+
     }
   }
   //# endregion Task Form
@@ -313,6 +315,16 @@
         </template>
       </Column>
       <Column rowEditor class="w-4 p-0" frozen />
+      <!-- MARK: tags -->
+      <Column v-if="visibleTaskColumns['tags']" field="tags" :header="visibleTaskColumns['tags']" sortable>
+        <template #editor="{ data, field }">
+          <InputText v-model="data[field]"></InputText>
+        </template>
+
+        <template #filter="{ filterModel }">
+          <InputText v-model="filterModel.value" type="text" />
+        </template>
+      </Column>
 
       <!-- MARK: Task Name -->
 
@@ -322,13 +334,12 @@
           <Button :label="data[field]" variant="link" @click="handleShowTaskForm('edit', data)"
             class="text-nowrap px-0"></Button>
         </template>
-        <template #editor="{ data, field }">
-          <InputText v-model="data[field]"></InputText>
-        </template>
+
         <template #filter="{ filterModel }">
           <InputText v-model="filterModel.value" type="text" placeholder="Search" />
         </template>
       </Column>
+
       <!-- MARK: Project Name -->
       <Column v-if="visibleTaskColumns['project_name']" field="project_name"
         :header="visibleTaskColumns['project_name']" sortable>
@@ -343,10 +354,7 @@
           <Tag :severity="getStatusSeverity('product_stage', data[field])" :value="data[field]"></Tag>
         </template>
       </Column>
-      <!-- MARK: Task Category -->
-      <Column v-if="visibleTaskColumns['task_category']" field="task_category"
-        :header="visibleTaskColumns['task_category']" sortable>
-      </Column>
+
       <!-- MARK: Task Status -->
       <Column v-if="visibleTaskColumns['task_status']" field="task_status" :header="visibleTaskColumns['task_status']">
         <template #body="{ data, field }">
@@ -477,6 +485,10 @@
       <!-- MARK: task_progress -->
       <Column v-if="visibleTaskColumns['task_progress']" field="task_progress"
         :header="visibleTaskColumns['task_progress']">
+        <template #editor="{ data, field }">
+          <Select :options="enums.TaskProgressEnum" v-model="data[field]" class="w-full" />
+
+        </template>
       </Column>
       <!-- MARK: planned_start -->
       <Column v-if="visibleTaskColumns['planned_start']" field="planned_start"

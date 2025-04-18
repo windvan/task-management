@@ -16,10 +16,11 @@
   import { onMounted } from 'vue';
   import { useToast } from 'primevue';
 
-  const Api = inject('Api')
+  import useApi from "@/composables/useApi";;
+  const Api = inject("Api")
   const toast = useToast()
   const isSidebarOpen = ref(true)
-  
+
   // refresh enums once refresh the page
   onMounted(async () => {
     const enums = await Api.get('/enums')  // error will be handled globally
