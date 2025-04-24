@@ -6,11 +6,12 @@
         @click="emit('toggle')"></Button>
     </div>
     <div class="flex items-center gap-4">
-     
-        <Button icon="pi pi-bell" rounded severity="secondary" class="size-8" iconClass="size-4"
-          @click="toggleNc"></Button>
-
-
+      <OverlayBadge severity="danger" v-if="notificationStore.hasNotification">
+        <Button icon="pi pi-bell" rounded severity="secondary" class="size-8" iconClass="size-4" @click="toggleNc">
+        </Button>
+      </OverlayBadge>
+      <Button v-else icon="pi pi-bell" rounded severity="secondary" class="size-8" iconClass="size-4" @click="toggleNc">
+      </Button>
 
       <Button icon="pi pi-cog" rounded severity="secondary" class="size-8" iconClass="size-4"
         @click="handleShowSettings"></Button>
@@ -27,19 +28,30 @@
 
       <Settings v-if="showSettings" @close="handleCloseSettings"></Settings>
 
-
-      <NotificationCenter ref="ncRef" v-if="showNc" @close="toggleNc"></NotificationCenter>
+      <Suspense>
+        <template #default>
+          <NotificationCenter ref="ncRef" v-if="showNc" @close="toggleNc"></NotificationCenter>
+        </template>
+        <template #fallback>
+          <div class=" rounded-full w-2"></div>
+        </template>
+      </Suspense>
     </div>
   </header>
 </template>
 
 <script setup>
-  import { nextTick, useTemplateRef, ref } from "vue"
+  import { nextTick, useTemplateRef, ref, onMounted, defineAsyncComponent } from "vue"
   import { useAuthStore } from "@/stores/authStore";
   import Settings from "./Settings.vue";
-  import NotificationCenter from './NotificationCenter.vue'
+  import { useNotificationStore } from "../stores/notificationStore";
   import { OverlayBadge } from "primevue";
 
+  const NotificationCenter = defineAsyncComponent(() =>
+    import('./NotificationCenter.vue')
+  )
+
+  const notificationStore = useNotificationStore()
   const { current_user, logout } = useAuthStore()
   const emit = defineEmits(['toggle'])
 
@@ -69,6 +81,12 @@
   // #region notification center
   const ncRef = useTemplateRef('ncRef')
   const showNc = ref(false)
+
+  onMounted(() => {
+    notificationStore.startBackgroundCheck()
+  })
+
+
   async function toggleNc(event) {
     if (showNc.value) {
       // mcRef.value.toggle(event)
@@ -82,5 +100,3 @@
   // #endregion nitification center
 
 </script>
-
-<style module></style>

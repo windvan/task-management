@@ -53,3 +53,7 @@
   background: #ddd;
   border-radius: 5px;
 }
+:root{
+  --p-button-icon-only-width:2rem;
+
+}

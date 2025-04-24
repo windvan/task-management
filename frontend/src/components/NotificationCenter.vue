@@ -82,8 +82,8 @@
 <script setup>
   import { useTemplateRef, ref, onMounted, inject } from "vue"
   import { toLocalStr } from "../composables/dateTools"
-
-  import useApi from "@/composables/useApi";
+  import { storeToRefs } from "pinia";
+  import { useNotificationStore } from "../stores/notificationStore";
 
   const Api = inject("Api")
 
@@ -94,17 +94,8 @@
   });
 
 
-  // const NotiCategory = ['Reminder', 'Update', 'Message']
-  // const activeNotiCategory = ref('Reminder')
+  const { reminders, updates, messages } = storeToRefs(useNotificationStore())
 
-  const reminders = ref()
-  const updates = ref()
-  const messages = ref() // mentions
-  onMounted(async () => {
-    reminders.value = await Api.get('/notifications/reminders/')
-    updates.value = await Api.get('/notifications/updates/')
-    messages.value = await Api.get('/notifications/messages/')
-  })
 
   async function toggleUpdateReadStatus(msg) {
     const index = updates.value.findIndex((m) => m.msg_recp_id === msg.msg_recp_id)

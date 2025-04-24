@@ -17,9 +17,6 @@ import Tooltip from "primevue/tooltip";
 // vue
 import App from "./App.vue";
 import { createApp } from "vue";
-import useApi from "./composables/useApi";
-
-import { useToast } from "primevue";
 
 
 const MyPreset = definePreset(Aura, {
