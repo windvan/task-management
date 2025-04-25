@@ -23,7 +23,8 @@ const roleRoutes = {
     'CROs',
     'Samples',
     'Users',
-    'Setting'
+    'Setting',
+    'Icons'
   ],
   Operation: [
     

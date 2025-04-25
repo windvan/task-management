@@ -46,10 +46,11 @@
   import Settings from "./Settings.vue";
   import { useNotificationStore } from "../stores/notificationStore";
   import { OverlayBadge } from "primevue";
+  import NotificationCenter from "./NotificationCenter.vue";
 
-  const NotificationCenter = defineAsyncComponent(() =>
-    import('./NotificationCenter.vue')
-  )
+  // const NotificationCenter = defineAsyncComponent(() =>
+  //   import('./NotificationCenter.vue')
+  // )
 
   const notificationStore = useNotificationStore()
   const { current_user, logout } = useAuthStore()

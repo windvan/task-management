@@ -4,7 +4,7 @@
     <!-- header -->
     <div class="flex justify-between mb-4">
       <span class="font-bold">Notifications</span>
-      <Button outlined severity="secondary" class="py-0 text-sm" @click="handleAllRead">Mark all as read</Button>
+      <Button outlined severity="secondary" class="py-0 text-sm" @click="batchRead">Mark all as read</Button>
     </div>
     <!-- category -->
 
@@ -35,41 +35,39 @@
       </TabList>
       <TabPanels pt:root=" rounded-md pt-0  h-[30rem] overflow-auto">
         <!-- reminder -->
-        <TabPanel value="0">
+        <TabPanel value="0" class="flex flex-col gap-4 pt-4">
 
-          <div class="shadow rounded-md p-2 bg-surface-100 my-4 flex items-center gap-4" v-for="reminder of reminders">
-            <Badge :class="reminder.days_remaining <= 15 ? 'bg-red-500' : 'bg-orange-400'"></Badge>
-            <p>
-              <span>{{ `Task 【 ${reminder.project_name}_${reminder.task_name}】is expected to be delivered in ` }}</span>
-              <span class="font-bold" :class="reminder.days_remaining <= 15 ? 'text-red-500' : 'text-orange-400'">{{
-                `${reminder.days_remaining} days (${toLocalStr(reminder.expected_delivery_date)})` }}</span>
-            </p>
+          <div class="rounded bg-surface-100 p-4 border"
+            :class="reminder.days_remaining <= 15 ? 'border-red-500' : 'brder-orange-400'" v-for="reminder of reminders">
+
+            <span>{{ `Task 【 ${reminder.project_name}_${reminder.task_name}】is expected to be delivered in ` }}</span>
+            <span class="font-bold" :class="reminder.days_remaining <= 15 ? 'text-red-500' : 'text-orange-400'">{{
+              `${reminder.days_remaining} days (${toLocalStr(reminder.expected_delivery_date)})` }}</span>
           </div>
         </TabPanel>
         <!-- update -->
-        <TabPanel value="1">
+        <TabPanel value="1" class="flex flex-col gap-4 pt-4">
 
-          <div v-for="msg of updates" class="rounded border-t border-surface-300 p-3 hover:bg-surface-200">
-            <div class="relative">
-              <p class="bg-surface-100 rounded-md p-2 whitespace-pre-wrap">{{ msg.content }}</p>
-              <i class="pi pi-eye absolute top-0 right-0" :class="msg.is_read ? 'text-surface-400' : 'text-primary'"
-                @click="toggleUpdateReadStatus(msg)"></i>
-            </div>
+          <div v-for="msg of updates" class="rounded bg-surface-100 p-4" :class="{'font-bold':!msg.is_read}"
+            @contextmenu="(event)=>handleItemRightClick(event,msg)">
+
+            <p class="bg-surface-100 rounded-md p-2 whitespace-pre-wrap">{{ msg.content }}</p>
+
           </div>
 
         </TabPanel>
         <!-- Message -->
-        <TabPanel value="2">
-          <div v-for="msg of messages" class="rounded border-t border-surface-300 p-3 hover:bg-surface-200">
-            <div class="relative">
-              <p class="bg-surface-100 rounded-md p-2 whitespace-pre-wrap">{{ msg.content }}</p>
-              <i class="pi pi-eye absolute top-0 right-0" :class="msg.is_read ? 'text-surface-400' : 'text-primary'"
-                @click="toggleMessageReadStatus(msg)"></i>
-            </div>
+        <TabPanel value="2" class="flex flex-col gap-4 pt-4">
+          <div v-for="msg of messages" class="rounded bg-surface-100 p-4" :class="{ 'font-bold': !msg.is_read }"
+            @contextmenu="(event)=>handleItemRightClick(event,msg)">
+            {{ msg.content }}
+            <!-- <p class="bg-surface-100 rounded-md p-2 whitespace-pre-wrap">{{ msg.content }}</p> -->
+
           </div>
 
-
         </TabPanel>
+
+        <ContextMenu ref="ctxMenuRef" :model="ctxMenu" />
       </TabPanels>
 
     </Tabs>
@@ -87,43 +85,68 @@
 
   const Api = inject("Api")
 
-  const poRef = useTemplateRef('poRef')
   const emit = defineEmits(['close'])
   defineExpose({
     toggle: (event) => poRef.value?.toggle(event),
   });
 
-
   const { reminders, updates, messages } = storeToRefs(useNotificationStore())
 
+  const poRef = useTemplateRef('poRef')
 
-  async function toggleUpdateReadStatus(msg) {
-    const index = updates.value.findIndex((m) => m.msg_recp_id === msg.msg_recp_id)
+
+  // context menu
+  const ctxMenu=ref()
+  const ctxMenuRef = useTemplateRef("ctxMenuRef")
+  function handleItemRightClick(event, msg) {
+
+    ctxMenu.value = [
+      {
+        label: 'Mark as read',
+        icon: 'pi pi-sun',
+        command: () => readMessage(msg),
+        disabled:msg.is_read
+      },
+      {
+        label: 'Mark as unread',
+        icon: 'pi pi-moon',
+        command: () => unreadMessage(msg),
+        disabled: !msg.is_read
+      }
+    ];
+
+    ctxMenuRef.value.show(event);
+
+  }
+
+
+  async function readMessage(msg) {
+    const source  =  msg.category==="Update"?updates:messages  
+      const index = source.value.findIndex((m) => m.msg_recp_id === msg.msg_recp_id)
+      if (index !== -1) {
+        await Api.patch('/notifications/read', msg.msg_recp_id)
+        source.value[index].is_read = true
+      }
+    }
+    
+  async function unreadMessage(msg) {
+    
+    const source = msg.category === "Update" ? updates : messages
+    const index = source.value.findIndex((m) => m.msg_recp_id === msg.msg_recp_id)
     if (index !== -1) {
-      await Api.patch(`/messages/read/${msg.msg_recp_id}`, {
-        is_read: !msg.is_read
-      })
-      updates.value[index].is_read = !updates.value[index].is_read
+      await Api.patch('/notifications/unread', msg.msg_recp_id )
+      source.value[index].is_read = false
     }
   }
 
-  async function toggleMessageReadStatus(msg) {
-    const index = messages.value.findIndex((m) => m.msg_recp_id === msg.msg_recp_id)
-    if (index !== -1) {
-      await Api.patch(`/messages/read/${msg.msg_recp_id}`, {
-        is_read: !msg.is_read
-      })
-      messages.value[index].is_read = !messages.value[index].is_read
-    }
-  }
 
-  async function handleAllRead() {
+  async function batchRead() {
     const unreadUpdates = updates.value.filter((msg) => !msg.is_read)
     const unreadMessagess = messages.value.filter((msg) => !msg.is_read)
     const unreadIds = [...unreadUpdates, ...unreadMessagess].map((msg) => msg.msg_recp_id)
     if (unreadIds.length > 0) {
       // update database
-      await Api.patch('/messages/batch-read', unreadIds)
+      await Api.patch('/notifications/read', unreadIds)
       // update local state
       for (const id of unreadIds) {
         const index = updates.value.findIndex((msg) => msg.msg_recp_id === id)
