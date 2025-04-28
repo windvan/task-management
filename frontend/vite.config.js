@@ -15,6 +15,9 @@ export default defineConfig({
   //     cert: fs.readFileSync('../crt.crt')
   //   }
   // },
+  build: {
+    outDir: '../backend/app/statics/frontend/dist' // 自定义输出目录，默认是 dist
+  },
 
   plugins: [
     vue(),
@@ -30,4 +33,5 @@ export default defineConfig({
     }
   },
   base: './' //打包结果中的文件引入使用相对路径
+  // base: import.meta.env.VITE_API_STATIC_BASE_URL, //打包过程中的相对路径相对于此值
 })

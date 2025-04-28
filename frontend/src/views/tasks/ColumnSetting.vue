@@ -24,7 +24,6 @@
 
 <script setup>
   import { inject, useTemplateRef, ref } from "vue";
-  import useApi from "@/composables/useApi";;
   const Api = inject("Api")
 
   const poRef = useTemplateRef("poRef");
@@ -54,10 +53,10 @@
     ["Tox Gov Approved", "tox_gov_approved"],
     ["EcoTox Gov Approved", "ecotox_gov_approved"],
 
-    ["Project Id", "project_id"],
+    // ["Project Id", "project_id"],
     ["Task Category", "task_category"],
-    ["Task Owner Id", "task_owner_id"],
-    ["Gap Id", "gap_id"],
+    // ["Task Owner Id", "task_owner_id"],
+    // ["Gap Id", "gap_id"],
     ["Cost Center", "cost_center"],
     ["Budget Confirmed", "budget_confirmed"],
     ["Doc Link", "doc_link"],
@@ -78,8 +77,8 @@
     ["Task Progress", "task_progress"],
     ["Crop", "crop"],
     ["Target", "target"],
-    ["Cro Id", "cro_id"],
-    ["Sample Id", "sample_id"],
+    // ["Cro Id", "cro_id"],
+    // ["Sample Id", "sample_id"],
     ["Study Notified", "study_notified"],
     ["Estimated Cost", "estimated_cost"],
     ["Analytes", "analytes"],
@@ -91,10 +90,10 @@
     ["Global Study Manager", "global_study_manager"],
     ["Global Study Manager Email", "global_study_manager_email"],
     ["CRO Study Director", "cro_study_director"],
-    ["Id", "id"],
+    // ["Id", "id"],
 
     ["CRO Name", "cro_name"],
-    ["Gap", "gap_id"],
+    ["Gap", "gap"],
     ["Sample Status", "sample_status"],
     ["Created At", "created_at"],
     ["Created By", "created_by"],

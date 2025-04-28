@@ -90,7 +90,7 @@
       icon: 'pi pi-user',
       command: () => { alert("command test") }
     }, {
-      label: 'test',
+      label: 'Test',
       icon: 'pi pi-user',
       route: "/test"
     },

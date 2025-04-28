@@ -24,7 +24,8 @@ const roleRoutes = {
     'Samples',
     'Users',
     'Setting',
-    'Icons'
+    'Icons',
+    'Test'
   ],
   Operation: [
     
@@ -133,10 +134,10 @@ const router = createRouter({
       component: () => import('@/views/auth/LoginView.vue')
     },
 
-    {
-      path: '/:pathMatch(.*)*',
-      component: () => import('@/views/auth/404NotFound.vue')
-    }
+    // {
+    //   path: '/:pathMatch(.*)*',
+    //   component: () => import('@/views/auth/404NotFound.vue')
+    // }
   ]
 })
 

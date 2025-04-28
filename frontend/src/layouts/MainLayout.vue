@@ -16,7 +16,6 @@
   import { onMounted } from 'vue';
   import { useToast } from 'primevue';
 
-  import useApi from "@/composables/useApi";;
   const Api = inject("Api")
   const toast = useToast()
   const isSidebarOpen = ref(true)

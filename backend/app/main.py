@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Response
+from fastapi.responses import FileResponse
 from sqlmodel import select
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -46,14 +47,14 @@ app.include_router(comment.router)
 app.include_router(notification.router)
 
 
-app.mount('/static', StaticFiles(directory='app/statics'), name="static")
+app.mount('/static', StaticFiles(directory='app/statics', html=True), name="static")
 
 
 @app.get('/', tags=['root'])
 def root(session: SessionDep):
 
     logging.info("Handling request to the root endpoint")
-    return {"message": "welcome to api docs"}
+    return {"message": "welcome to backend Apis"}
 
 
 @app.get('/schema/{model_name}', tags=['root'])

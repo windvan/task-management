@@ -1,4 +1,4 @@
-import { computed, ref, onUnmounted } from 'vue'
+import { computed, ref, onUnmounted, inject } from 'vue'
 import { defineStore } from 'pinia'
 import useApi from '../composables/useApi'
 

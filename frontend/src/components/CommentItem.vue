@@ -24,8 +24,10 @@
         </Select>
       </div>
       <!-- content -->
+
       <div class="whitespace-pre-wrap my-4 break-words">
-        {{ comment.plain_text }}
+        <!-- {{ comment.rich_text }} -->
+          <Editor v-model="comment.rich_text" readonly></Editor>
       </div>
 
       <!-- footer -->
@@ -58,7 +60,6 @@
   import MentionEditor from "./MentionEditor.vue";
   import { ref, inject } from "vue";
 
-  import useApi from "@/composables/useApi";
   const Api = inject("Api")
 
   const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};

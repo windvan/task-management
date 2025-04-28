@@ -28,14 +28,9 @@
 
       <Settings v-if="showSettings" @close="handleCloseSettings"></Settings>
 
-      <Suspense>
-        <template #default>
-          <NotificationCenter ref="ncRef" v-if="showNc" @close="toggleNc"></NotificationCenter>
-        </template>
-        <template #fallback>
-          <div class=" rounded-full w-2"></div>
-        </template>
-      </Suspense>
+
+      <NotificationCenter ref="ncRef" v-if="showNc" @close="toggleNc"></NotificationCenter>
+
     </div>
   </header>
 </template>

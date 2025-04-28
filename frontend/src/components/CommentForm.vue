@@ -41,7 +41,6 @@
 <script setup>
     // can only create comment
     import { useToast } from "primevue";
-    import useApi from "@/composables/useApi";
     import { ref, inject, useTemplateRef } from 'vue'
     import { getCommentSeverity } from '@/composables/fieldTools'
     import MentionEditor from './MentionEditor.vue'
@@ -62,7 +61,7 @@
     })
 
     const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};
-    const Api = useApi
+    const Api = inject('Api')
     const mentionEditorRef = useTemplateRef('mentionEditorRef')
     async function handleSave() {
 

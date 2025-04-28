@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { inject, ref } from 'vue'
 import { defineStore } from 'pinia'
 import router from '../router'
 import useApi from '../composables/useApi'

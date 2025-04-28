@@ -12,7 +12,6 @@
   // import 'quill-mention/dist/quill.mention.css';
   import 'quill/dist/quill.snow.css';
 
-  import useApi from "@/composables/useApi";;
   const Api = inject("Api")
   defineExpose({ reset });
 
