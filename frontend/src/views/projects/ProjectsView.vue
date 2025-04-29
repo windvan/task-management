@@ -130,7 +130,7 @@
         <p class="text-center text-primary">No Projects Found!</p>
       </template>
     </DataTable>
-    <ConfirmDialog></ConfirmDialog>
+
 
     <ProjectForm v-if="showProjectForm" :initialFormData="initialProjectFormData" @close="handleCloseProjectForm"
       @refresh="handleRefreshProject">
@@ -257,7 +257,7 @@
   const selectedTask = ref();
   function handleDeleteProjectTask(project_id, task_id) {
     confirm.require({
-      position: "top",
+      
       message: "Are you sure you want delete?",
       header: "Confirmation",
       icon: "pi pi-exclamation-triangle",

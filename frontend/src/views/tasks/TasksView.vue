@@ -611,7 +611,7 @@
       </template>
     </DataView>
 
-    <ConfirmDialog></ConfirmDialog>
+
 
     <ColumnSetting v-if="showColumnSetting" ref="columnSettingRef" :visibleTaskColumns :defaultTaskColumns
       @apply="handleApplyColumnSelection" @cancel="showColumnSetting = false">

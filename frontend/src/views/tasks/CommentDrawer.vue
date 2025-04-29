@@ -21,18 +21,17 @@
         <TabPanel value="0">
           <div v-for="node in comments?.project_comments" :key="node.id"
             class="bg-white mb-4 rounded border border-surface-200">
-            <CommentItem :comment="node" @refreshReply="handelRefreshCommentReply"
-              @toggleChild="node.showChildren = !node.showChildren"></CommentItem>
+            <CommentItem :comment="node" @refreshReply="handelRefreshCommentReply"></CommentItem>
             <TimeLine v-if="node.showChildren" :value="node.children"
-              pt:eventOpposite="grow-0 whitespace-nowrap text-sm"
-              pt:eventContent="whitespace-pre-wrap break-words border border-surface-200 rounded mb-2 mx-2"
+              pt:eventOpposite="grow-0 whitespace-nowrap text-xs" pt:eventContent="rounded mb-4 mx-2 p-0"
               pt:root="my-4">
               <template #opposite="{ item, index }">
                 <p>{{ item.created_by_name }}</p>
                 <p>{{ toLocalStr(item.created_at) }}</p>
               </template>
               <template #content="{ item, index }">
-                {{ item.plain_text }}
+                <Editor :defaultValue="item.rich_text" readonly pt:toolbar="hidden"
+                  pt:content="!rounded-md !border-none [&>.ql-editor]:!min-h-0 [&>.ql-editor]:!bg-surface-100"></Editor>
               </template>
             </TimeLine>
           </div>
@@ -45,18 +44,18 @@
             class="placeholder-surface-300 placeholder:italic mb-3" />
           <div v-for="node in comments?.task_comments" :key="node.id"
             class="bg-white mb-4 rounded border border-surface-200">
-            <CommentItem :comment="node" @refreshReply="handelRefreshCommentReply"
-              @toggleChild="node.showChildren = !node.showChildren"></CommentItem>
+
+            <CommentItem :comment="node" @refreshReply="handelRefreshCommentReply"></CommentItem>
             <TimeLine v-if="node.showChildren" :value="node.children"
-              pt:eventOpposite="grow-0 whitespace-nowrap text-sm"
-              pt:eventContent="whitespace-pre-wrap break-words border border-surface-200 rounded mb-2 mx-2"
+              pt:eventOpposite="grow-0 whitespace-nowrap text-xs" pt:eventContent="rounded mb-4 mx-2 p-0"
               pt:root="my-4">
               <template #opposite="{ item, index }">
                 <p>{{ item.created_by_name }}</p>
                 <p>{{ toLocalStr(item.created_at) }}</p>
               </template>
               <template #content="{ item, index }">
-                {{ item.plain_text }}
+                <Editor :defaultValue="item.rich_text" readonly pt:toolbar="hidden"
+                  pt:content="!rounded-md !border-none [&>.ql-editor]:!min-h-0 [&>.ql-editor]:!bg-surface-100"></Editor>
               </template>
             </TimeLine>
           </div>
@@ -73,7 +72,7 @@
   import CommentItem from "../../components/CommentItem.vue";
   import CommentForm from "../../components/CommentForm.vue";
   import { toLocalStr } from "../../composables/dateTools";
-  import useApi from "@/composables/useApi";;
+
   const Api = inject("Api")
 
   // whether the drawer is triggered from task or project
@@ -106,6 +105,9 @@
 
   // #region comment list
   const comments = ref();
+  const expandedComments = ref([]);
+
+
   onMounted(async () => {
     comments.value = await Api.get(`/comments/task/${targetId}`);
   });

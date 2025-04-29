@@ -85,7 +85,7 @@
       </template>
     </Dialog>
 
-    <ConfirmDialog></ConfirmDialog>
+
   </div>
 </template>
 
@@ -179,7 +179,7 @@
 
   function handleDelete(data) {
     confirm.require({
-      position: 'top-center',
+      
       message: 'Do you want to delete this record?',
       header: 'Deletion Confirm',
       icon: 'pi pi-info-circle',

@@ -1,14 +1,15 @@
 <template>
-  <Editor v-model="editorVal" :modules="modules" @textChange="handler" />
-
+  <Editor v-model="editorVal" :modules="modules" @textChange="handler" readonly pt:toolbar="hidden" />
+  
 </template>
 
 <script setup>
 
   import { ref } from 'vue';
 
-  const editorVal = ref()
+  const editorVal = ref("<p>abc <strong style='color:red;'>def</strong ></p>")
   const modules = {
+
     mention: {
       allowedChars: /^[A-Za-z]*$/,
       mentionDenotationChars: ["@"],

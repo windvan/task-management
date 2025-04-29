@@ -31,7 +31,7 @@
           </template>
 
           <template #end>
-            <Button icon="pi pi-cog" rounded severity="secondary" v-tooltip.top="'Select columns'"
+            <Button icon="pi pi-cog" rounded severity="secondary" title="Select columns"
               @click="toggleColsPopover"></Button>
 
             <Popover ref="colsPopoverRef" @show="onPopoverShow" pt:content="flex flex-col gap-4">
@@ -566,7 +566,7 @@
   </pre>
     </Drawer>
 
-    <ConfirmDialog></ConfirmDialog>
+
 
     <CreatTasks v-if="showCreateForm" v-model:visible="showCreateForm" @refresh="refreshTasks"></CreatTasks>
 
@@ -951,7 +951,7 @@
       return;
     }
     confirm.require({
-      position: "top",
+     
       message: "Sure to delete selected tasks?",
       header: "Confirmation",
       icon: "pi pi-exclamation-triangle",

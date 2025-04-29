@@ -2,10 +2,10 @@
   <div>
     <DataTable ref="tableRef" :value="products" v-model:selection="selectedProducts" v-model:expandedRows="expandedRows"
       @rowExpand="onRowExpand" scrollable selectionMode="single" dataKey="id" paginator v-model:filters="filters"
-      :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]" :globalFilterFields="globalFilterFields"
+      filterDisplay="menu" :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]" :globalFilterFields="globalFilterFields"
       tableStyle="min-width: 50rem" pt:header="px-0">
       <template #header>
-        <Toolbar pt:start="gap-2">
+        <Toolbar pt:start="gap-2" pt:end="gap-4">
           <template #start>
             <Button icon="pi pi-plus" label="New" @click="handleOpenProductForm('new')" severity="secondary" />
 
@@ -17,15 +17,18 @@
                 <i class="pi pi-search" />
               </InputIcon>
               <!-- , dt: { color: '{gray.900}', background: '{gray.100}', maxWidth: '30rem', shadow:'none'}  -->
-              <InputText v-tooltip.top="{ value: 'Search by Product/Trade Name, AI, Stage, A Number' }"
-                placeholder="Search" v-model="filters['global'].value" />
+              <InputText title="Search by Product/Trade Name, AI, Stage, A Number" placeholder="Search"
+                v-model="filters['global'].value" />
             </IconField>
           </template>
 
           <template #end>
-            <SplitButton severity="secondary" label="Export" icon="pi pi-download" @click="handleExport"
+            <Button :icon="'pi pi-filter' + (showFloatFilter ? '-fill' : '')" rounded severity="secondary"
+              @click="handleShowFilter"></Button>
+            <Button severity="secondary" icon="pi pi-download" label="Export" @click="handleExport"></Button>
+            <!-- <SplitButton severity=" secondary" label="Export" icon="pi pi-download" @click="handleExport"
               :model="splitBtnItems">
-            </SplitButton>
+              </SplitButton> -->
           </template>
         </Toolbar>
       </template>
@@ -37,6 +40,11 @@
           <Button :label="data.internal_name" variant="link" class="px-0"
             @click="handleOpenProductForm('edit', data)"></Button>
         </template>
+        <template #filter="{ filterModel, filterCallback }">
+          <InputText v-model="filterModel.value" @input="filterCallback()" placeholder="Search by Internal Name"
+            class="w-full" />
+        </template>
+
       </Column>
       <Column field="lead_ai" header="Lead AI"></Column>
       <Column field="stage" header="Stage">
@@ -53,7 +61,7 @@
         <template #body="{ data }">
           <span :class="{ 'font-bold text-orange-500': data.is_three_new }">{{
             data.is_three_new ? "Yes" : "No"
-          }}</span>
+            }}</span>
         </template>
       </Column>
       <Column header="Action">
@@ -105,7 +113,7 @@
 
     </DataTable>
 
-    <ConfirmDialog></ConfirmDialog>
+
 
     <!-- #region Product Form -->
     <ProductForm v-if="showProductForm" :initialFormData="initialProductFormData" @close="handleCloseProductForm"
@@ -118,6 +126,30 @@
     </AiForm>
     <!-- #endregion AI Form -->
 
+    <Dialog v-model:visible="showFloatFilter" header="Filters" :style="{ width: '25rem' }">
+      <form @submit="handleApplyFilters">
+        <div>
+          <label for="internal_name">Internal Name</label>
+          <InputText name="internal_name" id="internal_name"></InputText>
+        </div>
+        <div>
+          <label for="lead_ai">lead_ai</label>
+          <InputText name="lead_ai" id="lead_ai"></InputText>
+        </div>
+        <div>
+          <label for="stage">stage</label>
+          <Select name="stage" inputId="stage" :options="enums.StageEnum"/>
+        </div>
+
+
+        <div>
+          <Button type="submit">Apply</Button>
+          <Button>Cancel</Button>
+          <Button>Reset</Button>
+        </div>
+
+      </form>
+    </Dialog>
 
   </div>
 </template>
@@ -145,24 +177,10 @@
 
 
 
-  const splitBtnItems = [
-    { label: "Import", icon: "pi pi-upload", command: handleImport },
-  ];
+ 
 
 
-  const globalFilterFields = [
-    "internal_name",
-    "lead_ai",
-    "stage",
-    "a_number",
-    "product_name_cn",
-    "trade_name",
-  ];
-
-  const filters = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    // internal_name: { value: null, matchMode: FilterMatchMode.STARTS_WITH }
-  });
+  
 
   onMounted(async () => {
     products.value = await Api.get("/products/");
@@ -203,7 +221,7 @@
   async function handleDeleteProduct(product_id) {
 
     confirm.require({
-      position: "top",
+
       message: "Are you sure you want delete?",
       header: "Confirmation",
       icon: "pi pi-exclamation-triangle",
@@ -281,7 +299,7 @@
 
   function handleDeletePorductAi(product_id, ai_id) {
     confirm.require({
-      position: "top",
+
       message: "Are you sure you want delete?",
       header: "Confirmation",
       icon: "pi pi-exclamation-triangle",
@@ -305,6 +323,47 @@
       reject: null,
     });
   }
+
+
+  // region filter
+  const globalFilterFields = [
+    "internal_name",
+    "lead_ai",
+    "stage",
+    "a_number",
+    "product_name",
+    "product_name_cn",
+    "trade_name",
+  ];
+
+  const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    internal_name: { value: 'TYM', matchMode: FilterMatchMode.STARTS_WITH },
+    lead_ai: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    stage: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    a_number: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    trade_name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    product_name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    product_name_cn: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+
+  });
+  
+
+  const showFloatFilter = ref(false);
+  function handleShowFilter() {
+    showFloatFilter.value = !showFloatFilter.value;
+  }
+  function handleApplyFilters(event) {
+   
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    for (const [key, value] of formData.entries()) {
+      filters.value[key].value = value;
+    }
+  }
+  // endregion filter
+
 </script>
 
 

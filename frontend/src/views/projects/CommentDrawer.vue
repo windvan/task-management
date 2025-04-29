@@ -24,18 +24,17 @@
             class="placeholder-surface-300 placeholder:italic mb-3" />
           <div v-for="node in comments?.project_comments" :key="node.id"
             class="bg-white  mb-4 rounded border border-surface-200">
-            <CommentItem :comment="node" @refreshReply="handelRefreshCommentReply"
-              @toggleChild="node.showChildren = !node.showChildren"></CommentItem>
+            <CommentItem :comment="node" @refreshReply="handelRefreshCommentReply"></CommentItem>
             <TimeLine v-if="node.showChildren" :value="node.children"
-              pt:eventOpposite="grow-0 whitespace-nowrap text-sm"
-              pt:eventContent="whitespace-pre-wrap break-words border border-surface-200 rounded mb-2 mx-2"
+              pt:eventOpposite="grow-0 whitespace-nowrap text-xs" pt:eventContent="rounded mb-4 mx-2 p-0"
               pt:root="my-4">
               <template #opposite="{ item, index }">
                 <p>{{ item.created_by_name }}</p>
                 <p>{{ toLocalStr(item.created_at) }}</p>
               </template>
               <template #content="{ item, index }">
-                {{ item.plain_text }}
+                <Editor :defaultValue="item.rich_text" readonly pt:toolbar="hidden"
+                  pt:content="!rounded-md !border-none [&>.ql-editor]:!min-h-0 [&>.ql-editor]:!bg-surface-100"></Editor>
               </template>
             </TimeLine>
           </div>
@@ -43,38 +42,28 @@
         <TabPanel value="1">
           <Accordion v-model:value="activeTask">
             <AccordionPanel v-for="(task_comment, task_id) in comments?.task_comments" :key="task_id" :value="task_id">
-              <AccordionHeader>{{ task_comment[0].task_name }}</AccordionHeader>
+              <AccordionHeader class="text-primary">{{ task_comment[0].task_name }}</AccordionHeader>
               <AccordionContent>
                 <div v-for="node in task_comment" :key="node.id"
                   class="bg-white mb-6 rounded border border-surface-200">
-                  <CommentItem :comment="node" @refreshReply="handelRefreshCommentReply"
-                    @toggleChild="node.showChildren = !node.showChildren"></CommentItem>
+                  <CommentItem :comment="node" @refreshReply="handelRefreshCommentReply"></CommentItem>
                   <TimeLine v-if="node.showChildren" :value="node.children"
-                    pt:eventOpposite="grow-0 whitespace-nowrap text-sm"
-                    pt:eventContent="whitespace-pre-wrap break-words border border-surface-200 rounded mb-2 mx-2"
+                    pt:eventOpposite="grow-0 whitespace-nowrap text-sm" pt:eventContent="rounded mb-4 mx-2 p-0"
                     pt:root="my-4">
                     <template #opposite="{ item, index }">
                       <p>{{ item.created_by_name }}</p>
                       <p>{{ toLocalStr(item.created_at) }}</p>
                     </template>
                     <template #content="{ item, index }">
-                      {{ item.plain_text }}
+                      <Editor :defaultValue="item.rich_text" readonly pt:toolbar="hidden"
+                        pt:content="!rounded-md !border-none [&>.ql-editor]:!min-h-0 [&>.ql-editor]:!bg-surface-100">
+                      </Editor>
                     </template>
                   </TimeLine>
                 </div>
               </AccordionContent>
             </AccordionPanel>
           </Accordion>
-
-          <!-- <div v-for="(task_comment, task_id) in comments?.task_comments" :key="task_id">
-            <p>{{ task_comment[0].task_name }}</p>
-            <div v-for="node in task_comment" :key="node.id" class="bg-surface-100 mb-2">
-              <CommentItem :comment="node" @refreshReply="handelRefreshCommentReply"></CommentItem>
-              <div v-for="child in node.children" :key="child.id" class="ml-20">
-                <CommentItem :comment="child"></CommentItem>
-              </div>
-            </div>
-          </div> -->
         </TabPanel>
       </TabPanels>
     </Tabs>

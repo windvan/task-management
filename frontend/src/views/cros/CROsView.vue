@@ -128,14 +128,36 @@
     showContactForm.value = true;
   }
 
+  import { useConfirm } from "primevue/useconfirm";
+  const confirm = useConfirm();
   async function handleDeleteContact(data) {
-    await Api.delete(`cros/contacts/${selectedContact.value.id}`);
-    data.contacts = await Api.get(`cros/${data.id}/contacts`);
-    selectedContact.value = null;
+
+
+
+    confirm.require({
+      message: "Are you sure you want to delete this contact?",
+      header: "Delete Confirmation",
+      icon: "pi pi-exclamation-triangle",
+      acceptLabel: "Yes",
+      rejectLabel: "No",
+      acceptClass: "p-button-danger",
+      accept: async () => {
+        Api.delete(`cros/contacts/${selectedContact.value.id}`);
+        data.contacts.splice(
+          data.contacts.findIndex((obj) => (obj.id === selectedContact.value.id)),
+          1
+        );
+        selectedContact.value = null;
+      },
+    });
+
+    // await Api.delete(`cros/contacts/${selectedContact.value.id}`);
+    // data.contacts = await Api.get(`cros/${data.id}/contacts`);
+    // selectedContact.value = null;
   }
 
-  async function handleRefreshContact(cro_id, newData) {
-    let cro_index = cro_list.value.findIndex((obj) => (obj.id === cro_id));
+  async function handleRefreshContact(newData) {
+    let cro_index = cro_list.value.findIndex((obj) => (obj.id === newData.cro_id));
     let contact_index = cro_list.value[cro_index].contacts.findIndex(
       (obj) => (obj.id === newData.id)
     );
