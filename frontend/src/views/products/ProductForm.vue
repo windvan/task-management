@@ -97,7 +97,7 @@
   const { initialFormData } = defineProps({ initialFormData: Object });
 
   const emit = defineEmits(["close", "refresh"]);
-  const formRef = useTemplateRef("formRef");
+
 
   //yup resolver: (values,[names])=>{}->errors:obj
   const resolver = yupResolver(
@@ -108,16 +108,16 @@
     })
   );
 
-  async function handleSave() {
+  async function handleSave(event) {
     // only post modified form fields
     //form filed values are matained by primevue Form, no need to bind to a ref or reactive
 
-    if (!e.valid) return;
+    if (!event.valid) return;
     // distinguish add and patch through formData.id (Undefined == add)
 
     // modify current porduct
     let updatedFields = {};
-    Object.entries(formRef.value.states).forEach(([field, state]) => {
+    Object.entries(event.states).forEach(([field, state]) => {
       if (state.dirty) {
 
         updatedFields[field] = state.value;

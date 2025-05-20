@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="flex flex-row gap-4">
     <DataTable ref="tableRef" :value="products" v-model:selection="selectedProducts" v-model:expandedRows="expandedRows"
       @rowExpand="onRowExpand" scrollable selectionMode="single" dataKey="id" paginator v-model:filters="filters"
       filterDisplay="menu" :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]" :globalFilterFields="globalFilterFields"
@@ -121,35 +121,38 @@
     <!-- #endregion Product Form -->
 
     <!-- #region AI Form -->
+
     <AiForm v-if="showAiForm" :initialFormData="initialAiFormData" @close="handleCloseAiForm"
       @refresh="handleRefreshAi">
     </AiForm>
     <!-- #endregion AI Form -->
 
-    <Dialog v-model:visible="showFloatFilter" header="Filters" :style="{ width: '25rem' }">
+    <!-- #region Filter -->
+    <div v-if="showFloatFilter" class="w-50">
       <form @submit="handleApplyFilters">
-        <div>
+        <div class="flex flex-col">
           <label for="internal_name">Internal Name</label>
-          <InputText name="internal_name" id="internal_name"></InputText>
+          <InputText name="internal_name" id="internal_name" v-model="filters.internal_name.value"></InputText>
         </div>
-        <div>
+        <div class="flex flex-col">
           <label for="lead_ai">lead_ai</label>
-          <InputText name="lead_ai" id="lead_ai"></InputText>
+          <InputText name="lead_ai" id="lead_ai" v-model="filters.lead_ai.value"></InputText>
         </div>
-        <div>
+        <div class="flex flex-col">
           <label for="stage">stage</label>
-          <Select name="stage" inputId="stage" :options="enums.StageEnum"/>
+          <Select name="stage" inputId="stage" :options="enums.StageEnum" v-model="filters.stage.value" />
         </div>
 
 
-        <div>
+        <div class="flex flex-row gap-4 justify-center mt-4">
           <Button type="submit">Apply</Button>
           <Button>Cancel</Button>
           <Button>Reset</Button>
         </div>
 
       </form>
-    </Dialog>
+    </div>
+    <!-- #endregion Filter -->
 
   </div>
 </template>
@@ -175,12 +178,6 @@
   const expandedRows = ref([]);
 
 
-
-
- 
-
-
-  
 
   onMounted(async () => {
     products.value = await Api.get("/products/");
@@ -347,14 +344,14 @@
     product_name_cn: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 
   });
-  
+
 
   const showFloatFilter = ref(false);
   function handleShowFilter() {
     showFloatFilter.value = !showFloatFilter.value;
   }
   function handleApplyFilters(event) {
-   
+
     event.preventDefault();
     const form = event.target;
     const formData = new FormData(form);
