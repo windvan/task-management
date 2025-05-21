@@ -1,9 +1,9 @@
 <template>
   <div class="flex flex-row gap-4">
     <DataTable ref="tableRef" :value="products" v-model:selection="selectedProducts" v-model:expandedRows="expandedRows"
-      @rowExpand="onRowExpand" scrollable selectionMode="single" dataKey="id" paginator v-model:filters="filters"
-      filterDisplay="menu" :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]" :globalFilterFields="globalFilterFields"
-      tableStyle="min-width: 50rem" pt:header="px-0">
+      @rowExpand="onRowExpand" scrollable scrollHeight="400px" selectionMode="single" dataKey="id" paginator
+      v-model:filters="filters" filterDisplay="menu" :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]"
+      :globalFilterFields="globalFilterFields" class="min-w-[50rem] w-full" pt:header="px-0">
       <template #header>
         <Toolbar pt:start="gap-2" pt:end="gap-4">
           <template #start>
@@ -23,7 +23,7 @@
           </template>
 
           <template #end>
-            <Button :icon="'pi pi-filter' + (showFloatFilter ? '-fill' : '')" rounded severity="secondary"
+            <Button :icon="'pi pi-filter-fill'" rounded outlined :severity="btnSeverity"
               @click="handleShowFilter"></Button>
             <Button severity="secondary" icon="pi pi-download" label="Export" @click="handleExport"></Button>
             <!-- <SplitButton severity=" secondary" label="Export" icon="pi pi-download" @click="handleExport"
@@ -41,29 +41,32 @@
             @click="handleOpenProductForm('edit', data)"></Button>
         </template>
         <template #filter="{ filterModel, filterCallback }">
-          <InputText v-model="filterModel.value" @input="filterCallback()" placeholder="Search by Internal Name"
-            class="w-full" />
+          <InputText v-model="filterModel.value" @input="filterCallback()" fluid />
         </template>
 
       </Column>
-      <Column field="lead_ai" header="Lead AI"></Column>
+      <Column field="lead_ai" header="Lead AI">
+        <template #filter="{ filterModel, filterCallback }">
+          <InputText v-model="filterModel.value" @input="filterCallback()" fluid />
+        </template>
+      </Column>
       <Column field="stage" header="Stage">
         <template #body="{ data }">
           <Tag :severity="data.stage >= 'stage_C' ? 'success' : 'warn'" :value="data.stage"></Tag>
         </template>
+
+        <template #filter="{ filterModel, filterCallback }">
+          <MultiSelect inputId="stage" :options="enums.StageEnum" v-model="filterModel.value" showClear display="chip"
+            pt:header="hidden" @change="filterCallback()" />
+        </template>
+
       </Column>
       <Column field="a_number" header="A Number"></Column>
       <Column field="product_name" header="Product Name"></Column>
       <Column field="product_name_cn" header="Product Name (CN)"></Column>
       <Column field="trade_name" header="Trade Name"></Column>
       <Column field="product_origin" header="Product Origin"></Column>
-      <Column field="is_three_new" header="Three-New">
-        <template #body="{ data }">
-          <span :class="{ 'font-bold text-orange-500': data.is_three_new }">{{
-            data.is_three_new ? "Yes" : "No"
-            }}</span>
-        </template>
-      </Column>
+      
       <Column header="Action">
         <template #body="{ data }">
           <Button icon="pi pi-trash" @click="handleDeleteProduct(data.id)" rounded outlined></Button>
@@ -128,29 +131,44 @@
     <!-- #endregion AI Form -->
 
     <!-- #region Filter -->
-    <div v-if="showFloatFilter" class="w-50">
-      <form @submit="handleApplyFilters">
+    <div v-if="showFloatFilter"
+      class="w-80 py-4 pl-4 border border-surface-200 rounded bg-surface-100 flex flex-col h-full">
+      <div class="flex justify-between pr-4">
+        <span class="font-bold text-xl mb-4">Filters</span>
+        <Button icon="pi pi-times" class="p-button-rounded p-button-secondary" @click="handleShowFilter"></Button>
+      </div>
+      <div class="flex-1 overflow-y-auto flex flex-col gap-4 mb-4 pr-4">
         <div class="flex flex-col">
           <label for="internal_name">Internal Name</label>
           <InputText name="internal_name" id="internal_name" v-model="filters.internal_name.value"></InputText>
         </div>
         <div class="flex flex-col">
-          <label for="lead_ai">lead_ai</label>
+          <label for="trade_name">Trade Name</label>
+          <InputText name="trade_name" id="trade_name" v-model="filters.trade_name.value"></InputText>
+        </div>
+        <div class="flex flex-col">
+          <label for="lead_ai">Lead AI</label>
           <InputText name="lead_ai" id="lead_ai" v-model="filters.lead_ai.value"></InputText>
         </div>
         <div class="flex flex-col">
-          <label for="stage">stage</label>
-          <Select name="stage" inputId="stage" :options="enums.StageEnum" v-model="filters.stage.value" />
+          <label for="stage">Stage</label>
+          <MultiSelect name="stage" inputId="stage" :options="enums.StageEnum" v-model="filters.stage.value" showClear
+            display="chip" pt:header="hidden" />
+
         </div>
-
-
-        <div class="flex flex-row gap-4 justify-center mt-4">
-          <Button type="submit">Apply</Button>
-          <Button>Cancel</Button>
-          <Button>Reset</Button>
+        <div class="flex flex-col">
+          <label for="a_number">A number</label>
+          <InputText name="a_number" id="a_number" v-model="filters.a_number.value"></InputText>
         </div>
-
-      </form>
+        <div class="flex flex-col">
+          <label for="product_name">Product Name</label>
+          <InputText name="product_name" id="product_name" v-model="filters.product_name.value"></InputText>
+        </div>
+        <div class="flex flex-col">
+          <label for="product_name_cn">Product Name (CN)</label>
+          <InputText name="product_name_cn" id="product_name_cn" v-model="filters.product_name_cn.value"></InputText>
+        </div>
+      </div>
     </div>
     <!-- #endregion Filter -->
 
@@ -158,7 +176,7 @@
 </template>
 
 <script setup>
-  import { onMounted, inject, ref, useTemplateRef, toRaw } from "vue";
+  import { onMounted, inject, ref, useTemplateRef, toRaw, computed } from "vue";
 
   import { useToast } from "primevue/usetoast";
   import { useConfirm } from "primevue/useconfirm";
@@ -169,7 +187,8 @@
   const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};
   const toast = useToast();
   const confirm = useConfirm();
-  import useApi from "@/composables/useApi";;
+  import useApi from "@/composables/useApi"; import { MultiSelect } from "primevue";
+  ;
   const Api = inject("Api")
   const tableRef = useTemplateRef("tableRef");
 
@@ -335,30 +354,30 @@
 
   const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    internal_name: { value: 'TYM', matchMode: FilterMatchMode.STARTS_WITH },
-    lead_ai: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    stage: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    a_number: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    trade_name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    product_name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    product_name_cn: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-
+    internal_name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    lead_ai: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    stage: { value: null, matchMode: FilterMatchMode.IN },
+    a_number: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    trade_name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    product_name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    product_name_cn: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    
   });
 
 
-  const showFloatFilter = ref(false);
+  const showFloatFilter = ref(true);
   function handleShowFilter() {
     showFloatFilter.value = !showFloatFilter.value;
   }
-  function handleApplyFilters(event) {
 
-    event.preventDefault();
-    const form = event.target;
-    const formData = new FormData(form);
-    for (const [key, value] of formData.entries()) {
-      filters.value[key].value = value;
-    }
-  }
+  const btnSeverity = computed(() => {
+    let hasFilter=Object.values(filters.value).some((filter) => {
+      if (filter.value && (Array.isArray(filter.value) ? filter.value.length > 0 : filter.value.toString().trim())) {
+        return true;
+      }
+    });
+    return hasFilter ? "primary" : "secondary";
+  });
   // endregion filter
 
 </script>

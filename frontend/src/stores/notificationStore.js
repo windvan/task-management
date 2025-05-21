@@ -52,7 +52,7 @@ export const useNotificationStore = defineStore('notification', () => {
         }
     }
 
-    // Start background checking
+    // Start background checking，2 min
     function startBackgroundCheck(interval = 120000) {
         checkInterval = setInterval(backgroundCheck, interval)
     }

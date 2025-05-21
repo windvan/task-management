@@ -16,15 +16,51 @@
       <Button icon="pi pi-cog" rounded severity="secondary" class="size-8" iconClass="size-4"
         @click="handleShowSettings"></Button>
 
-      <Button :label="current_user.name" severity="secondary" class="h-8" rounded @click="toggleUc">
+      <Button :label="current_user.name" severity="secondary" size="small" rounded @click="toggleUc">
         <span class="pi pi-user text-primary"></span>
         <span class="user-name">{{ current_user.name }}</span>
       </Button>
 
 
-      <Popover ref="ucRef" appendTo="self" class="popover">
-        <Button icon="pi pi-sign-out" label="logout" severity="secondary" class="h-8" @click="logout"></Button>
+      <Popover ref="ucRef" appendTo="body" class="popover" pt:content="flex flex-col gap-2 text-left">
+        <Button icon="pi pi-sign-out" label="Logout" severity="secondary" size="small" @click="logout"
+          class=" justify-start"></Button>
+        <Button icon="pi pi-lock" label="Change Password" severity="secondary" size="small"
+          @click="showChangePassword = true" class=" justify-start"></Button>
       </Popover>
+      <Dialog v-model:visible="showChangePassword" header="Change Password" :style="{ width: '500px' }" :modal="true"
+        maximizable @hide="handleCloseSettings">
+
+        <Form id="changePasswordForm" :resolver="resolver" @submit="handleChangePassword" class="flex flex-col gap-4">
+          <FormField v-slot="$field" name="old_password" class="form-field">
+            <label for="old_password" class="required-mark">Old Password</label>
+            <InputText id="old_password" type="password" />
+            <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{ $field.error?.message }}
+            </Message>
+          </FormField>
+
+          <FormField v-slot="$field" name="new_password" class="form-field">
+            <label for="new_password" class="required-mark">New Password</label>
+            <InputText id="new_password" type="password" />
+            <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{ $field.error?.message }}
+            </Message>
+          </FormField>
+
+          <FormField v-slot="$field" name="confirm_password" class="form-field">
+            <label for="confirm_password" class="required-mark">Confirm Password</label>
+            <InputText id="confirm_password" type="password" />
+            <Message v-if="$field?.invalid" size="small" variant="simple" severity="error">{{ $field.error?.message }}
+            </Message>
+          </FormField>
+
+          <div class="flex gap-4">
+            <Button type="submit" icon="pi pi-save" label="Save" />
+            <Button icon="pi pi-times" label="Cancel" @click="showChangePassword = false" />
+          </div>
+        </Form>
+
+      </Dialog>
+
 
       <Settings v-if="showSettings" @close="handleCloseSettings"></Settings>
 
@@ -36,13 +72,13 @@
 </template>
 
 <script setup>
-  import { nextTick, useTemplateRef, ref, onMounted, defineAsyncComponent } from "vue"
+  import { nextTick, useTemplateRef, ref, onMounted, inject, onUnmounted } from "vue"
   import { useAuthStore } from "@/stores/authStore";
   import Settings from "./Settings.vue";
   import { useNotificationStore } from "../stores/notificationStore";
   import { OverlayBadge } from "primevue";
   import NotificationCenter from "./NotificationCenter.vue";
-
+  const Api = inject('Api')
   // const NotificationCenter = defineAsyncComponent(() =>
   //   import('./NotificationCenter.vue')
   // )
@@ -72,7 +108,7 @@
     showSettings.value = false
   }
 
-  // #region message center
+
 
   // #region notification center
   const ncRef = useTemplateRef('ncRef')
@@ -82,7 +118,9 @@
     notificationStore.startBackgroundCheck()
   })
 
-
+  onUnmounted(() => {
+    notificationStore.stopBackgroundCheck()
+  })
   async function toggleNc(event) {
     if (showNc.value) {
       // mcRef.value.toggle(event)
@@ -94,5 +132,34 @@
     }
   }
   // #endregion nitification center
+
+
+  // #region USER CENTER
+
+  const showChangePassword = ref(false)
+  import { yupResolver } from "@primevue/forms/resolvers/yup";
+  import * as yup from "yup";
+  const resolver = yupResolver(
+    yup.object().shape({
+      old_password: yup.string().required('Old password is required'),
+      new_password: yup.string().required('New password is required').min(8, 'Password must be at least 8 characters'),
+      confirm_password: yup.string().required().test({
+        name: "passwords-match",
+        test: function (value) {
+          return this.parent.new_password === value;
+        },
+        message: "Password must match",
+      }),
+    })
+  );
+  async function handleChangePassword(e) {
+    if (!e.valid) return;
+ 
+    await Api.post('/auth/change-password/', e.values)
+    showChangePassword.value = false
+      
+    }
+  
+  // #endregion USER CENTER
 
 </script>

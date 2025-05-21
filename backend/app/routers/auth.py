@@ -1,5 +1,5 @@
 # cookie token authentication
-from fastapi import APIRouter,  HTTPException, status
+from fastapi import APIRouter,  HTTPException, status, Body
 from fastapi.responses import JSONResponse
 from pydantic import EmailStr
 from sqlmodel import select,  SQLModel, Session
@@ -7,7 +7,7 @@ import jwt
 from datetime import datetime, timedelta, timezone
 
 from ..schemas.user import User
-from ..utils.functions import verify_password
+from ..utils.functions import get_password_hash, verify_password
 from ..utils.dependencies import SessionDep, TokenDep, CurrentUserDep
 from ..config import settings
 from ..database.db import engine
@@ -123,3 +123,31 @@ async def get_auth_status(current_user: CurrentUserDep):
 @router.post('/sso')
 def SSO_callback():
     return {"message": "SSO Callback success!"}
+
+
+@router.post('/change-password')
+def change_password(session: SessionDep, current_user: CurrentUserDep, old_password: str = Body(), new_password: str = Body(), confirm_password: str = Body()):
+    if old_password == confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password cannot be the same as old password!",
+        )
+    if new_password != confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password and confirm password do not match!",
+        )
+    if not verify_password(old_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect password!",
+        )
+    current_user.password_hash = get_password_hash(new_password)
+    session.add(current_user)
+    try:
+        session.commit()
+        session.refresh(current_user)
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"message": "Change password success!"}
