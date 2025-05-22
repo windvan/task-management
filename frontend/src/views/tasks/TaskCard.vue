@@ -3,10 +3,10 @@
     <h1 class="font-bold text-xl text-primary mb-2">
       {{ taskData.project_name }}: {{ taskData.task_name }}
     </h1>
-    <div class="flex flex-wrap gap-4">
+    <div class="flex flex-wrap gap-4 ">
       <!-- portfolio part -->
       <div
-        class="border border-surface-200 p-4 rounded grow flex flex-col gap-2"
+        class="border border-surface-200 p-4 rounded flex flex-col gap-2"
       >
         <div>
           <span class="font-bold mr-2">Project Status:</span>
@@ -55,7 +55,7 @@
       </div>
       <!-- operation part -->
       <div
-        class="border border-surface-200 p-4 rounded grow flex flex-col gap-2"
+        class="border border-surface-200 p-4 rounded  flex flex-col gap-2"
       >
         <div>
           <span class="font-bold mr-2">Budget Confirmed:</span>
@@ -97,7 +97,7 @@
       </div>
       <!-- expert part1 -->
       <div
-        class="border border-surface-200 p-4 rounded grow flex flex-col gap-2"
+        class="border border-surface-200 p-4 rounded flex flex-col gap-2"
       >
         <div>
           <span class="font-bold mr-2">Expected Delivery Date:</span>
@@ -137,7 +137,7 @@
       </div>
       <!-- expert part2 -->
       <div
-        class="border border-surface-200 p-4 rounded grow flex flex-col gap-2"
+        class="border border-surface-200 p-4 rounded flex flex-col gap-2"
       >
         <div>
           <span class="font-bold mr-2">Study Notified:</span>

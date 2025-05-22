@@ -368,7 +368,7 @@
   import { InputText, useToast } from "primevue";
   import { yupResolver } from "@primevue/forms/resolvers/yup";
   import * as yup from "yup";
-  import useApi from "@/composables/useApi"; import { FormField } from "@primevue/forms";
+
   ;
   const Api = inject("Api")
 
@@ -470,7 +470,10 @@
           updatedFields["start_year"] = parseInt(state.value, 10); //check if this is needed
         } else if (field === "task_owner") {
           updatedFields["task_owner_id"] = state.value.id;
-        } else {
+        } else if (field === "cro") {
+          updatedFields["cro_id"] = state.value.id;
+        }
+        else {
           // for other fields
           updatedFields[field] = state.value;
         }

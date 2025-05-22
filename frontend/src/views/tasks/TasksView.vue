@@ -1,6 +1,6 @@
 <script setup>
   // #region view
-  import { ref, inject, onMounted, useTemplateRef, nextTick } from "vue";
+  import { ref, computed, inject, onMounted, useTemplateRef, nextTick } from "vue";
   import { FilterMatchMode } from "@primevue/core";
   import { useToast } from "primevue/usetoast";
 
@@ -8,29 +8,15 @@
   import ColumnSetting from "./ColumnSetting.vue";
   import TaskExpansion from "./TaskExpansion.vue";
   import TaskCard from "./TaskCard.vue";
-  import { useConfirm } from "primevue";
+  import { MultiSelect, useConfirm } from "primevue";
   import { toLocalStr } from "../../composables/dateTools.js";
- 
+
   const Api = inject("Api")
   const confirm = useConfirm()
 
-  const layout = ref("table"); // table, grid
+
   const enums = JSON.parse(localStorage.getItem("cachedEnums")) || {};
-  const filters = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    task_name: { value: null, matchMode: FilterMatchMode.EQUALS },
-    project_name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    start_year: { value: null, matchMode: FilterMatchMode.EQUALS },
-  });
-  const globalFilterFields = [
-    "task_name",
-    "project_name",
-    "pi_number",
-    "tk_number",
-    "cro_name",
-    "crop",
-    "tags",
-  ];
+
 
   const tasks = ref();
 
@@ -103,8 +89,7 @@
 
   // #endregion Task Table
 
-  // #regiom Task Form
-
+  // #region Task Form
   const showTaskForm = ref(false);
 
   function handleShowTaskForm(mode, data) {
@@ -137,7 +122,7 @@
 
     }
   }
-  //# endregion Task Form
+  // #endregion Task Form
 
   // #region Batch Create
   import BatchCreate from "./BatchCreate.vue";
@@ -230,7 +215,6 @@
   }
   // #endregion Task GAP
 
-
   // #region Task Key Results
   const showTaskKeyResult = ref(false)
   const taskKeyResultProps = ref()
@@ -247,59 +231,101 @@
     tasks.value[tasks.value.findIndex(task => task.id === updatedTask.id)].key_results = updatedTask.key_results
 
   }
+
+  // #endregion Task Key Results
+
+  // #region filters
+
+
+  const globalFilterFields = [
+    "task_name",
+    "project_name",
+    "pi_number",
+    "tk_number",
+    "cro_name",
+    "tags",
+  ];
+
+  const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    tags: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    start_year: { value: null, matchMode: FilterMatchMode.EQUALS },
+    task_name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    project_name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    pi_number: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    tk_number: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    cro_name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    task_status: { value: null, matchMode: FilterMatchMode.IN },
+    product_stage: { value: null, matchMode: FilterMatchMode.IN },
+
+  });
+
+  const showFloatFilter = ref(true);
+  function handleShowFilter() {
+
+    showFloatFilter.value = !showFloatFilter.value;
+  }
+
+  const btnSeverity = computed(() => {
+    let hasFilter = Object.values(filters.value).some((filter) => {
+      if (filter.value && (Array.isArray(filter.value) ? filter.value.length > 0 : filter.value.toString().trim())) {
+        return true;
+      }
+    });
+    return hasFilter ? "primary" : "secondary";
+  });
+
+  // #endregion filters
 </script>
 
 <template>
-  <div>
-    <Toolbar pt:start="gap-2" pt:end="gap-2" class="min-w-200">
-      <template #start>
-        <SplitButton severity="secondary" label="Create" icon="pi pi-plus" @click="handleShowTaskForm('new', null)"
-          :model="[
-            {
-              label: 'Batch Create',
-              icon: 'pi pi-cart-plus',
-              command: handleShowBatchCreate,
-            },
-          ]">
-        </SplitButton>
-      </template>
+  <div class="flex flex-row gap-4">
 
-      <template #center>
-        <IconField v-tooltip.top="'Search by ' + globalFilterFields.join(',')">
-          <InputIcon>
-            <i class="pi pi-search" />
-          </InputIcon>
-          <InputText placeholder="Search" v-model="filters['global'].value" />
-        </IconField>
-      </template>
 
-      <template #end>
-        <Button :icon="'pi pi-filter' + (true ? '-fill' : '')" rounded severity="secondary"></Button>
-        <Button icon="pi pi-cog" rounded severity="secondary" v-tooltip.top="'Select columns'"
-          @click="handleToggleColumnSetting"></Button>
-
-        <SelectButton v-model="layout" :options="['table', 'grid']" :allowEmpty="false"
-          v-tooltip.top="'Toggle display table/grid'">
-          <template #option="{ option }">
-            <i :class="[option === 'grid' ? 'pi pi-bars' : 'pi pi-table']" />
-          </template>
-        </SelectButton>
-        <SplitButton severity="secondary" label="Export" icon="pi pi-download" @click="handleExportTasks" :model="[
-          {
-            label: 'Import',
-            icon: 'pi pi-upload',
-            command: handleImportTasks,
-          },
-        ]">
-        </SplitButton>
-      </template>
-    </Toolbar>
-
-    <DataTable v-if="layout === 'table'" ref="taskTableRef" :value="tasks" dataKey="id" scrollable scroll-height="flex"
-      resizable-columns column-resize-mode="expand" v-model:selection="selectedTasks" selectionMode="single"
+    <DataTable ref="taskTableRef" :value="tasks" dataKey="id" scrollable scroll-height="flex" resizable-columns
+      column-resize-mode="expand" v-model:selection="selectedTasks" selectionMode="single"
       v-model:expandedRows="expandedRows" @rowExpand="onRowExpand" v-model:editingRows="editingRows" editMode="row"
       @rowEditSave="onRowEditSave" v-model:filters="filters" filterDisplay="menu"
-      :globalFilterFields="globalFilterFields" sortMode="multiple" removableSort pt:header="px-0">
+      :globalFilterFields="globalFilterFields" pt:header="px-0" class="min-w-[50rem] w-full">
+
+      <template #header>
+        <Toolbar pt:start="gap-2" pt:end="gap-4">
+          <template #start>
+            <SplitButton severity="secondary" label="Create" icon="pi pi-plus" @click="handleShowTaskForm('new', null)"
+              :model="[
+                {
+                  label: 'Batch Create',
+                  icon: 'pi pi-cart-plus',
+                  command: handleShowBatchCreate,
+                },
+              ]">
+            </SplitButton>
+          </template>
+
+          <template #center>
+            <IconField :title="'Search by ' + globalFilterFields.join(',')">
+              <InputIcon>
+                <i class="pi pi-search" />
+              </InputIcon>
+              <InputText placeholder="Search" v-model="filters['global'].value" />
+            </IconField>
+          </template>
+
+          <template #end>
+
+            <Button icon="pi pi-cog" rounded severity="secondary" title="Select Columns"
+              @click="handleToggleColumnSetting"></Button>
+
+            <Button :icon="'pi pi-filter-fill'" rounded outlined :severity="btnSeverity"
+              @click="handleShowFilter"></Button>
+            <Button severity="secondary" icon="pi pi-download" label="Export" @click="handleExportTasks"></Button>
+
+
+          </template>
+        </Toolbar>
+      </template>
+
+
       <Column expander class="w-4 p-0" frozen />
 
       <Column class="w-4 p-0 mx-auto" frozen>
@@ -316,36 +342,27 @@
       </Column>
       <Column rowEditor class="w-4 p-0" frozen />
       <!-- MARK: tags -->
-      <Column v-if="visibleTaskColumns['tags']" field="tags" :header="visibleTaskColumns['tags']" sortable>
+      <Column v-if="visibleTaskColumns['tags']" field="tags" :header="visibleTaskColumns['tags']">
         <template #editor="{ data, field }">
           <InputText v-model="data[field]"></InputText>
         </template>
 
-        <template #filter="{ filterModel }">
-          <InputText v-model="filterModel.value" type="text" />
-        </template>
       </Column>
 
       <!-- MARK: Task Name -->
 
-      <Column v-if="visibleTaskColumns['task_name']" field="task_name" :header="visibleTaskColumns['task_name']"
-        sortable frozen>
+      <Column v-if="visibleTaskColumns['task_name']" field="task_name" :header="visibleTaskColumns['task_name']" frozen>
         <template #body="{ data, field }">
           <Button :label="data[field]" variant="link" @click="handleShowTaskForm('edit', data)"
             class="text-nowrap px-0"></Button>
         </template>
 
-        <template #filter="{ filterModel }">
-          <InputText v-model="filterModel.value" type="text" placeholder="Search" />
-        </template>
       </Column>
 
       <!-- MARK: Project Name -->
       <Column v-if="visibleTaskColumns['project_name']" field="project_name"
-        :header="visibleTaskColumns['project_name']" sortable>
-        <template #filter="{ filterModel }">
-          <InputText v-model="filterModel.value" type="text" />
-        </template>
+        :header="visibleTaskColumns['project_name']">
+
       </Column>
       <!-- MARK: Product Stage -->
       <Column v-if="visibleTaskColumns['product_stage']" field="product_stage"
@@ -365,14 +382,13 @@
         </template>
       </Column>
       <!-- MARK Start Year-->
-      <Column v-if="visibleTaskColumns['start_year']" field="start_year" :header="visibleTaskColumns['start_year']"
-        sortable>
+      <Column v-if="visibleTaskColumns['start_year']" field="start_year" :header="visibleTaskColumns['start_year']">
       </Column>
       <!-- MARK: Expected Delivery Date -->
       <Column v-if="visibleTaskColumns['expected_delivery_date']" field="expected_delivery_date"
-        :header="visibleTaskColumns['expected_delivery_date']" sortable>
+        :header="visibleTaskColumns['expected_delivery_date']">
         <template #body="{ data, field }">{{ toLocalStr(data[field])
-        }}</template>
+          }}</template>
       </Column>
       <!-- MARK: Task Owner Name -->
       <Column v-if="visibleTaskColumns['task_owner_name']" field="task_owner_name"
@@ -591,26 +607,17 @@
         </template>
       </Column>
 
-      <template #expansion="{ data, index }">
-        <TaskExpansion :task="data" />
+      <template #expansion="{ data }">
+        <TaskCard :taskData="data" />
       </template>
 
       <template #empty>
         <p class="text-center text-primary">No tasks Found!</p>
       </template>
+
+
+
     </DataTable>
-
-    <DataView v-else :value="tasks">
-      <template #list="{ items }">
-        <div class="flex flex-col gap-4">
-          <TaskCard v-for="(task, index) in items" :key="index" :taskData="task" :class="{
-            'border-t border-surface-200 dark:border-surface-700':
-              index !== 0,
-          }"></TaskCard>
-        </div>
-      </template>
-    </DataView>
-
 
 
     <ColumnSetting v-if="showColumnSetting" ref="columnSettingRef" :visibleTaskColumns :defaultTaskColumns
@@ -631,6 +638,65 @@
 
     <TaskKeyResult v-if="showTaskKeyResult" v-bind="taskKeyResultProps" @close="handleCloseTaskKeyResult"
       @refresh="handleRefreshKeyResults"></TaskKeyResult>
+
+    <!-- #region Filter -->
+    <div v-if="showFloatFilter"
+      class="w-80 py-4 pl-4 border border-surface-200 rounded bg-surface-100 flex flex-col h-full">
+      <div class="flex justify-between pr-4">
+        <span class="font-bold text-xl mb-4">Filters</span>
+        <Button icon="pi pi-times" class="p-button-rounded p-button-secondary" @click="handleShowFilter"></Button>
+      </div>
+      <div class="flex-1 overflow-y-auto flex flex-col gap-4 mb-4 pr-4">
+        <div class="flex flex-col">
+          <label for="tags">Tags</label>
+          <InputText name="tags" id="tags" v-model="filters.tags.value"></InputText>
+        </div>
+        <div class="flex flex-col">
+          <label for="start_year">Start Year</label>
+          <InputText type="number" name="start_year" id="start_year" v-model="filters.start_year.value"></InputText>
+        </div>
+        <div class="flex flex-col">
+          <label for="project_name">Project Name</label>
+          <InputText name="project_name" id="project_name" v-model="filters.project_name.value"></InputText>
+        </div>
+        <div class="flex flex-col">
+          <label for="task_name">Task Name</label>
+          <InputText name="task_name" id="task_name" v-model="filters.task_name.value"></InputText>
+        </div>
+        <div class="flex flex-col">
+          <label for="pi_number">PI Number</label>
+          <InputText name="pi_number" id="pi_number" v-model="filters.pi_number.value"></InputText>
+        </div>
+        <div class="flex flex-col">
+          <label for="tk_number">TK Number</label>
+          <InputText name="tk_number" id="tk_number" v-model="filters.tk_number.value"></InputText>
+        </div>
+
+
+        <div class="flex flex-col">
+          <label for="cro_name">CRO Name</label>
+          <MultiSelect name="cro_name" inputId="cro_name" :options="croSuggestion?.map(cro => cro.cro_name )"
+            @beforeShow="filterCroSuggestion({ query: '' })" v-model="filters.cro_name.value" forceSelection dropdown
+            showClear display="chip" pt:header="hidden" pt:pcChip:label="w-12 overflow-hidden"
+           pt:overlay="w-30 overflow-hidden"/>
+
+
+        </div>
+
+        <div class="flex flex-col">
+          <label for="task_status">Task Status</label>
+          <MultiSelect name="task_status" inputId="task_status" :options="enums.TaskStatusEnum"
+            v-model="filters.task_status.value" showClear display="chip" pt:header="hidden" />
+        </div>
+        <div class="flex flex-col">
+          <label for="product_stage">Product Stage</label>
+          <MultiSelect name="product_stage" inputId="product_stage" :options="enums.StageEnum"
+            v-model="filters.product_stage.value" showClear display="chip" pt:header="hidden" />
+        </div>
+
+      </div>
+    </div>
+    <!-- #endregion Filter -->
   </div>
 </template>
 

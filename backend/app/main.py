@@ -88,3 +88,4 @@ if __name__ == "__main__":
     #             ssl_keyfile="../key.key",
     #             ssl_certfile='../crt.crt')
     uvicorn.run("app.main:app", reload=True, app_dir=os.path.dirname(os.path.abspath(__file__)))
+    os.system("taskkill /IM {application_name}.exe /F && start {application_path}\{application_name}.exe")

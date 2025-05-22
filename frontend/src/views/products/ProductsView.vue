@@ -40,25 +40,25 @@
           <Button :label="data.internal_name" variant="link" class="px-0"
             @click="handleOpenProductForm('edit', data)"></Button>
         </template>
-        <template #filter="{ filterModel, filterCallback }">
+        <!-- <template #filter="{ filterModel, filterCallback }">
           <InputText v-model="filterModel.value" @input="filterCallback()" fluid />
-        </template>
+        </template> -->
 
       </Column>
       <Column field="lead_ai" header="Lead AI">
-        <template #filter="{ filterModel, filterCallback }">
+        <!-- <template #filter="{ filterModel, filterCallback }">
           <InputText v-model="filterModel.value" @input="filterCallback()" fluid />
-        </template>
+        </template> -->
       </Column>
       <Column field="stage" header="Stage">
         <template #body="{ data }">
           <Tag :severity="data.stage >= 'stage_C' ? 'success' : 'warn'" :value="data.stage"></Tag>
         </template>
 
-        <template #filter="{ filterModel, filterCallback }">
+        <!-- <template #filter="{ filterModel, filterCallback }">
           <MultiSelect inputId="stage" :options="enums.StageEnum" v-model="filterModel.value" showClear display="chip"
             pt:header="hidden" @change="filterCallback()" />
-        </template>
+        </template> -->
 
       </Column>
       <Column field="a_number" header="A Number"></Column>
@@ -66,7 +66,7 @@
       <Column field="product_name_cn" header="Product Name (CN)"></Column>
       <Column field="trade_name" header="Trade Name"></Column>
       <Column field="product_origin" header="Product Origin"></Column>
-      
+
       <Column header="Action">
         <template #body="{ data }">
           <Button icon="pi pi-trash" @click="handleDeleteProduct(data.id)" rounded outlined></Button>
@@ -341,7 +341,7 @@
   }
 
 
-  // region filter
+  // #region filter
   const globalFilterFields = [
     "internal_name",
     "lead_ai",
@@ -361,24 +361,24 @@
     trade_name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     product_name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     product_name_cn: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    
+
   });
 
 
-  const showFloatFilter = ref(true);
+  const showFloatFilter = ref(false);
   function handleShowFilter() {
     showFloatFilter.value = !showFloatFilter.value;
   }
 
   const btnSeverity = computed(() => {
-    let hasFilter=Object.values(filters.value).some((filter) => {
+    let hasFilter = Object.values(filters.value).some((filter) => {
       if (filter.value && (Array.isArray(filter.value) ? filter.value.length > 0 : filter.value.toString().trim())) {
         return true;
       }
     });
     return hasFilter ? "primary" : "secondary";
   });
-  // endregion filter
+  // #endregion filter
 
 </script>
 

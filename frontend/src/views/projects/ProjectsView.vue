@@ -1,11 +1,11 @@
 <template>
-  <div>
+  <div class="flex flex-row gap-4">
     <DataTable ref="projectTableRef" :value="projects" v-model:selection="selectedProject"
       v-model:expandedRows="expandedRows" @rowExpand="onRowExpand" scrollable selectionMode="single" dataKey="id"
-      paginator v-model:filters="tableFilters" :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]"
-      :globalFilterFields="globalTableFilterFields" tableStyle="min-width: 50rem" pt:header="px-0">
+      paginator v-model:filters="filters" filterDisplay="menu" :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]"
+      :globalFilterFields="globalFilterFields" class="min-w-[50rem] w-full" pt:header="px-0">
       <template #header>
-        <Toolbar pt:start="gap-2">
+        <Toolbar pt:start="gap-2" pt:end="gap-4">
           <template #start>
             <Button icon="pi pi-plus" label="New" @click="handleShowProjectForm('new', null)" severity="secondary" />
           </template>
@@ -15,14 +15,15 @@
               <InputIcon>
                 <i class="pi pi-search" />
               </InputIcon>
-              <InputText placeholder="Search" v-model="tableFilters['global'].value" />
+              <InputText placeholder="Search" v-model="filters['global'].value" />
             </IconField>
           </template>
 
           <template #end>
-            <SplitButton severity="secondary" label="Export" icon="pi pi-download" @click="handleExport"
-              :model="splitBtnItems">
-            </SplitButton>
+            <Button :icon="'pi pi-filter-fill'" rounded outlined :severity="btnSeverity"
+              @click="handleShowFilter"></Button>
+            <Button severity="secondary" icon="pi pi-download" label="Export" @click="handleExport"></Button>
+
           </template>
         </Toolbar>
       </template>
@@ -46,6 +47,7 @@
           <Button :label="data.project_name" variant="link" @click="handleShowProjectForm('edit', data)"
             class="px-0 text-left text-nowrap"></Button>
         </template>
+
       </Column>
       <!-- <Column field="product_internal_name" header="Product"></Column> -->
 
@@ -140,11 +142,44 @@
 
     <CommentDrawer v-if="showCommentDrawer" v-bind="commentDrawerProps" @close="handleCloseComments">
     </CommentDrawer>
+
+    <!-- #region Filter -->
+    <div v-if="showFloatFilter"
+      class="w-80 py-4 pl-4 border border-surface-200 rounded bg-surface-100 flex flex-col h-full">
+      <div class="flex justify-between pr-4">
+        <span class="font-bold text-xl mb-4">Filters</span>
+        <Button icon="pi pi-times" class="p-button-rounded p-button-secondary" @click="handleShowFilter"></Button>
+      </div>
+      <div class="flex-1 overflow-y-auto flex flex-col gap-4 mb-4 pr-4">
+        <div class="flex flex-col">
+          <label for="project_name">Project Name</label>
+          <InputText name="project_name" id="project_name" v-model="filters.project_name.value"></InputText>
+        </div>
+
+        <div class="flex flex-col">
+          <label for="product_stage">Product Stage</label>
+          <MultiSelect name="product_stage" inputId="product_stage" :options="enums.StageEnum"
+            v-model="filters.product_stage.value" showClear display="chip" pt:header="hidden" />
+        </div>
+        <div class="flex flex-col">
+          <label for="project_status">Project Status</label>
+          <MultiSelect name="project_status" inputId="project_status" :options="enums.ProjectStatusEnum"
+            v-model="filters.project_status.value" showClear display="chip" pt:header="hidden" />
+        </div>
+        <div class="flex flex-col">
+          <label for="indication">Indication</label>
+          <MultiSelect name="indication" inputId="indication" :options="enums.IndicationEnum"
+            v-model="filters.indication.value" showClear display="chip" pt:header="hidden" />
+        </div>
+
+      </div>
+    </div>
+    <!-- #endregion Filter -->
   </div>
 </template>
 
 <script setup>
-  import { onMounted, inject, ref, useTemplateRef } from "vue";
+  import { onMounted, computed, inject, ref, useTemplateRef } from "vue";
   import useApi from "@/composables/useApi";;
   import { getStatusSeverity } from "../../composables/fieldTools";
   import { useToast } from "primevue/usetoast";
@@ -163,9 +198,7 @@
     projects.value = await Api.get("/projects/");
   });
 
-  const splitBtnItems = [
-    { label: "Import", icon: "pi pi-upload", command: handleImport },
-  ];
+
   function handleImport() {
     toast.add({
       severity: "warn",
@@ -184,11 +217,8 @@
   const projects = ref();
   const expandedRows = ref();
   const selectedProject = ref();
-  const tableFilters = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    // internal_name: { value: null, matchMode: FilterMatchMode.STARTS_WITH }
-  });
-  const globalTableFilterFields = ["project_name", "product_id"];
+
+
 
   async function onRowExpand(event) {
     // get tasks of current project
@@ -257,7 +287,7 @@
   const selectedTask = ref();
   function handleDeleteProjectTask(project_id, task_id) {
     confirm.require({
-      
+
       message: "Are you sure you want delete?",
       header: "Confirmation",
       icon: "pi pi-exclamation-triangle",
@@ -331,6 +361,41 @@
   }
 
   // #endregion Comment Drawer
+
+  // #region filters
+
+  const globalFilterFields = [
+    "project_name",
+    "notification_entrance",
+  ];
+
+
+  const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    project_name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    product_stage: { value: null, matchMode: FilterMatchMode.IN },
+    project_status: { value: null, matchMode: FilterMatchMode.IN },
+    indication: { value: null, matchMode: FilterMatchMode.IN },
+  });
+
+
+  const showFloatFilter = ref(false);
+  function handleShowFilter() {
+    showFloatFilter.value = !showFloatFilter.value;
+  }
+
+  const btnSeverity = computed(() => {
+    let hasFilter = Object.values(filters.value).some((filter) => {
+      if (filter.value && (Array.isArray(filter.value) ? filter.value.length > 0 : filter.value.toString().trim())) {
+        return true;
+      }
+    });
+    return hasFilter ? "primary" : "secondary";
+  });
+
+  // #endregion filters
+
+
 </script>
 
 <style module></style>
